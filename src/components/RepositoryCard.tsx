@@ -100,7 +100,7 @@ const SelectionAwareButton: React.FC<SelectionAwareButtonProps> = ({
   onClick,
   ...props
 }) => {
-  const baseClasses = 'h-8 w-8 p-0 rounded-md transition-colors disabled:opacity-50';
+  const baseClasses = 'touch-target-44 sm:h-8 sm:w-8 h-9 w-9 p-0 rounded-md transition-colors disabled:opacity-50';
   const selectionClasses = selectionMode ? 'pointer-events-none' : '';
 
   const variantClasses = {
@@ -240,7 +240,11 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       // A zero width occurs during hidden/JSDOM rendering; retain all actions
       // until a real layout measurement is available.
       if (width === 0) return;
-      const capacity = Math.max(1, Math.floor((width + 6) / 38));
+      const isTouchOrMobile = typeof window !== 'undefined' && (
+        window.innerWidth < 768 || (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches)
+      );
+      const slotWidth = isTouchOrMobile ? 50 : 38;
+      const capacity = Math.max(1, Math.floor((width + 6) / slotWidth));
       if (pluginActions.actions.length > 0) {
         setVisibleGridActionCount(Math.max(0, Math.min(7, capacity - 1)));
       } else {
@@ -769,17 +773,17 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
         {viewMode === 'list' && (
           <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
             {displayContent.isAnalysisFailed ? (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20">
                   <Bot className="w-3 h-3" />
                   {language === 'zh' ? '分析失败' : 'Analysis failed'}
                 </span>
             ) : displayContent.isAnalyzed ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary border border-primary/20 dark:border-primary/20">
                 <Sparkles className="w-3 h-3" />
                 {language === 'zh' ? '已分析' : 'Analyzed'}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-muted dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground border border-border/40">
                 <Bot className="w-3 h-3" />
                 {language === 'zh' ? '待分析' : 'Not analyzed'}
               </span>
@@ -793,7 +797,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 }}
                 variant="ghost"
                 size="icon"
-                className="text-primary"
+                className="text-primary touch-target-44 sm:h-8 sm:w-8 h-9 w-9"
                 title={displayContent.isCustomized ? (language === 'zh' ? '已自定义，编辑仓库信息' : 'Customized, edit repository info') : (language === 'zh' ? '编辑仓库信息' : 'Edit repository info')}
                 aria-label={language === 'zh' ? '编辑仓库信息' : 'Edit repository info'}
               >
@@ -810,6 +814,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9"
                 title={language === 'zh' ? '更多操作' : 'More actions'}
                 aria-label={language === 'zh' ? '更多操作' : 'More actions'}
                 onClick={(event) => event.stopPropagation()}
@@ -1008,7 +1013,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(event) => selectionMode && event.preventDefault()}
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground ${selectionMode ? 'pointer-events-none opacity-50' : ''}`}
+              className={`touch-target-44 flex h-9 w-9 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground ${selectionMode ? 'pointer-events-none opacity-50' : ''}`}
               title={language === 'zh' ? '在Zread中查看' : 'View on DeepWiki'}
             >
               <BookOpen className="w-4 h-4" />
@@ -1020,7 +1025,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(event) => selectionMode && event.preventDefault()}
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground ${selectionMode ? 'pointer-events-none opacity-50' : ''}`}
+              className={`touch-target-44 flex h-9 w-9 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground ${selectionMode ? 'pointer-events-none opacity-50' : ''}`}
               title={language === 'zh' ? '在GitHub上查看' : 'View on GitHub'}
             >
               <ExternalLink className="w-4 h-4" />
@@ -1045,7 +1050,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   variant="ghost"
                   size="icon"
                   disabled={selectionMode}
-                  className="h-8 w-8 shrink-0 rounded-md bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  className="touch-target-44 h-9 w-9 sm:h-8 sm:w-8 shrink-0 rounded-md bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   aria-label={language === 'zh' ? '更多仓库操作' : 'More repository actions'}
                   title={language === 'zh' ? '更多仓库操作' : 'More repository actions'}
                 >
@@ -1103,6 +1108,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={unstarring} onSelect={() => void handleUnstar()}>
                     <StarOff className={`mr-2 h-3.5 w-3.5 ${unstarring ? 'animate-pulse' : ''}`} />
                     {language === 'zh' ? '取消 Star' : 'Unstar'}
+                  </DropdownMenuItem>
+                )}
+                {vectorSearchAvailable && (
+                  <DropdownMenuItem disabled={isFindingSimilar} onSelect={() => void handleFindSimilar()}>
+                    {isFindingSimilar ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Search className="mr-2 h-3.5 w-3.5" />}
+                    {language === 'zh' ? '查找相似仓库' : 'Find similar'}
                   </DropdownMenuItem>
                 )}
                 {pluginActions.actions.length > 0 && (
@@ -1287,7 +1298,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 e.stopPropagation();
                 onSelect(repository.id);
               }}
-              className={`flex items-center justify-center w-7 h-7 rounded-md p-0 transition-colors ${
+              className={`touch-target-44 flex items-center justify-center w-8 h-8 sm:w-7 sm:h-7 rounded-md p-0 transition-colors ${
                 isSelected
                   ? 'bg-accent text-accent-foreground'
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'

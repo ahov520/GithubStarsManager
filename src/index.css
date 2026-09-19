@@ -100,6 +100,26 @@
   .touch-manipulation {
     touch-action: manipulation;
   }
+
+  /* Touch ergonomics and safe-area insets */
+  @media (pointer: coarse), (max-width: 767px) {
+    .touch-target-44 {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 .hd-drag {

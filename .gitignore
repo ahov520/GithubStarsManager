@@ -66,3 +66,7 @@ android/build/
 android/local.properties
 *.apk
 *.aab
+
+# Multi-agent orchestrator files
+.agents/
+

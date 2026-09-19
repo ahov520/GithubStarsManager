@@ -114,11 +114,11 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
             type="button"
             variant="ghost"
             onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center space-x-2 px-3 py-2 bg-muted dark:bg-muted/40 rounded-lg hover:bg-accent dark:hover:bg-accent transition-all group"
-          title={isExpanded ? t('收起过滤器', 'Collapse filters') : t('展开过滤器', 'Expand filters')}
-          aria-expanded={isExpanded}
-          aria-controls="asset-filter-panel"
-        >
+            className="touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-2 px-3 py-2 bg-muted dark:bg-muted/40 rounded-lg hover:bg-accent dark:hover:bg-accent transition-all group"
+            title={isExpanded ? t('收起过滤器', 'Collapse filters') : t('展开过滤器', 'Expand filters')}
+            aria-expanded={isExpanded}
+            aria-controls="asset-filter-panel"
+          >
           <Filter className={`w-4 h-4 text-muted-foreground dark:text-muted-foreground transition-transform ${
             isExpanded ? 'text-primary dark:text-primary' : ''
           }`} aria-hidden="true" />
@@ -142,18 +142,18 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
             <Button
               variant="ghost"
               onClick={onClearFilters}
-              className="flex items-center space-x-1 px-2 py-1.5 text-xs text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-accent rounded-lg transition-colors"
+              className="touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-1 px-2.5 py-1.5 text-xs text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-accent rounded-lg transition-colors"
               title={t('清除所有筛选', 'Clear all filters')}
               type="button"
               aria-label={t('清除所有筛选', 'Clear all filters')}
             >
-              <X className="w-3 h-3" aria-hidden="true" />
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">{t('清除所有筛选', 'Clear all filters')}</span>
             </Button>
           )}
           <Button
             onClick={handleCreateFilter}
-            className="flex items-center space-x-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm"
+            className="touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm"
             title={t('新建过滤器', 'New Filter')}
             type="button"
             aria-label={t('新建过滤器', 'New Filter')}
@@ -193,7 +193,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                       <Button
                         variant="ghost"
                         onClick={() => handlePresetToggle(preset.id)}
-                        className="h-auto min-h-0 flex items-center space-x-1.5 p-0"
+                        className="touch-target-44 sm:min-h-0 sm:min-w-0 h-auto min-h-0 flex items-center space-x-1.5 p-0"
                         title={preset.keywords.join(', ')}
                         type="button"
                         aria-pressed={isSelected}
@@ -202,11 +202,11 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                         <span>{preset.name}</span>
                       </Button>
 
-                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity ml-1">
+                      <div className="flex items-center space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity ml-1">
                         <Button
                           variant="ghost"
                           onClick={() => handleEditFilter(preset)}
-                          className="h-6 w-6 rounded p-0 hover:bg-accent hover:text-accent-foreground transition-colors"
+                          className="touch-target-44 sm:min-h-0 sm:min-w-0 h-6 w-6 rounded p-0 hover:bg-accent hover:text-accent-foreground transition-colors"
                           title={t('编辑', 'Edit')}
                           type="button"
                           aria-label={t('编辑', 'Edit')}
@@ -240,7 +240,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                     <Button
                       variant="ghost"
                       onClick={() => onFilterToggle(filter.id)}
-                      className="h-auto min-h-0 flex flex-1 items-center justify-start space-x-2 p-0"
+                      className="touch-target-44 sm:min-h-0 sm:min-w-0 h-auto min-h-0 flex flex-1 items-center justify-start space-x-2 p-0"
                       aria-pressed={selectedFilters.includes(filter.id)}
                       aria-label={`${filter.name} (${filter.keywords.join(', ')})`}
                       title={`${filter.name} (${filter.keywords.join(', ')})`}
@@ -252,11 +252,11 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                       </span>
                     </Button>
                     
-                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         onClick={() => handleEditFilter(filter)}
-                        className="h-6 w-6 rounded p-0 hover:bg-accent dark:hover:bg-accent transition-colors"
+                        className="touch-target-44 sm:min-h-0 sm:min-w-0 h-6 w-6 rounded p-0 hover:bg-accent dark:hover:bg-accent transition-colors"
                         title={t('编辑', 'Edit')}
                         type="button"
                         aria-label={t('编辑', 'Edit')}
@@ -266,7 +266,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                       <Button
                         variant="destructive"
                         onClick={() => handleDeleteFilter(filter.id)}
-                        className="h-6 w-6 rounded p-0 transition-colors"
+                        className="touch-target-44 sm:min-h-0 sm:min-w-0 h-6 w-6 rounded p-0 transition-colors"
                         title={t('删除', 'Delete')}
                         type="button"
                         aria-label={t('删除', 'Delete')}

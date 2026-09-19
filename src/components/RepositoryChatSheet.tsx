@@ -310,7 +310,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-[min(100vw-1rem,48rem)] sm:max-w-none"
+        className="w-[min(100vw-1rem,48rem)] sm:max-w-none safe-area-bottom"
         closeLabel={t('关闭仓库问答', 'Close repository chat')}
         onPointerDownOutside={(event) => {
           event.preventDefault();
@@ -540,7 +540,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
         </div>
 
         <form
-          className="border-t border-border pt-3"
+          className="border-t border-border pt-3 pb-safe"
           onSubmit={handleSubmit}
         >
           <p role="status" className="sr-only">{statusAnnouncement}</p>
@@ -551,15 +551,15 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder={t('例如：这个仓库是做什么的？如何安装和使用？', 'For example: What does this repository do? How do I install and use it?')}
-              className="min-h-20 resize-y text-sm"
+              className="min-h-20 resize-y text-base md:text-sm"
               disabled={!activeSession || !canChat || isSending}
             />
             {isSending ? (
-              <Button type="button" size="icon" variant="secondary" onClick={stop} aria-label={t('停止生成', 'Stop generating')} title={t('停止生成', 'Stop generating')}>
+              <Button type="button" size="icon" variant="secondary" onClick={stop} aria-label={t('停止生成', 'Stop generating')} title={t('停止生成', 'Stop generating')} className="touch-target-44 sm:size-9 size-10 shrink-0">
                 <Square className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             ) : (
-              <Button type="submit" size="icon" disabled={!activeSession || !canChat || !draft.trim()} aria-label={t('发送问题', 'Send question')} title={t('发送问题', 'Send question')}>
+              <Button type="submit" size="icon" disabled={!activeSession || !canChat || !draft.trim()} aria-label={t('发送问题', 'Send question')} title={t('发送问题', 'Send question')} className="touch-target-44 sm:size-9 size-10 shrink-0">
                 <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
@@ -567,7 +567,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
           <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" disabled={!activeSession || isSending} title={depth.description}>
+                <Button type="button" variant="ghost" size="sm" className="touch-target-44 sm:h-7 sm:min-h-0 sm:min-w-0 h-8 px-2 text-xs text-muted-foreground" disabled={!activeSession || isSending} title={depth.description}>
                   <Gauge className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                   {t('任务深度', 'Task depth')}：{depth.label}
                   <ChevronDown className="ml-1 h-3 w-3" aria-hidden="true" />
@@ -596,7 +596,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
-            {!isSending && lastMessage?.role === 'assistant' && (lastMessage.status === 'error' || lastMessage.status === 'aborted') && <Button type="button" variant="ghost" size="sm" className="h-7 px-2" onClick={() => void retry()}><RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{t('重试', 'Retry')}</Button>}
+            {!isSending && lastMessage?.role === 'assistant' && (lastMessage.status === 'error' || lastMessage.status === 'aborted') && <Button type="button" variant="ghost" size="sm" className="touch-target-44 sm:h-7 sm:min-h-0 sm:min-w-0 h-8 px-2" onClick={() => void retry()}><RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{t('重试', 'Retry')}</Button>}
           </div>
         </form>
       </SheetContent>

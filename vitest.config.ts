@@ -12,6 +12,7 @@ export default defineConfig({
       },
     },
     include: ['src/**/*.test.{ts,tsx}'],
+    maxWorkers: 6,
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],

@@ -56,7 +56,7 @@ export const Header: React.FC = () => {
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
 
   return (
-    <header className="linear-header sticky top-0 z-50 hd-drag lg:hd-drag relative">
+    <header className="linear-header sticky top-0 z-50 hd-drag lg:hd-drag relative pt-[env(safe-area-inset-top,0px)]">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="linear-header-inner flex h-14 items-center justify-between">
           {/* Logo and Title */}
@@ -116,7 +116,7 @@ export const Header: React.FC = () => {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="touch-target-44 md:hidden"
                 aria-label={t('菜单', 'Menu')}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -154,6 +154,7 @@ export const Header: React.FC = () => {
                   type="button"
                   variant="ghost"
                   size="icon"
+                  className="touch-target-44"
                   onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                   aria-label={t('切换主题', 'Toggle theme')}
                 >
@@ -182,6 +183,7 @@ export const Header: React.FC = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      className="touch-target-44"
                       onClick={async () => {
                         const confirmed = await confirm(
                           t('退出登录确认', 'Logout Confirmation'),

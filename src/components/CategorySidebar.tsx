@@ -8,7 +8,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Undo2,
+  FolderTree,
+  X,
 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
 import { Category, Repository } from '../types';
 import { useAppStore, getAllCategories, sortCategoriesByOrder } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -68,6 +71,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   // 用于防止拖拽后触发点击的标志
   const justDroppedRef = useRef(false);
   const dropTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -365,31 +369,52 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
 
   return (
     <>
-      {/* 移动端：始终显示完整侧栏 */}
+      {/* 移动端：紧凑可折叠抽屉式分类栏 (<1024px) */}
       {isMobile ? (
-        <div className="w-full overflow-hidden rounded-md border border-border bg-card p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-card-foreground">
-              {t('应用分类', 'Categories')}
-            </h2>
+        <div className="w-full rounded-xl border border-border/80 bg-card p-3 shadow-sm transition-all">
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            {/* 分类抽屉触发按钮 */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="touch-target-44 flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border-border/80 bg-background/50 px-3 py-2 text-left hover:bg-accent"
+              aria-label={t('打开分类抽屉', 'Open categories drawer')}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <FolderTree className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs text-muted-foreground hidden sm:inline">{t('当前分类:', 'Category:')}</span>
+                <span className="text-sm font-semibold text-foreground truncate">
+                  {allCategories.find(c => c.id === selectedCategory)?.name ?? t('全部分类', 'All')}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {getCategoryCount(allCategories.find(c => c.id === selectedCategory) ?? allCategories[0] ?? { id: 'all', name: 'All', icon: '📁', keywords: [] })}
+                </span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Button>
+
+            {/* 添加分类按钮 */}
             <Button
               variant="ghost"
               onClick={handleAddCategory}
               size="icon"
-              className="h-8 w-8"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
               title={t('添加分类', 'Add Category')}
               aria-label={t('添加分类', 'Add Category')}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
             </Button>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          {/* 移动端横向快捷分类标签（>=44px触控区） */}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {allCategories.map(category => {
               const count = getCategoryCount(category);
               const isSelected = selectedCategory === category.id;
               const isDragTarget = dragOverCategoryId === category.id;
-              // 拖拽仓库时「全部分类」变为「取消分类」拖放热区
               const isUncategorizeHotspot = category.id === 'all' && isRepoDragging;
 
               return (
@@ -410,8 +435,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                   <Button
                     variant="ghost"
                     onClick={() => handleCategoryClick(category.id)}
-                    size="sm"
-                    className={`relative flex min-w-[140px] items-center justify-between rounded-md text-left transition-colors ${
+                    className={`touch-target-44 relative flex min-w-[130px] items-center justify-between rounded-lg px-3 py-2 text-left transition-all ${
                       isDragTarget
                         ? isUncategorizeHotspot
                           ? 'bg-warning/10 text-warning ring-1 ring-warning/40'
@@ -419,23 +443,23 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                         : isUncategorizeHotspot
                           ? 'border border-dashed border-warning/50 bg-warning/5 text-warning'
                           : isSelected
-                            ? 'bg-accent text-accent-foreground font-medium'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                            ? 'bg-primary/10 text-primary font-semibold ring-1 ring-primary/20 shadow-xs'
+                            : 'bg-muted/40 text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                     title={category.id !== 'all' ? category.name + " — " + t('可将仓库卡片拖到这里快速改分类', 'Drag repository cards here to quickly change category') : (isUncategorizeHotspot ? t('拖到这里取消分类', 'Drop here to remove category') : undefined)}
                     aria-pressed={isSelected}
                     aria-current={isSelected ? 'page' : undefined}
                   >
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <span className="text-base flex-shrink-0">
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
+                      <span className="text-base shrink-0">
                         {isUncategorizeHotspot ? <Undo2 className="h-4 w-4" /> : category.icon}
                       </span>
-                      <span className="text-sm font-medium truncate">
+                      <span className="text-xs font-medium truncate">
                         {isUncategorizeHotspot ? t('取消分类', 'Uncategorize') : category.name}
                       </span>
                     </div>
                     <span
-                      className={`shrink-0 rounded-md px-2 py-0.5 text-xs ${
+                      className={`ml-1.5 shrink-0 rounded-full px-2 py-0.5 text-xs ${
                         isDragTarget
                           ? isUncategorizeHotspot
                             ? 'bg-warning/10 text-warning'
@@ -443,8 +467,8 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                           : isUncategorizeHotspot
                             ? 'bg-warning/10 text-warning'
                             : isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground'
+                              ? 'bg-primary text-primary-foreground font-semibold'
+                              : 'bg-background/80 text-muted-foreground'
                       }`}
                     >
                       {count}
@@ -454,6 +478,160 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
               );
             })}
           </div>
+
+          {/* 移动端分类抽屉 Sheet */}
+          <Sheet open={isMobileDrawerOpen} onOpenChange={setIsMobileDrawerOpen}>
+            <SheetContent side="left" showClose={false} className="w-[86vw] max-w-sm p-0 flex flex-col h-full bg-card safe-area-bottom">
+              <SheetHeader className="p-4 border-b border-border text-left">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 pr-2">
+                    <SheetTitle className="text-base font-semibold">
+                      {t('应用分类', 'Categories')}
+                    </SheetTitle>
+                    <SheetDescription className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {t('管理与切换仓库分类', 'Manage and switch repository categories')}
+                    </SheetDescription>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsMobileDrawerOpen(false);
+                        handleAddCategory();
+                      }}
+                      className="touch-target-44 gap-1 px-2.5 text-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>{t('新建', 'New')}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsMobileDrawerOpen(false)}
+                      className="touch-target-44 h-9 w-9 text-muted-foreground hover:text-foreground"
+                      aria-label={t('关闭分类抽屉', 'Close categories drawer')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto p-3 space-y-1.5 safe-area-bottom">
+                {allCategories.map(category => {
+                  const count = getCategoryCount(category);
+                  const isSelected = selectedCategory === category.id;
+                  const isDragTarget = dragOverCategoryId === category.id;
+                  const isUncategorizeHotspot = category.id === 'all' && isRepoDragging;
+
+                  return (
+                    <div
+                      key={category.id}
+                      className="group relative flex items-center justify-between rounded-lg hover:bg-accent/40 transition-colors"
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragOverCategoryId(category.id);
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverCategoryId === category.id) {
+                          setDragOverCategoryId(null);
+                        }
+                      }}
+                      onDrop={(event) => handleDropOnCategory(event, category)}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCategoryClick(category.id);
+                          setIsMobileDrawerOpen(false);
+                        }}
+                        className={`touch-target-44 flex min-w-0 flex-1 items-center justify-between rounded-lg px-3.5 py-3 text-left transition-all ${
+                          isDragTarget
+                            ? isUncategorizeHotspot
+                              ? 'bg-warning/10 text-warning ring-1 ring-warning/40'
+                              : 'bg-success/10 text-success ring-1 ring-success/40'
+                            : isUncategorizeHotspot
+                              ? 'border border-dashed border-warning/50 bg-warning/5 text-warning'
+                              : isSelected
+                                ? 'bg-primary/10 text-primary font-semibold'
+                                : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <span className="text-lg shrink-0">
+                            {isUncategorizeHotspot ? <Undo2 className="h-4 w-4" /> : category.icon}
+                          </span>
+                          <span className="text-sm font-medium truncate">
+                            {isUncategorizeHotspot ? t('取消分类', 'Uncategorize') : category.name}
+                          </span>
+                        </div>
+                        <span
+                          className={`ml-2 shrink-0 rounded-full px-2.5 py-0.5 text-xs ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground font-semibold'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+
+                      {category.id !== 'all' && (
+                        <div className="flex items-center gap-0.5 pr-2 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsMobileDrawerOpen(false);
+                              handleEditCategory(category);
+                            }}
+                            className="touch-target-44 h-9 w-9 text-muted-foreground hover:text-foreground"
+                            title={t('编辑分类', 'Edit category')}
+                            aria-label={t('编辑分类', 'Edit category')}
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                          {category.isCustom ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMobileDrawerOpen(false);
+                                void handleDeleteCategory(category);
+                              }}
+                              className="touch-target-44 h-9 w-9 text-muted-foreground hover:text-destructive"
+                              title={t('删除分类', 'Delete category')}
+                              aria-label={t('删除分类', 'Delete category')}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMobileDrawerOpen(false);
+                                void handleHideDefaultCategory(category);
+                              }}
+                              className="touch-target-44 h-9 w-9 text-muted-foreground hover:text-foreground"
+                              title={t('隐藏默认分类', 'Hide default category')}
+                              aria-label={t('隐藏默认分类', 'Hide default category')}
+                            >
+                              <EyeOff className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       ) : (
         /* 桌面端：可折叠侧栏 - sticky定位，滚动时保持可见 */

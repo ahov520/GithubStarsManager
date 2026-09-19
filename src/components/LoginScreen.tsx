@@ -275,19 +275,19 @@ export const LoginScreen: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground transition-colors duration-300">
-      <div className="fixed right-4 top-4 z-50 flex items-center gap-2">
+      <div className="fixed right-4 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 flex items-center gap-2">
         <div className="flex items-center overflow-hidden rounded-md border border-border bg-card">
-          <Button type="button" variant={language === 'zh' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLanguage('zh')} aria-pressed={language === 'zh'} className="w-16 rounded-none">
+          <Button type="button" variant={language === 'zh' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLanguage('zh')} aria-pressed={language === 'zh'} className="touch-target-44 sm:min-h-0 sm:min-w-0 h-9 sm:h-8 w-16 rounded-none">
             中文
           </Button>
-          <Button type="button" variant={language === 'en' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLanguage('en')} aria-pressed={language === 'en'} className="w-16 rounded-none">
+          <Button type="button" variant={language === 'en' ? 'secondary' : 'ghost'} size="sm" onClick={() => setLanguage('en')} aria-pressed={language === 'en'} className="touch-target-44 sm:min-h-0 sm:min-w-0 h-9 sm:h-8 w-16 rounded-none">
             EN
           </Button>
         </div>
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button type="button" variant="ghost" size="icon" className="border border-border bg-card" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={t('切换主题', 'Toggle theme')}>
+            <Button type="button" variant="ghost" size="icon" className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 border border-border bg-card" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={t('切换主题', 'Toggle theme')}>
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
           </TooltipTrigger>

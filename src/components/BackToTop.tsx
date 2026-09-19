@@ -86,9 +86,8 @@ export const BackToTop: React.FC = () => {
           : 'opacity-0 translate-y-4 pointer-events-none'
         }
         ${isBouncing ? 'animate-bounce-twice' : ''}
-        bottom-24 right-4
-        sm:bottom-28 sm:right-6
-        lg:bottom-24 lg:right-10
+        bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-4
+        md:bottom-8 md:right-8
       `}
       aria-label={language === 'zh' ? '回到顶部' : 'Back to top'}
       aria-hidden={!isVisible || readmeModalOpen}

@@ -179,7 +179,7 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChang
             id={`settings-tab-mobile-${tab.id}`}
             aria-selected={activeTab === tab.id}
             aria-controls={`settings-tabpanel-${tab.id}`}
-            className="min-h-[36px] shrink-0 snap-center rounded-full touch-manipulation"
+            className="touch-target-44 min-h-[44px] px-3.5 shrink-0 snap-center rounded-full touch-manipulation"
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <span className="h-4 w-4 shrink-0">{tab.icon}</span>

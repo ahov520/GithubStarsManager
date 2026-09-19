@@ -137,7 +137,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
     >
       {/* 头部区域 - 仅显示元信息，不可点击展开 */}
       <div className="p-3 sm:p-4">
-        <div className="flex items-stretch justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-stretch justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center min-w-0 flex-1">
             {isUnread && (
               <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 animate-pulse mr-2"></div>
@@ -168,8 +168,8 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
           {/* 元信息列不设固定上限：出现“资产已更新”徽标时整行向左扩展（min-w 保证
               无徽标时仍维持 140px 栏宽对齐），否则 140px 内放不下徽标会把时间和
               徽标文字都挤到换行；按钮区仍固定 344px 靠右，位置不受影响。 */}
-          <div className="flex items-center gap-3 flex-shrink-0 self-center md:justify-end">
-            <div className="hidden md:flex md:min-w-[140px] shrink-0 flex-col justify-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex md:min-w-[140px] shrink-0 flex-col justify-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
               <div className="flex items-center gap-1.5 whitespace-nowrap">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>
@@ -185,7 +185,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                 )}
               </div>
               {downloadLinks.length > 0 && (
-                <div className="flex items-center gap-1.5">
+                <div className="hidden sm:flex items-center gap-1.5">
                   <Download className="w-3.5 h-3.5" />
                   <span>
                     {selectedFilters.length > 0
@@ -196,7 +196,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
               )}
             </div>
             {/* 固定宽度需容纳英文五控件（Assets/Notes/Summary+2图标，约340px），否则换行按钮会溢出头部 */}
-            <div className="flex items-center justify-end gap-1 flex-shrink-0 md:w-[344px] md:min-w-[344px]">
+            <div className="flex items-center justify-between sm:justify-end gap-1 flex-wrap sm:flex-nowrap w-full sm:w-auto md:w-[344px] md:min-w-[344px]">
             {downloadLinks.length > 0 && (
               <Button
                 onClick={(e) => {
@@ -204,7 +204,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                   onToggleAssets();
                 }}
                 variant={isAssetsExpanded ? 'secondary' : 'ghost'}
-                className="h-8 gap-1 px-2 text-xs whitespace-nowrap"
+                className="touch-target-44 h-8 gap-1 px-2 text-xs whitespace-nowrap"
                 title={isAssetsExpanded ? t('隐藏下载资产', 'Hide Assets') : t('显示下载资产', 'Show Assets')}
                 aria-label={isAssetsExpanded ? t('隐藏下载资产', 'Hide Assets') : t('显示下载资产', 'Show Assets')}
                 aria-expanded={isAssetsExpanded}
@@ -222,7 +222,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                   onToggleReleaseNotes();
                 }}
                 variant={isReleaseNotesExpanded ? 'secondary' : 'ghost'}
-                className="h-8 gap-1 px-2 text-xs whitespace-nowrap"
+                className="touch-target-44 h-8 gap-1 px-2 text-xs whitespace-nowrap"
                 title={isReleaseNotesExpanded ? t('隐藏更新日志', 'Hide Changelog') : t('显示更新日志', 'Show Changelog')}
                 aria-label={isReleaseNotesExpanded ? t('隐藏更新日志', 'Hide Changelog') : t('显示更新日志', 'Show Changelog')}
                 aria-expanded={isReleaseNotesExpanded}
@@ -238,7 +238,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                 onClick={handleToggleSummary}
                 disabled={summary.status === 'loading'}
                 variant={isSummaryExpanded ? 'secondary' : 'ghost'}
-                className="h-8 gap-1 px-2 text-xs whitespace-nowrap disabled:opacity-70"
+                className="touch-target-44 h-8 gap-1 px-2 text-xs whitespace-nowrap disabled:opacity-70"
                 title={isSummaryExpanded ? t('隐藏 AI 总结', 'Hide AI Summary') : (summary.status === 'error' ? t('重试 AI 总结', 'Retry AI summary') : t('AI 总结本次更新', 'AI Summary of this update'))}
                 aria-label={isSummaryExpanded ? t('隐藏 AI 总结', 'Hide AI Summary') : (summary.status === 'error' ? t('重试 AI 总结', 'Retry AI summary') : t('AI 总结本次更新', 'AI Summary of this update'))}
                 aria-expanded={isSummaryExpanded}
@@ -258,7 +258,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                 e.stopPropagation();
                 onUnsubscribe();
               }}
-              className="h-auto p-1 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
+              className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 p-1 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
               title={t('取消订阅 Release', 'Unsubscribe from releases')}
               aria-label={t('取消订阅 Release', 'Unsubscribe from releases')}
             >
@@ -268,7 +268,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
               href={release.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-auto p-1 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
+              className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 flex items-center justify-center p-1 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
               title={t('在GitHub上查看', 'View on GitHub')}
               aria-label={t('在GitHub上查看', 'View on GitHub')}
               onClick={(e) => {

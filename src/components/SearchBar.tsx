@@ -14,6 +14,7 @@ import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
 import { NumberInput } from './ui/NumberInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from './ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,7 @@ const SortByDropdown: React.FC<SortByDropdownProps> = ({ value, onChange, t }) =
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-2">
+        <Button type="button" variant="outline" size="sm" className="gap-2 touch-target-44 sm:min-h-0 sm:min-w-0">
           <span>{t(selected?.labelZh ?? '', selected?.labelEn ?? '')}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
@@ -208,10 +209,19 @@ export const SearchBar: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
-  const filterChipBaseClass = 'linear-filter-chip flex items-center space-x-2 px-3 py-1.5 text-sm';
+  const [isMobile, setIsMobile] = useState(() => (typeof window === 'undefined' ? false : window.innerWidth < 768));
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const filterChipBaseClass = 'linear-filter-chip touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-2 px-3 py-1.5 text-sm';
   const filterChipActiveClass = 'is-active font-medium';
   const filterChipInactiveClass = '';
-  const filterTagBaseClass = 'linear-filter-chip px-3 py-1.5 text-sm';
+  const filterTagBaseClass = 'linear-filter-chip touch-target-44 sm:min-h-0 sm:min-w-0 px-3 py-1.5 text-sm';
 
   useEffect(() => {
     // Extract unique languages, tags, and platforms from repositories
@@ -687,7 +697,7 @@ export const SearchBar: React.FC = () => {
           onBlur={handleInputBlur}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
-          className="h-10 w-full pl-10 pr-3"
+          className="h-11 md:h-10 w-full pl-10 pr-3 text-base md:text-sm"
         />
 
         {/* Search History Dropdown */}
@@ -772,7 +782,7 @@ export const SearchBar: React.FC = () => {
               onClick={handleClearSearch}
               aria-label={t('清除搜索', 'Clear search')}
               size="icon"
-              className="h-8 w-8 text-muted-foreground"
+              className="touch-target-44 sm:h-9 sm:w-9 h-11 w-11 text-muted-foreground"
               title={t('清除搜索', 'Clear search')}
             >
               <X className="w-4 h-4" />
@@ -783,7 +793,7 @@ export const SearchBar: React.FC = () => {
             variant="default"
             aria-label={isSearching ? t('AI搜索中…', 'AI Searching…') : t('AI搜索', 'AI Search')}
             disabled={isSearching || !searchQuery.trim()}
-            className="flex shrink-0 items-center sm:px-4"
+            className="touch-target-44 sm:min-h-0 sm:min-w-0 flex shrink-0 items-center sm:px-4"
             title={activeAIConfig
               ? t('使用配置的AI服务进行语义搜索和重排序', 'Use configured AI service for semantic search and reranking')
               : t('使用本地智能排序算法进行搜索', 'Use local intelligent ranking algorithm for search')}
@@ -803,7 +813,7 @@ export const SearchBar: React.FC = () => {
                 variant="ghost"
                 size="icon"
                 aria-label={t('关于 AI 搜索', 'About AI Search')}
-                className="h-8 w-8 shrink-0 text-muted-foreground"
+                className="touch-target-44 sm:h-9 sm:w-9 h-11 w-11 shrink-0 text-muted-foreground"
               >
                 <AlertCircle className="h-4 w-4" aria-hidden="true" />
               </Button>
@@ -857,7 +867,7 @@ export const SearchBar: React.FC = () => {
             aria-expanded={showFilters}
             aria-controls="advanced-filters-panel"
             onClick={() => setShowFilters(!showFilters)}
-            className={`linear-filter-toggle flex items-center space-x-2 px-3 py-2 text-sm ${
+            className={`linear-filter-toggle touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-2 px-3 py-2 text-sm ${
               showFilters || activeFiltersCount > 0 ? 'is-active' : ''
             }`}
           >
@@ -874,7 +884,7 @@ export const SearchBar: React.FC = () => {
             type="button"
             variant="ghost"
             onClick={openGlobalChatHistory}
-            className="linear-filter-toggle flex items-center space-x-2 px-3 py-2 text-sm"
+            className="linear-filter-toggle touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-2 px-3 py-2 text-sm"
             aria-label={t('问答历史', 'Chat history')}
             title={t('查看各仓库的问答历史', 'View chat history across repositories')}
           >
@@ -891,7 +901,7 @@ export const SearchBar: React.FC = () => {
             <Button
               variant="ghost"
               onClick={clearFilters}
-              className="flex items-center space-x-1 px-3 py-2 text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-muted-foreground transition-colors"
+              className="touch-target-44 sm:min-h-0 sm:min-w-0 flex items-center space-x-1 px-3 py-2 text-sm text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-muted-foreground transition-colors"
             >
               <X className="w-4 h-4" />
               <span>{t('清除全部', 'Clear all')}</span>
@@ -913,7 +923,7 @@ export const SearchBar: React.FC = () => {
             })}
             variant="ghost"
             aria-label={searchFilters.sortOrder === 'desc' ? t('按降序排列', 'Sort descending') : t('按升序排列', 'Sort ascending')}
-            className="ui-button px-3 py-2 text-sm"
+            className="ui-button touch-target-44 sm:min-h-0 sm:min-w-0 px-3 py-2 text-sm"
           >
             {searchFilters.sortOrder === 'desc' ? <ArrowDown className="w-4 h-4" aria-hidden="true" /> : <ArrowUp className="w-4 h-4" aria-hidden="true" />}
           </Button>
@@ -984,11 +994,12 @@ export const SearchBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Advanced Filters */}
-      {showFilters && (
-        <div id="advanced-filters-panel" className="mt-5 pt-5 border-t ui-divider space-y-5">
-          {/* Status Filters */}
-          <div>
+      {/* Advanced Filters (Desktop inline, Mobile bottom Sheet drawer) */}
+      {(() => {
+        const filterBody = (
+          <>
+            {/* Status Filters */}
+            <div>
             <h4 className="text-sm font-medium text-foreground dark:text-foreground mb-3">
               {t('状态过滤', 'Status Filters')}
             </h4>
@@ -1327,8 +1338,72 @@ export const SearchBar: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
+        </>
+        );
+
+        return (
+          <>
+            {showFilters && !isMobile && (
+              <div id="advanced-filters-panel" className="mt-5 pt-5 border-t ui-divider space-y-5">
+                {filterBody}
+              </div>
+            )}
+
+            <Sheet open={showFilters && isMobile} onOpenChange={setShowFilters}>
+              <SheetContent side="bottom" showClose={false} className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:p-6 bg-card safe-area-bottom">
+                <SheetHeader className="text-left pr-0 pb-3 border-b border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <SheetTitle className="text-base font-semibold">
+                        {t('高级过滤器', 'Advanced Filters')}
+                      </SheetTitle>
+                      <SheetDescription className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {activeFiltersCount > 0
+                          ? t(`已启用 ${activeFiltersCount} 项过滤条件`, `${activeFiltersCount} active filter(s)`)
+                          : t('按状态、标签、语言和星标精准筛选', 'Filter by status, tags, languages and stars')}
+                      </SheetDescription>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {activeFiltersCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="touch-target-44 text-xs text-muted-foreground hover:text-foreground px-2.5"
+                        >
+                          {t('清除全部', 'Clear all')}
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowFilters(false)}
+                        className="touch-target-44 h-9 w-9 text-muted-foreground hover:text-foreground"
+                        aria-label={t('关闭过滤器抽屉', 'Close filters drawer')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </SheetHeader>
+
+                <div className="py-4 space-y-5">
+                  {filterBody}
+                </div>
+
+                <SheetFooter className="pt-3 border-t border-border sticky bottom-0 bg-card safe-area-bottom">
+                  <Button
+                    className="w-full touch-target-44 text-sm font-medium"
+                    onClick={() => setShowFilters(false)}
+                  >
+                    {t('完成', 'Done')}
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </>
+        );
+      })()}
 
 
       </div>

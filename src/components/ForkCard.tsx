@@ -49,7 +49,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
     >
       {/* Header */}
       <div className="p-3 sm:p-4">
-        <div className="flex items-stretch justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-stretch justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center min-w-0 flex-1">
             {isUnread && (
               <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 animate-pulse mr-2"></div>
@@ -68,8 +68,17 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-1">
-                {fork.full_name}
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-1 flex items-center gap-1.5 flex-wrap">
+                <span>{fork.full_name}</span>
+                {fork.updated_at && (
+                  <>
+                    <span className="inline md:hidden text-muted-foreground/50">·</span>
+                    <span className="inline-flex md:hidden items-center gap-1">
+                      <RefreshCw className="w-3 h-3" />
+                      {formatDistanceToNow(new Date(fork.updated_at), { addSuffix: true, ...(language === 'zh' ? { locale: zhCN } : {}) })}
+                    </span>
+                  </>
+                )}
               </p>
               {sourceFullName && (
                 <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-0.5 flex items-center gap-1">
@@ -95,7 +104,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-shrink-0 self-stretch">
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
             <div className="hidden md:flex min-w-[140px] flex-col justify-center gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -123,7 +132,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   onToggleWorkflows();
                   onMarkAsRead();
                 }}
-                className="h-8 shrink-0 gap-1 whitespace-nowrap px-2 text-xs"
+                className="touch-target-44 h-8 shrink-0 gap-1 whitespace-nowrap px-2 text-xs"
                 title={isWorkflowsExpanded ? t('隐藏工作流', 'Hide Workflows') : t('显示工作流', 'Show Workflows')}
                 aria-label={isWorkflowsExpanded ? t('隐藏工作流', 'Hide Workflows') : t('显示工作流', 'Show Workflows')}
                 aria-expanded={isWorkflowsExpanded}
@@ -142,7 +151,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   onMarkAsRead();
                 }}
                 disabled={isSyncing || !needsSync}
-                className={`h-7 w-7 p-1 rounded transition-colors disabled:cursor-not-allowed ${
+                className={`touch-target-44 sm:h-8 sm:w-8 h-9 w-9 p-1 rounded transition-colors disabled:cursor-not-allowed ${
                   needsSync
                     ? 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     : 'bg-transparent text-muted-foreground/50 dark:text-muted-foreground/50 cursor-not-allowed'
@@ -166,7 +175,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                 href={fork.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1 rounded bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 flex items-center justify-center p-1 rounded bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 title={t('在GitHub上查看', 'View on GitHub')}
                 aria-label={t('在GitHub上查看', 'View on GitHub')}
                 onClick={(e) => {

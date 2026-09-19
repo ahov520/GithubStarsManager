@@ -215,7 +215,7 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
             role="tab"
             aria-selected={selectedChannel === channel.id}
             className={`
-              relative flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium snap-start
+              touch-target-44 min-h-[44px] touch-manipulation relative flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium snap-start
               transition-all duration-200 ease-out
               focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
               ${selectedChannel === channel.id
@@ -841,7 +841,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                     type="button"
                     onClick={() => setWeeklyOnlyCollected(!weeklyOnlyCollected)}
                     aria-pressed={weeklyOnlyCollected}
-                    className={`flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                    className={`touch-target-44 min-h-[44px] sm:min-h-0 touch-manipulation flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors ${
                       weeklyOnlyCollected
                         ? 'bg-primary/10 text-primary border-primary/30 dark:text-primary'
                         : 'bg-muted/50 text-muted-foreground border-transparent hover:bg-accent hover:text-accent-foreground'
@@ -868,7 +868,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                   <button
                     type="button"
                     onClick={() => setTweetSettingsOpen(true)}
-                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors bg-muted/50 text-muted-foreground border-transparent hover:bg-accent hover:text-accent-foreground"
+                    className="touch-target-44 min-h-[44px] sm:min-h-0 touch-manipulation flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors bg-muted/50 text-muted-foreground border-transparent hover:bg-accent hover:text-accent-foreground"
                     title={t('管理关注博主列表', 'Manage the follow list')}
                   >
                     <Users className="w-4 h-4" />
@@ -885,7 +885,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                   <button
                     type="button"
                     onClick={() => setTelegramSettingsOpen(true)}
-                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors bg-muted/50 text-muted-foreground border-transparent hover:bg-accent hover:text-accent-foreground"
+                    className="touch-target-44 min-h-[44px] sm:min-h-0 touch-manipulation flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition-colors bg-muted/50 text-muted-foreground border-transparent hover:bg-accent hover:text-accent-foreground"
                     title={t('管理关注频道列表', 'Manage the channel list')}
                   >
                     <Users className="w-4 h-4" />

@@ -48,7 +48,7 @@ const Pagination: React.FC<{
         type="button"
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="touch-target-44 sm:h-7 sm:w-7 h-9 w-9"
         disabled={page === 1}
         onClick={() => onPageChange(page - 1)}
         aria-label={`${label} previous page`}
@@ -62,7 +62,7 @@ const Pagination: React.FC<{
         type="button"
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="touch-target-44 sm:h-7 sm:w-7 h-9 w-9"
         disabled={page === totalPages}
         onClick={() => onPageChange(page + 1)}
         aria-label={`${label} next page`}
@@ -277,6 +277,7 @@ export const RepositoryReleaseSheet: React.FC<RepositoryReleaseSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
+        className="w-[min(100vw-1rem,48rem)] sm:max-w-none safe-area-bottom"
         closeLabel={t('关闭 Release 侧栏', 'Close release sheet')}
         onPointerDownOutside={(event) => {
           // Keep the overlay mounted through the current click sequence. Closing
@@ -294,18 +295,18 @@ export const RepositoryReleaseSheet: React.FC<RepositoryReleaseSheetProps> = ({
           <SheetDescription className="truncate" title={repository.full_name}>{repository.full_name}</SheetDescription>
         </SheetHeader>
         <div className="flex shrink-0 items-center gap-2 border-b border-border pb-3">
-          <Button type="button" variant="secondary" size="sm" onClick={refresh} disabled={isLoading}>
+          <Button type="button" variant="secondary" size="sm" onClick={refresh} disabled={isLoading} className="touch-target-44 sm:min-h-0 sm:min-w-0">
             <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
             {t('刷新', 'Refresh')}
           </Button>
-          <Button asChild type="button" variant="ghost" size="sm">
+          <Button asChild type="button" variant="ghost" size="sm" className="touch-target-44 sm:min-h-0 sm:min-w-0">
             <a href={`${repository.html_url}/releases`} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
               GitHub
             </a>
           </Button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-safe">
           {isLoading ? (
             <div className="flex h-40 items-center justify-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />

@@ -22,6 +22,7 @@ import { useBackendLifecycle } from './features/lifecycle/hooks/useBackendLifecy
 import type { AppState } from './types';
 import { hasActiveSearchFilters } from './utils/repoSearch';
 import { isElectron, loadEncryptedXAuthViaDesktop } from './services/electronProxy';
+import { BottomNav } from './components/BottomNav';
 
 const LazyReleaseTimeline = React.lazy(() =>
   import('./components/ReleaseTimeline').then((module) => ({ default: module.ReleaseTimeline }))
@@ -264,9 +265,10 @@ function App() {
     <div className="ui-shell min-h-screen transition-colors duration-200">
       <UpdateNotificationBanner />
       <Header />
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-7 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
         {currentViewContent}
       </main>
+      <BottomNav />
       <BackToTop />
       <DebugModeIndicator />
       <SyncModeChoiceModal />

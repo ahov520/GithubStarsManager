@@ -648,7 +648,7 @@ export const ReleaseTimeline: React.FC = () => {
                 onCheckedChange={setIncludePreRelease}
                 aria-label={t('包含 Pre-release', 'Include Pre-release')}
               />
-              <span className="hidden text-xs text-muted-foreground dark:text-muted-foreground sm:inline">
+              <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {t('Pre', 'Pre')}
               </span>
             </div>
@@ -657,7 +657,7 @@ export const ReleaseTimeline: React.FC = () => {
             <Button
               onClick={handleRefresh}
               disabled={releaseIsRefreshing}
-              className="ui-button-primary flex items-center space-x-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ui-button-primary touch-target-44 min-h-[38px] flex items-center space-x-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`w-4 h-4 ${releaseIsRefreshing ? 'animate-spin' : ''}`} />
               <span>{releaseIsRefreshing ? t('刷新中…', 'Refreshing…') : t('刷新', 'Refresh')}</span>
@@ -665,7 +665,7 @@ export const ReleaseTimeline: React.FC = () => {
             <Button
               onClick={() => setIsReleaseSourceSettingsOpen(true)}
               variant="ghost"
-              className="ui-button flex items-center space-x-2 px-3 py-2"
+              className="ui-button touch-target-44 min-h-[38px] flex items-center space-x-2 px-3 py-2"
               title={t('Release 来源设置', 'Release Source Settings')}
             >
               <Settings className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
@@ -687,7 +687,7 @@ export const ReleaseTimeline: React.FC = () => {
                 setReleaseSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="ui-field w-full pl-10 pr-12 py-2 text-foreground dark:text-foreground"
+              className="ui-field w-full pl-10 pr-14 h-11 md:h-10 text-base md:text-sm text-foreground dark:text-foreground"
             />
             {searchQuery && (
               <Button
@@ -698,7 +698,7 @@ export const ReleaseTimeline: React.FC = () => {
                   setCurrentPage(1);
                 }}
                 aria-label={t('清除搜索', 'Clear search')}
-                className="absolute right-2 top-1/2 h-8 w-8 p-0 transform -translate-y-1/2 text-muted-foreground dark:text-muted-foreground/70 hover:text-muted-foreground dark:text-muted-foreground dark:hover:text-muted-foreground"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 flex items-center justify-center rounded-md text-muted-foreground dark:text-muted-foreground/70 hover:text-muted-foreground dark:hover:text-muted-foreground touch-manipulation after:absolute after:-inset-1.5 after:content-['']"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -727,7 +727,7 @@ export const ReleaseTimeline: React.FC = () => {
             >
               <SelectTrigger
                 aria-label={t('视图模式', 'View mode')}
-                className="ui-field h-9 w-48 px-3 py-1 text-sm"
+                className="ui-field h-10 sm:h-9 w-full sm:w-48 px-3 py-1 text-sm"
               >
                 <SelectValue />
               </SelectTrigger>
