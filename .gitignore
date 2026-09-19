@@ -58,3 +58,11 @@ package-lock.json.*.tmp
 
 # GitHub wiki clone (published to *.wiki.git, not this repo)
 docs/wiki/
+
+# Android build outputs
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.apk
+*.aab
