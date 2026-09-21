@@ -184,7 +184,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
           {/* 元信息列不设固定上限：出现“资产已更新”徽标时整行向左扩展（min-w 保证
               无徽标时仍维持 140px 栏宽对齐），否则 140px 内放不下徽标会把时间和
               徽标文字都挤到换行；按钮区仍固定 344px 靠右，位置不受影响。 */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-3">
             <div className="flex md:min-w-[140px] shrink-0 flex-col justify-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
               <div className="flex items-center gap-1.5 whitespace-nowrap">
                 <Calendar className="w-3.5 h-3.5" />
@@ -212,7 +212,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
               )}
             </div>
             {/* 固定宽度需容纳英文五控件（Assets/Notes/Summary+2图标，约340px），否则换行按钮会溢出头部 */}
-            <div className="flex w-full min-w-0 flex-1 items-center gap-1 overflow-x-auto flex-nowrap sm:w-auto sm:flex-none sm:justify-end sm:overflow-visible md:w-[344px] md:min-w-[344px]">
+            <div className="flex w-full flex-wrap items-center gap-1 sm:w-max sm:flex-nowrap sm:justify-end md:min-w-[344px]">
             {downloadLinks.length > 0 && (
               <Button
                 onClick={(e) => {
