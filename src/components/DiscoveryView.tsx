@@ -756,7 +756,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
         <div className="flex-1 flex flex-col min-h-0 min-w-0 relative">
           {/* 顶部工具栏 - 随滚动显示/隐藏 */}
           <div 
-            className={`flex-shrink-0 pr-2 transition-transform duration-300 ease-in-out z-10 ${
+            className={`z-10 flex-shrink-0 transition-transform duration-300 ease-in-out lg:pr-2 ${
               isToolbarVisible ? 'translate-y-0' : '-translate-y-full opacity-0 pointer-events-none'
             }`}
           >
@@ -773,6 +773,11 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         ? currentChannel?.name
                         : currentChannel?.nameEn}
                     </h2>
+                    {selectedDiscoveryChannel === 'hot-release' && (
+                      <p className="text-xs text-muted-foreground sm:hidden">
+                        {t('每次刷新都能看到不一样的内容', 'Each refresh shows different content')}
+                      </p>
+                    )}
                     {currentLastRefresh && (
                       <p className="hidden sm:block text-xs text-muted-foreground dark:text-muted-foreground">
                         {t('更新于', 'Updated')} {formatLastRefresh(currentLastRefresh)}
@@ -787,7 +792,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                     size="icon"
                     onClick={() => refreshChannel(selectedDiscoveryChannel, 1, false)}
                     disabled={currentIsLoading || isAnalyzing}
-                    className="p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={t('刷新', 'Refresh')}
+                    className="touch-target-44 h-11 w-11 p-0 disabled:cursor-not-allowed disabled:opacity-50"
                     title={t('刷新', 'Refresh')}
                   >
                     <RefreshCw className={`w-4 h-4 ${currentIsLoading ? 'animate-spin' : ''}`} />
@@ -811,7 +817,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
             <div className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
               <Select value={trendingTimeRange} onValueChange={(value) => setTrendingTimeRange(value as TrendingTimeRange)}>
-                <SelectTrigger aria-label={t('时间范围', 'Time range')} className="ui-field h-9 w-auto min-w-28 px-3 py-1.5 text-sm font-medium text-foreground dark:text-foreground"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label={t('时间范围', 'Time range')} className="ui-field touch-target-44 h-11 w-auto min-w-28 px-3 py-1.5 text-sm font-medium text-foreground dark:text-foreground sm:h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="daily">{t('今日', 'Today')}</SelectItem>
                   <SelectItem value="weekly">{t('本周', 'This Week')}</SelectItem>
@@ -942,7 +948,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       variant="default"
                       onClick={handleAnalyzePage}
                       disabled={isAnalyzing || currentIsLoading}
-                      className="h-9 shrink-0 gap-1.5 px-3 py-1.5 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label={t('AI分析', 'Analyze with AI')}
+                      className="touch-target-44 h-11 shrink-0 gap-1.5 px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
                       title={t('AI分析', 'Analyze with AI')}
                     >
                       <Bot className="w-4 h-4" />
@@ -963,7 +970,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
           {/* 内容区域 */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto space-y-4 pr-2"
+            className="flex-1 space-y-4 overflow-y-auto lg:pr-2"
           >
             {selectedDiscoveryChannel === 'code-search' && <CodeSearchView />}
             {selectedDiscoveryChannel !== 'code-search' && (

@@ -84,6 +84,19 @@ describe('SubscriptionRepoCard weekly channel', () => {
     expect(screen.queryByText('周刊收录')).not.toBeInTheDocument();
   });
 
+  it('shares the repository when the browser provides a share sheet', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    render(<TooltipProvider><SubscriptionRepoCard repo={makeWeeklyRepo()} /></TooltipProvider>);
+    fireEvent.click(screen.getByRole('button', { name: '分享' }));
+    expect(share).toHaveBeenCalledWith({
+      title: 'foo/bar',
+      text: 'a nice tool',
+      url: 'https://github.com/foo/bar',
+    });
+    delete (navigator as { share?: unknown }).share;
+  });
+
   it('opens the original-post modal with the cached issue body', () => {
     render(<TooltipProvider><SubscriptionRepoCard repo={makeWeeklyRepo()} /></TooltipProvider>);
     fireEvent.click(screen.getByTitle('查看原贴'));
