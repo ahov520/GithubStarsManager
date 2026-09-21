@@ -46,8 +46,8 @@ const SortByDropdown: React.FC<SortByDropdownProps> = ({ value, onChange, t }) =
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="outline" size="sm" className="gap-2 touch-target-44 sm:min-h-0 sm:min-w-0">
-          <span>{t(selected?.labelZh ?? '', selected?.labelEn ?? '')}</span>
-          <ChevronDown className="h-4 w-4" />
+          <span className="max-w-[9rem] truncate sm:max-w-none">{t(selected?.labelZh ?? '', selected?.labelEn ?? '')}</span>
+          <ChevronDown className="h-4 w-4 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
@@ -715,7 +715,7 @@ export const SearchBar: React.FC = () => {
                 type="button"
                 variant="ghost"
                 onClick={clearSearchHistory}
-                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                className="touch-target-44 min-h-[44px] text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t('清除', 'Clear')}
               </Button>
@@ -728,7 +728,7 @@ export const SearchBar: React.FC = () => {
                 data-search-option
                 onClick={() => handleHistoryItemClick(historyQuery)}
                 onKeyDown={(e) => handleSearchOptionKeyDown(e, index)}
-                className="flex w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
+                className="flex min-h-[44px] w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
               >
                 <Search className="w-4 h-4 text-muted-foreground dark:text-muted-foreground/70" />
                 <span className="truncate">{historyQuery}</span>
@@ -763,7 +763,7 @@ export const SearchBar: React.FC = () => {
                   data-search-option
                   onClick={() => handleSuggestionClick(suggestion)}
                   onKeyDown={(e) => handleSearchOptionKeyDown(e, index)}
-                  className="flex w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
+                  className="flex min-h-[44px] w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
                 >
                   <div className="w-4 h-4 flex items-center justify-center">
                     <div className="w-2 h-2 bg-muted dark:bg-muted/40 rounded-full"></div>
@@ -833,6 +833,23 @@ export const SearchBar: React.FC = () => {
           </Tooltip>
           </div>
         </div>
+        {searchHistory.length > 0 && (
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 md:hidden" aria-label={t('最近搜索', 'Recent searches')}>
+            {searchHistory.slice(0, 8).map((historyQuery) => (
+              <Button
+                key={historyQuery}
+                type="button"
+                variant="outline"
+                onClick={() => handleHistoryItemClick(historyQuery)}
+                className="touch-target-44 h-11 shrink-0 gap-1.5 rounded-full px-3"
+                aria-label={t(`最近搜索 ${historyQuery}`, `Recent search ${historyQuery}`)}
+              >
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                <span className="max-w-[10rem] truncate">{historyQuery}</span>
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Search Status Indicator */}
@@ -860,7 +877,7 @@ export const SearchBar: React.FC = () => {
       )}
 
       {/* Filter Controls */}
-      <div className="flex items-center gap-2 sm:justify-between">
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0 sm:gap-3">
           <Button
             variant="ghost"
