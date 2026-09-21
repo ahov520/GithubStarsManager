@@ -1378,7 +1378,7 @@ export const SearchBar: React.FC = () => {
             )}
 
             <Sheet open={showFilters && isMobile} onOpenChange={setShowFilters}>
-              <SheetContent side="bottom" showClose={false} className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:p-6 bg-card safe-area-bottom">
+              <SheetContent side="bottom" showClose={false} className="max-h-[85dvh] overflow-hidden rounded-t-2xl bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[85vh] sm:p-6">
                 <SheetHeader className="text-left pr-0 pb-3 border-b border-border">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 pr-2">
@@ -1415,11 +1415,11 @@ export const SearchBar: React.FC = () => {
                   </div>
                 </SheetHeader>
 
-                <div className="py-4 space-y-5">
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain py-4">
                   {filterBody}
                 </div>
 
-                <SheetFooter className="pt-3 border-t border-border sticky bottom-0 bg-card safe-area-bottom">
+                <SheetFooter className="shrink-0 border-t border-border bg-card pt-3">
                   <Button
                     className="w-full touch-target-44 text-sm font-medium"
                     onClick={() => setShowFilters(false)}
