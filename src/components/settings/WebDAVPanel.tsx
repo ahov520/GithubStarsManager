@@ -72,7 +72,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center space-x-3">
           <Cloud className="w-6 h-6 text-muted-foreground dark:text-muted-foreground" />
           <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
@@ -81,7 +81,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
         </div>
         <Button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" />
           <span>{t('添加WebDAV', 'Add WebDAV')}</span>
@@ -104,7 +104,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder={t('例如: 坚果云', 'e.g., Nutstore')}
               />
             </div>
@@ -118,7 +118,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 type="url"
                 value={form.url}
                 onChange={(e) => setForm(prev => ({ ...prev, url: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder="https://dav.jianguoyun.com/dav/"
               />
             </div>
@@ -132,7 +132,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 type="text"
                 value={form.username}
                 onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder={t('WebDAV用户名', 'WebDAV username')}
               />
             </div>
@@ -146,7 +146,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder={t('WebDAV密码', 'WebDAV password')}
               />
             </div>
@@ -160,23 +160,23 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 type="text"
                 value={form.path}
                 onChange={(e) => setForm(prev => ({ ...prev, path: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder="/github-stars-manager/"
               />
             </div>
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleSave}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Save className="w-4 h-4" />
               <span>{t('保存', 'Save')}</span>
             </Button>
             <Button
               onClick={resetForm}
-              className="flex items-center space-x-2 px-4 py-2 bg-muted hover:bg-accent dark:bg-muted/40 dark:hover:bg-accent text-foreground dark:text-foreground rounded-lg border border-border dark:border-border transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg border border-border bg-muted px-4 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
             >
               <X className="w-4 h-4" />
               <span>{t('取消', 'Cancel')}</span>
@@ -200,16 +200,17 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 : 'border-border dark:border-border hover:border-border dark:hover:border-border-strong'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
                 <RadioGroupItem
                   value={config.id}
                   id={`active-webdav-${config.id}`}
                   aria-label={config.name || t('WebDAV 配置', 'WebDAV configuration')}
+                  className="relative mt-1 h-5 w-5 before:absolute before:-inset-3 before:content-['']"
                 />
-                <div>
+                <div className="min-w-0">
                   <h4 className="font-medium text-foreground dark:text-foreground">{config.name}</h4>
-                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+                  <p className="break-all text-sm text-muted-foreground dark:text-muted-foreground">
                     {config.url} • {config.path}
                   </p>
                   {config.passwordStatus === 'decrypt_failed' && (
@@ -223,11 +224,11 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 self-end sm:shrink-0">
                 <Button
                   onClick={() => handleTest(config)}
                   disabled={testingId === config.id}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors disabled:opacity-50"
+                  className="touch-target-44 h-11 w-11 rounded-lg bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground sm:h-9 sm:w-9"
                   aria-label={t('测试连接', 'Test Connection')}
                   title={t('测试连接', 'Test Connection')}
                 >
@@ -239,7 +240,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                 </Button>
                 <Button
                   onClick={() => handleEdit(config)}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
+                  className="touch-target-44 h-11 w-11 rounded-lg bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground sm:h-9 sm:w-9"
                   aria-label={t('编辑', 'Edit')}
                   title={t('编辑', 'Edit')}
                 >
@@ -256,7 +257,7 @@ export const WebDAVPanel: React.FC<WebDAVPanelProps> = ({ t }) => {
                       deleteWebDAVConfig(config.id);
                     }
                   }}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors"
+                  className="touch-target-44 h-11 w-11 rounded-lg bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground sm:h-9 sm:w-9"
                   aria-label={t('删除', 'Delete')}
                   title={t('删除', 'Delete')}
                 >
