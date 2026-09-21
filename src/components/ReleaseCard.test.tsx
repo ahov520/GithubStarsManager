@@ -242,4 +242,20 @@ describe('ReleaseCard asset updated indicator', () => {
     const assetRow = screen.getByRole('button', { name: /app\.dmg/ });
     expect(within(assetRow).queryByText(/前$/)).not.toBeInTheDocument();
   });
+
+  it('shares the release title, name, and url when the browser can share', () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    try {
+      renderCard();
+      fireEvent.click(screen.getByRole('button', { name: '分享' }));
+      expect(share).toHaveBeenCalledWith({
+        title: 'owner/repo v1',
+        text: 'Release 1',
+        url: 'https://github.com/owner/repo/releases/tag/v1',
+      });
+    } finally {
+      Reflect.deleteProperty(navigator, 'share');
+    }
+  });
 });
