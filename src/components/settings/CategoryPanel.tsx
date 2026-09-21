@@ -416,11 +416,11 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
               {t('用于自动匹配仓库到此分类', 'Used to automatically match repositories to this category')}
             </p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleAddCategory}
               disabled={!newCategoryName.trim()}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${newCategoryName.trim() ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
+              className={`touch-target-44 flex h-11 items-center gap-2 rounded-lg px-4 transition-colors ${newCategoryName.trim() ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'}`}
             >
               <Save className="w-4 h-4" />
               <span>{t('保存', 'Save')}</span>
@@ -432,7 +432,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                 setNewCategoryIcon('📁');
                 setNewCategoryKeywords('');
               }}
-              className="flex items-center space-x-2 px-4 py-2 bg-muted hover:bg-accent dark:bg-muted/40 dark:hover:bg-accent text-foreground dark:text-foreground rounded-lg border border-border dark:border-border transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg border border-border bg-muted px-4 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
             >
               <X className="w-4 h-4" />
               <span>{t('取消', 'Cancel')}</span>
@@ -444,7 +444,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
       <div className="space-y-4">
         {/* 分类排序区域 */}
         <div className="border-t border-border dark:border-border pt-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h4 className="font-medium text-foreground dark:text-foreground flex items-center">
               <GripVertical className="w-4 h-4 mr-2" />
               {t('分类排序', 'Category Order')}
@@ -455,7 +455,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setIsReordering(!isReordering)}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`touch-target-44 h-11 rounded-lg px-3 text-sm transition-colors sm:h-8 ${
                   isReordering
                     ? 'bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground'
                     : 'bg-muted text-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
@@ -466,7 +466,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
               {categoryOrder.length > 0 && (
                 <Button
                   onClick={handleResetOrder}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-muted text-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors"
+                  className="touch-target-44 h-11 rounded-lg bg-muted px-3 text-sm text-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8"
                 >
                   {t('重置', 'Reset')}
                 </Button>
@@ -558,7 +558,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                                 setEditIcon(value);
                               }
                             }}
-                            className="w-14 px-2 py-1.5 border border-border dark:border-border rounded bg-card dark:bg-muted/40 text-center text-lg text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                            className="h-11 w-14 rounded border border-border bg-card px-2 text-center text-lg text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9"
                             placeholder="📁"
                           />
                           <Input
@@ -566,7 +566,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                             aria-label={t('编辑分类名称', 'Edit category name')}
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="flex-1 px-2 py-1.5 border border-border dark:border-border rounded bg-card dark:bg-muted/40 text-sm text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                            className="h-11 flex-1 rounded border border-border bg-card px-2 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                             placeholder={t('分类名称', 'Category name')}
                           />
                         </div>
@@ -576,14 +576,14 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                             aria-label={t('编辑分类关键词', 'Edit category keywords')}
                             value={editKeywords}
                             onChange={(e) => setEditKeywords(e.target.value)}
-                            className="flex-1 px-2 py-1.5 border border-border dark:border-border rounded bg-card dark:bg-muted/40 text-sm text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                            className="h-11 flex-1 rounded border border-border bg-card px-2 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                             placeholder={t('关键词（逗号分隔）', 'Keywords (comma separated)')}
                           />
                           <Button
                             size="icon"
                             onClick={handleSaveEdit}
                             disabled={!hasChanges}
-                            className={`h-8 w-8 p-0 rounded ${hasChanges ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground cursor-not-allowed'}`}
+                            className={`touch-target-44 h-11 w-11 rounded p-0 sm:h-8 sm:w-8 ${hasChanges ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground'}`}
                             aria-label={t('保存', 'Save')}
                             title={t('保存', 'Save')}
                           >
@@ -592,7 +592,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                           <Button
                             size="icon"
                             onClick={handleCancelEdit}
-                            className="h-8 w-8 p-0 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent"
+                            className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                             aria-label={t('取消', 'Cancel')}
                             title={t('取消', 'Cancel')}
                           >
@@ -640,13 +640,13 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                       </div>
                     </>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
                         {isReordering && (
                           <GripVertical className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
                         )}
                         <span className="text-base w-6 text-center inline-block">{category.icon}</span>
-                        <span className="text-sm font-medium text-foreground dark:text-foreground">
+                        <span className="min-w-0 truncate text-sm font-medium text-foreground dark:text-foreground">
                           {category.name}
                         </span>
                         {category.isCustom && (
@@ -662,12 +662,12 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                       </div>
 
                       {isReordering ? (
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1 self-end sm:shrink-0">
                           <Button
                             size="icon"
                             onClick={() => handleMoveToTop(index)}
                             disabled={index === 0}
-                            className="rounded bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                            className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
                             aria-label={t('置顶', 'Move to top')}
                             title={t('置顶', 'Move to top')}
                           >
@@ -677,7 +677,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                             size="icon"
                             onClick={() => handleMoveCategory(index, 'up')}
                             disabled={index === 0}
-                            className="rounded bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                            className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
                             aria-label={t('上移', 'Move up')}
                             title={t('上移', 'Move up')}
                           >
@@ -687,7 +687,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                             size="icon"
                             onClick={() => handleMoveCategory(index, 'down')}
                             disabled={index === allVisibleCategories.length - 1}
-                            className="rounded bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                            className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
                             aria-label={t('下移', 'Move down')}
                             title={t('下移', 'Move down')}
                           >
@@ -697,7 +697,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                             size="icon"
                             onClick={() => handleMoveToBottom(index)}
                             disabled={index === allVisibleCategories.length - 1}
-                            className="rounded bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                            className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
                             aria-label={t('置底', 'Move to bottom')}
                             title={t('置底', 'Move to bottom')}
                           >
@@ -705,13 +705,13 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1 self-end sm:shrink-0">
                           {category.isCustom ? (
                             <>
                               <Button
                                 size="icon"
                                 onClick={() => handleStartEdit(category)}
-                                className="h-8 w-8 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                                 aria-label={t('编辑', 'Edit')}
                                 title={t('编辑', 'Edit')}
                               >
@@ -720,7 +720,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                               <Button
                                 size="icon"
                                 onClick={() => handleDeleteCategory(category.id)}
-                                className="h-8 w-8 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                                 aria-label={t('删除', 'Delete')}
                                 title={t('删除', 'Delete')}
                               >
@@ -732,7 +732,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                               <Button
                                 size="icon"
                                 onClick={() => handleStartEdit(category)}
-                                className="h-8 w-8 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                                 aria-label={t('编辑', 'Edit')}
                                 title={t('编辑', 'Edit')}
                               >
@@ -741,7 +741,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                               <Button
                                 size="icon"
                                 onClick={() => hideDefaultCategory(category.id)}
-                                className="h-8 w-8 p-0 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent"
+                                className="touch-target-44 h-11 w-11 rounded bg-muted p-0 text-muted-foreground hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                                 aria-label={t('隐藏', 'Hide')}
                                 title={t('隐藏', 'Hide')}
                               >
@@ -774,7 +774,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                 <Button
                   key={category.id}
                   onClick={() => showDefaultCategory(category.id)}
-                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg bg-muted text-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors"
+                  className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg bg-muted px-3 text-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
                 >
                   <Eye className="w-4 h-4" />
                   <span className="w-5 text-center inline-block">{category.icon}</span>
