@@ -435,7 +435,8 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                   <Button
                     variant="ghost"
                     onClick={() => handleCategoryClick(category.id)}
-                    className={`touch-target-44 relative flex min-w-[130px] items-center justify-between rounded-lg px-3 py-2 text-left transition-all ${
+                    aria-label={`${isUncategorizeHotspot ? t('取消分类', 'Uncategorize') : category.name} ${count}`}
+                    className={`touch-target-44 relative flex w-auto max-w-[9rem] items-center rounded-lg px-2.5 py-2 text-left transition-all ${
                       isDragTarget
                         ? isUncategorizeHotspot
                           ? 'bg-warning/10 text-warning ring-1 ring-warning/40'
@@ -450,29 +451,14 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                     aria-pressed={isSelected}
                     aria-current={isSelected ? 'page' : undefined}
                   >
-                    <div className="flex items-center space-x-2 min-w-0 flex-1">
-                      <span className="text-base shrink-0">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="shrink-0 text-base">
                         {isUncategorizeHotspot ? <Undo2 className="h-4 w-4" /> : category.icon}
                       </span>
-                      <span className="text-xs font-medium truncate">
+                      <span className="truncate text-xs font-medium">
                         {isUncategorizeHotspot ? t('取消分类', 'Uncategorize') : category.name}
                       </span>
                     </div>
-                    <span
-                      className={`ml-1.5 shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                        isDragTarget
-                          ? isUncategorizeHotspot
-                            ? 'bg-warning/10 text-warning'
-                            : 'bg-success/10 text-success'
-                          : isUncategorizeHotspot
-                            ? 'bg-warning/10 text-warning'
-                            : isSelected
-                              ? 'bg-primary text-primary-foreground font-semibold'
-                              : 'bg-background/80 text-muted-foreground'
-                      }`}
-                    >
-                      {count}
-                    </span>
                   </Button>
                 </div>
               );

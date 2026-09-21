@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
 import { rememberRepository } from '../utils/recentRepositories';
+import { useCompactLongPress } from '../hooks/useCompactLongPress';
 import { useRepositoryCardActions } from '../features/repositories/hooks/useRepositoryCardActions';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -233,6 +234,11 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     rememberRepository(repository.id);
     setReadmeModalOpen(true);
   }, [repository.id]);
+
+  const selectFromLongPress = useCallback(() => {
+    onSelect?.(repository.id);
+  }, [onSelect, repository.id]);
+  const { consumeFollowUpClick, ...longPressHandlers } = useCompactLongPress(selectFromLongPress);
 
   useEffect(() => {
     if (!readmeOpenToken) return;
@@ -644,6 +650,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     // 排除卡片本身的 role="button"，只检查子元素的交互元素
     if (target.closest('button, a, input, textarea, select, [draggable="true"]')) return;
 
+    if (consumeFollowUpClick()) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const releaseSheetDismissedAt = releaseSheetOutsideDismissedAtRef.current;
     if (releaseSheetDismissedAt !== null) {
       releaseSheetOutsideDismissedAtRef.current = null;
@@ -705,7 +717,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     }
 
     openReadme();
-  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen, openReadme]);
+  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen, openReadme, consumeFollowUpClick]);
 
   // 处理鼠标按下事件，阻止焦点变化导致页面滚动
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -753,11 +765,15 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       ref={cardRef}
       className={cardClassName}
       onClick={handleCardClick}
-      onPointerDown={() => {
+      onPointerDown={(event) => {
         if (!isActionsMenuOpen) {
           menuDismissedByPointerDownRef.current = false;
         }
+        longPressHandlers.onPointerDown(event);
       }}
+      onPointerMove={longPressHandlers.onPointerMove}
+      onPointerUp={longPressHandlers.onPointerUp}
+      onPointerCancel={longPressHandlers.onPointerCancel}
       onMouseDown={handleMouseDown}
       onKeyDown={handleCardKeyDown}
       tabIndex={isModalOpen ? -1 : 0}

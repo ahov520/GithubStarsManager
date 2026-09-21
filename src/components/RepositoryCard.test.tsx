@@ -121,7 +121,7 @@ const mockUseAppStore = vi.mocked(useAppStore);
 
 const renderRepositoryCard = (
   viewMode: 'list' | 'grid',
-  options: { onAskRepository?: (repository: Repository) => void; selectionMode?: boolean } = {},
+  options: { onAskRepository?: (repository: Repository) => void; onSelect?: (id: number) => void; selectionMode?: boolean } = {},
 ) => render(
   <TooltipProvider>
     <RepositoryCard repository={repository} allCategories={[]} viewMode={viewMode} {...options} />
@@ -483,6 +483,30 @@ describe('RepositoryCard rapid touch drags (CodeRabbit round 2)', () => {
       vi.advanceTimersByTime(200);
       expect(fireEvent.click(card)).toBe(true);
     } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('RepositoryCard long press selection', () => {
+  it('selects the repository after a hold on a phone-width viewport and does not open the README', () => {
+    vi.useFakeTimers();
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    const onSelect = vi.fn();
+    try {
+      renderRepositoryCard('grid', { onSelect });
+      const card = screen.getByRole('button', { name: /owner\/example-repository/ });
+      fireEvent.pointerDown(card, { button: 0, clientX: 12, clientY: 20 });
+      act(() => {
+        vi.advanceTimersByTime(480);
+      });
+      expect(onSelect).toHaveBeenCalledWith(repository.id);
+      fireEvent.pointerUp(card);
+      fireEvent.click(card);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
       vi.useRealTimers();
     }
   });
