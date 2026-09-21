@@ -871,7 +871,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-52"
+              className="w-52 [&_[role=menuitem]]:min-h-[44px] sm:[&_[role=menuitem]]:min-h-0"
               onClick={(event) => event.stopPropagation()}
               onPointerDownOutside={(event) => {
                 if (cardRef.current?.contains(event.target as Node)) {
@@ -1110,7 +1110,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52" onClick={(event) => event.stopPropagation()}>
+              <DropdownMenuContent align="start" className="w-52 [&_[role=menuitem]]:min-h-[44px] sm:[&_[role=menuitem]]:min-h-0" onClick={(event) => event.stopPropagation()}>
                 {visibleGridActionCount < 1 && (
                   <DropdownMenuItem disabled={isAnalyzing} onSelect={() => void handleAIAnalyze()}>
                     {isAnalyzing ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Bot className="mr-2 h-3.5 w-3.5" />}
