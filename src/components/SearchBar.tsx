@@ -997,7 +997,7 @@ export const SearchBar: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   aria-label={t('最近更新时间', 'Last synced')}
-                  className="h-8 w-8 shrink-0 text-muted-foreground"
+                  className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground sm:h-8 sm:w-8"
                 >
                   <Clock className="h-4 w-4" aria-hidden="true" />
                 </Button>
@@ -1309,7 +1309,7 @@ export const SearchBar: React.FC = () => {
                   step={1}
                   placeholder="0"
                   allowUndefined
-                  className="w-24 text-sm py-1.5 dark:bg-muted/40"
+                  className="h-11 w-28 text-base sm:h-9 sm:text-sm dark:bg-muted/40"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -1324,7 +1324,7 @@ export const SearchBar: React.FC = () => {
                   step={1}
                   placeholder="∞"
                   allowUndefined
-                  className="w-24 text-sm py-1.5 dark:bg-muted/40"
+                  className="h-11 w-28 text-base sm:h-9 sm:text-sm dark:bg-muted/40"
                 />
               </div>
             </div>
@@ -1334,7 +1334,17 @@ export const SearchBar: React.FC = () => {
                 {t('最小值不能大于最大值', 'Min cannot be greater than max')}
               </p>
             )}
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={searchFilters.minStars === undefined ? 'secondary' : 'outline'}
+                size="sm"
+                aria-pressed={searchFilters.minStars === undefined}
+                onClick={() => setSearchFilters({ minStars: undefined })}
+                className="touch-target-44 h-11 rounded-full px-3 text-sm sm:h-7 sm:px-2 sm:text-xs"
+              >
+                {t('不限', 'Any')}
+              </Button>
               {[
                 { label: '1K', value: 1000 },
                 { label: '5K', value: 5000 },
@@ -1345,10 +1355,11 @@ export const SearchBar: React.FC = () => {
                 <Button
                   key={preset.label}
                   type="button"
-                  variant="outline"
+                  variant={searchFilters.minStars === preset.value ? 'secondary' : 'outline'}
                   size="sm"
+                  aria-pressed={searchFilters.minStars === preset.value}
                   onClick={() => setSearchFilters({ minStars: preset.value })}
-                  className="h-7 rounded px-2 text-xs text-muted-foreground transition-colors hover:bg-accent"
+                  className="touch-target-44 h-11 rounded-full px-3 text-sm text-muted-foreground transition-colors hover:bg-accent sm:h-7 sm:px-2 sm:text-xs"
                 >
                   ≥{preset.label}
                 </Button>

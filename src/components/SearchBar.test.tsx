@@ -289,6 +289,20 @@ describe('SearchBar', () => {
     }
   });
 
+  it('sets a star minimum from a preset and clears it', () => {
+    const setSearchFilters = vi.fn();
+    currentState = createStoreState({ setSearchFilters });
+    mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);
+
+    render(<SearchBar />);
+    fireEvent.click(screen.getByRole('button', { name: '过滤器' }));
+    fireEvent.click(screen.getByRole('button', { name: '≥1K' }));
+    fireEvent.click(screen.getByRole('button', { name: '不限' }));
+
+    expect(setSearchFilters).toHaveBeenCalledWith({ minStars: 1000 });
+    expect(setSearchFilters).toHaveBeenCalledWith({ minStars: undefined });
+  });
+
   it('applies a recent search from the phone chip without opening the dropdown', () => {
     const setSearchFilters = vi.fn();
     const setSearchResults = vi.fn();
