@@ -263,6 +263,10 @@ describe('ReadmeModal mobile repository detail', () => {
     expect(screen.getByText('MIT')).toBeInTheDocument();
     expect(screen.getByText('cli')).toBeInTheDocument();
     expect(document.querySelector('.repo-detail-dialog')).not.toBeNull();
+    const translate = screen.getByRole('button', { name: '翻译文档' });
+    expect(translate.className).toContain('h-11');
+    expect(translate.parentElement?.className).toContain('flex-wrap');
+    expect(screen.getByRole('link', { name: '在 GitHub 上查看' }).parentElement?.className).toContain('flex-wrap');
 
     const user = userEvent.setup();
     const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);

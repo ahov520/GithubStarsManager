@@ -710,7 +710,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
               </Button>
             </div>
             <RepositoryDetailSummary repository={repository} language={language} />
-            <div className="flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto px-2 pb-2 scrollbar-hide">
+            <div className="flex max-w-full flex-wrap items-center gap-1 px-2 pb-2 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
               {readmeVariants.length > 1 && (
                 <Select value={selectedReadmeKey} onValueChange={handleReadmeVariantChange} disabled={loading || variantsLoading}>
                   <SelectTrigger className="h-9 w-auto min-w-[7rem] max-w-[220px] shrink-0 px-2 py-2 text-sm" title={t('切换 README 语言', 'Switch README language')} aria-label={t('切换 README 语言', 'Switch README language')}><SelectValue /></SelectTrigger>
@@ -723,7 +723,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleRevertTranslation}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors bg-primary/20 text-primary dark:bg-primary/10 dark:text-primary"
+                      aria-label={t('关闭翻译', 'Close Translation')}
+                      className="touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg bg-primary/20 px-2.5 text-sm text-primary transition-colors sm:h-8 dark:bg-primary/10 dark:text-primary"
                       title={t('关闭翻译', 'Close Translation')}
                     >
                       <Languages className="w-4 h-4" />
@@ -738,7 +739,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                         key={mode}
                         variant="ghost"
                         onClick={() => setDisplayMode(mode)}
-                        className={`flex items-center space-x-1 px-2 py-2 text-sm rounded-lg transition-colors ${
+                        aria-label={label}
+                        className={`touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm transition-colors sm:h-8 ${
                           displayMode === mode
                             ? 'bg-primary/20 text-primary dark:bg-primary/10 dark:text-primary'
                             : 'text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-card'
@@ -755,7 +757,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleTranslate}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors text-warning hover:bg-warning/10"
+                      aria-label={t('重试翻译', 'Retry Translation')}
+                      className="touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm text-warning transition-colors hover:bg-warning/10 sm:h-8"
                       title={t('重试翻译', 'Retry Translation')}
                     >
                       <Languages className="w-4 h-4" />
@@ -764,7 +767,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleRevertTranslation}
-                      className="flex items-center space-x-1 px-2 py-2 text-sm rounded-lg transition-colors text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-card"
+                      aria-label={t('关闭翻译', 'Close Translation')}
+                      className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-0 text-muted-foreground transition-colors hover:bg-muted sm:h-8 sm:w-8 dark:hover:bg-card"
                       title={t('关闭翻译', 'Close Translation')}
                     >
                       <X className="w-4 h-4" />
@@ -775,7 +779,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     variant="ghost"
                     onClick={handleTranslate}
                     disabled={isTranslating}
-                    className={`flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    aria-label={t('翻译文档', 'Translate Document')}
+                    className={`touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm transition-colors sm:h-8 ${
                       isTranslating
                         ? 'text-muted-foreground dark:text-muted-foreground/70 cursor-not-allowed'
                         : 'text-muted-foreground dark:text-foreground hover:text-foreground hover:bg-muted dark:hover:bg-accent'
@@ -794,6 +799,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     ) : (
                       <>
                         <Languages className="w-4 h-4" />
+                        <span className="sm:hidden">{t('翻译', 'Translate')}</span>
                         <span className="hidden sm:inline">{language === 'zh' ? t('翻译为中文', 'Translate to Chinese') : t('翻译为英文', 'Translate to English')}</span>
                       </>
                     )}
