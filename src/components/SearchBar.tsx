@@ -837,12 +837,12 @@ export const SearchBar: React.FC = () => {
 
       {/* Search Status Indicator */}
       {searchQuery && (
-        <div className="mb-4 flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
+        <div className="mb-3 flex min-w-0 flex-col gap-1 text-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center space-x-2">
             {isRealTimeSearch ? (
               <div className="flex items-center space-x-2 text-primary dark:text-primary">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <span>{t('实时搜索模式 - 匹配仓库名称', 'Real-time search mode - matching repository names')}</span>
+                <span className="truncate">{t('实时搜索模式 - 匹配仓库名称', 'Real-time search mode - matching repository names')}</span>
               </div>
             ) : searchFilters.query ? (
               <div className="flex items-center space-x-2 text-muted-foreground dark:text-muted-foreground ">
@@ -852,7 +852,7 @@ export const SearchBar: React.FC = () => {
             ) : null}
           </div>
           {isRealTimeSearch && (
-            <div className="text-muted-foreground dark:text-muted-foreground">
+            <div className="hidden text-muted-foreground dark:text-muted-foreground sm:block">
               {t('按回车键或点击AI搜索进行深度搜索', 'Press Enter or click AI Search for deep search')}
             </div>
           )}
@@ -860,8 +860,8 @@ export const SearchBar: React.FC = () => {
       )}
 
       {/* Filter Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2 sm:justify-between">
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0 sm:gap-3">
           <Button
             variant="ghost"
             aria-expanded={showFilters}
@@ -911,7 +911,7 @@ export const SearchBar: React.FC = () => {
         </div>
 
         {/* Sort Controls + Sync Button */}
-        <div className="flex items-center gap-2 relative z-30">
+        <div className="relative z-30 flex shrink-0 items-center gap-2">
           <SortByDropdown
             value={searchFilters.sortBy}
             onChange={(value) => setSearchFilters({ sortBy: value as 'stars' | 'updated' | 'name' | 'starred' })}
@@ -937,7 +937,7 @@ export const SearchBar: React.FC = () => {
                     type="button"
                     onClick={() => { void syncStars(); }}
                     disabled={isSyncingStars}
-                    className="inline-flex items-center gap-1.5 rounded-none border-0 bg-transparent px-3 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50"
+                    className="touch-target-44 inline-flex items-center gap-1.5 rounded-none border-0 bg-transparent px-3 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0"
                     title={t('同步星标仓库列表', 'Sync starred repositories')}
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isSyncingStars ? 'animate-spin' : ''}`} />
@@ -948,7 +948,7 @@ export const SearchBar: React.FC = () => {
                       type="button"
                       disabled={isSyncingStars}
                       aria-label={t('更多同步选项', 'More sync options')}
-                      className="group inline-flex items-center rounded-none border-0 bg-transparent px-1.5 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50"
+                      className="touch-target-44 group inline-flex items-center rounded-none border-0 bg-transparent px-2.5 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0 sm:px-1.5"
                       title={t('更多同步选项', 'More sync options')}
                     >
                       <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />

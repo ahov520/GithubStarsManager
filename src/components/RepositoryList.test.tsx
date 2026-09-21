@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RepositoryList } from './RepositoryList';
+import { RECENT_REPOSITORIES_KEY } from '../utils/recentRepositories';
 import { useAppStore } from '../store/useAppStore';
 import type { Repository } from '../types';
 
@@ -14,8 +15,8 @@ vi.mock('../hooks/useDialog', () => ({
 }));
 
 vi.mock('./RepositoryCard', () => ({
-  RepositoryCard: ({ repository, viewMode }: { repository: Repository; viewMode: string }) => (
-    <div data-testid={`repository-card-${repository.id}`} data-view-mode={viewMode}>{repository.name}</div>
+  RepositoryCard: ({ repository, viewMode, readmeOpenToken }: { repository: Repository; viewMode: string; readmeOpenToken?: number }) => (
+    <div data-testid={`repository-card-${repository.id}`} data-view-mode={viewMode} data-readme-token={readmeOpenToken || 0}>{repository.name}</div>
   ),
 }));
 
@@ -143,5 +144,15 @@ describe('RepositoryList view mode controls', () => {
     rerender(<RepositoryList repositories={[repository]} selectedCategory="all" />);
     expect(screen.getByTestId('repository-card-1')).toHaveAttribute('data-view-mode', 'list');
     expect(screen.getByTitle('单列列表')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('reopens a recently viewed repository from the mobile strip', () => {
+    window.localStorage.setItem(RECENT_REPOSITORIES_KEY, JSON.stringify([repository.id]));
+    render(<RepositoryList repositories={[repository]} selectedCategory="all" />);
+
+    expect(screen.getByTestId('repository-card-1')).toHaveAttribute('data-readme-token', '0');
+    fireEvent.click(screen.getByRole('button', { name: repository.name }));
+    expect(screen.getByTestId('repository-card-1').getAttribute('data-readme-token')).not.toBe('0');
+    window.localStorage.removeItem(RECENT_REPOSITORIES_KEY);
   });
 });

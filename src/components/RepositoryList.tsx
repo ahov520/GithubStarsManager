@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { Bot, ChevronDown, LayoutGrid, List, Pause, Play, SearchX, X } from 'lucide-react';
+import { Bot, ChevronDown, LayoutGrid, List, Pause, Play, SearchX, SlidersHorizontal, X } from 'lucide-react';
 import { RepositoryCard } from './RepositoryCard';
 import { SimilarViewBanner } from './SimilarViewBanner';
 import { GlobalChatHistorySheet } from './GlobalChatHistorySheet';
@@ -19,7 +19,8 @@ import { useBulkRepositoryActions } from '../features/repositories/hooks/useBulk
 import { useDialog } from '../hooks/useDialog';
 import { Button } from './ui/button';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { readRecentRepositoryIds, RECENT_REPOSITORIES_EVENT } from '../utils/recentRepositories';
 
 const LazyRepositoryChatSheet = React.lazy(() =>
   import('./RepositoryChatSheet').then((module) => ({ default: module.default }))
@@ -62,6 +63,16 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
 
   // 空状态的"清除全部筛选"出口：只重置筛选条件，保留查询词——查询词是
   // SearchBar 的本地输入状态，这里不重置以免输入框与结果列表失同步。
+  useEffect(() => {
+    const syncRecent = () => setRecentIds(readRecentRepositoryIds());
+    window.addEventListener('storage', syncRecent);
+    window.addEventListener(RECENT_REPOSITORIES_EVENT, syncRecent);
+    return () => {
+      window.removeEventListener('storage', syncRecent);
+      window.removeEventListener(RECENT_REPOSITORIES_EVENT, syncRecent);
+    };
+  }, []);
+
   const clearAllFilters = useCallback(() => {
     setSearchFilters({
       tags: [],
@@ -98,6 +109,8 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
   const { toast } = useDialog();
 
   const [showAISummary, setShowAISummary] = useState(true);
+  const [recentIds, setRecentIds] = useState<number[]>(() => readRecentRepositoryIds());
+  const [readmeRequest, setReadmeRequest] = useState<{ id: number; token: number } | null>(null);
   const [disableCardAnimations, setDisableCardAnimations] = useState(false);
   const previousCategoryRef = useRef(selectedCategory);
   const savedScrollYRef = useRef<number | null>(null);
@@ -176,6 +189,14 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
   const LOAD_BATCH = 50;
   const [visibleCount, setVisibleCount] = useState(LOAD_BATCH);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const recentRepositories = useMemo(() => {
+    const byId = new Map(filteredRepositories.map((repo) => [repo.id, repo]));
+    return recentIds.flatMap((id) => {
+      const repo = byId.get(id);
+      return repo ? [repo] : [];
+    }).slice(0, 8);
+  }, [filteredRepositories, recentIds]);
 
   const startIndex = filteredRepositories.length === 0 ? 0 : 1;
   const endIndex = Math.min(visibleCount, filteredRepositories.length);
@@ -589,8 +610,27 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
       )}
 
       {/* Controls Bar */}
+      {recentRepositories.length > 0 && (
+        <div className="md:hidden">
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t('最近打开', 'Recently opened')}</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {recentRepositories.map((repo) => (
+              <Button
+                key={repo.id}
+                type="button"
+                variant="outline"
+                className="h-10 max-w-[11rem] shrink-0 px-3 text-sm"
+                onClick={() => setReadmeRequest({ id: repo.id, token: Date.now() })}
+              >
+                <span className="truncate">{repo.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="ui-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 gap-3 sm:gap-0">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className={`${isLoading ? 'flex' : 'hidden'} flex-col gap-3 sm:flex sm:flex-row sm:items-center sm:gap-4`}>
 
           {/* AI Analysis Select */}
           <DropdownMenu>
@@ -638,7 +678,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
                 variant="ghost"
                 size="icon"
                 onClick={handlePauseResume}
-                className="h-7 w-7 p-0 rounded-lg bg-muted text-muted-foreground dark:bg-warning/20 dark:text-warning hover:bg-accent dark:hover:bg-warning/30 transition-colors"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-muted p-0 text-muted-foreground transition-colors hover:bg-accent dark:bg-warning/20 dark:text-warning dark:hover:bg-warning/30 sm:h-7 sm:w-7"
                 aria-label={isPaused ? t('继续', 'Resume') : t('暂停', 'Pause')}
                 title={isPaused ? t('继续', 'Resume') : t('暂停', 'Pause')}
               >
@@ -647,7 +687,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
               <Button
                 variant="ghost"
                 onClick={handleStop}
-                className="h-7 px-2 sm:px-3 py-1 rounded-lg bg-muted text-muted-foreground dark:bg-destructive/20 dark:text-destructive hover:bg-accent dark:hover:bg-destructive/30 transition-colors text-xs sm:text-sm"
+                className="touch-target-44 h-11 rounded-lg bg-muted px-3 text-xs text-muted-foreground transition-colors hover:bg-accent dark:bg-destructive/20 dark:text-destructive dark:hover:bg-destructive/30 sm:h-7 sm:px-3 sm:text-sm"
               >
                 {t('停止', 'Stop')}
               </Button>
@@ -676,10 +716,43 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
         </div>
 
         {/* Statistics and view mode: the layout switch remains at the toolbar's far right. */}
-        <div className={`ml-auto flex w-full flex-col items-end gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3 ${disableCardAnimations ? 'repository-list-syncing' : ''}`}>
-          <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5 sm:text-right tabular-nums">
-            <div className="flex items-center justify-between">
-              <div>
+        <div className={`flex w-full flex-row items-center justify-between gap-2 sm:ml-auto sm:w-auto sm:justify-end sm:gap-3 ${disableCardAnimations ? 'repository-list-syncing' : ''}`}>
+          {!isLoading && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="touch-target-44 h-11 w-11 shrink-0 p-0 md:hidden"
+                  aria-label={t('列表操作', 'List actions')}
+                  title={t('列表操作', 'List actions')}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onSelect={() => void handleAIAnalyze(false)}>
+                  {t(`分析全部（${filteredRepositories.length}）`, `Analyze All (${filteredRepositories.length})`)}
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={unanalyzedCount === 0} onSelect={() => void handleAIAnalyze(true)}>
+                  {t(`分析未分析的（${unanalyzedCount}）`, `Analyze Unanalyzed (${unanalyzedCount})`)}
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={failedCount === 0} onSelect={() => void handleAIAnalyze(false, true)}>
+                  {t(`重新分析失败的（${failedCount}）`, `Re-analyze Failed (${failedCount})`)}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={!hasAnalyzedRepos} onSelect={() => setShowAISummary(true)}>
+                  {t('显示 AI 分析', 'Show AI summaries')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setShowAISummary(false)}>
+                  {t('显示原始描述', 'Show original descriptions')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <div className="min-w-0 flex-1 text-xs text-muted-foreground dark:text-muted-foreground sm:mt-0.5 sm:flex-none sm:text-right tabular-nums">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <div className="truncate">
                 {t(
                   `第 ${startIndex}-${endIndex} / 共 ${filteredRepositories.length} 个仓库`,
                   `Showing ${startIndex}-${endIndex} of ${filteredRepositories.length} repositories`
@@ -690,7 +763,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="hidden flex-wrap items-center gap-x-3 gap-y-1 sm:flex">
                 {analyzedCount > 0 && (
                   <span className="text-xs sm:text-sm">
                     • {analyzedCount} {t('个已AI分析', 'AI analyzed')}
@@ -719,7 +792,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
                 onClick={() => setRepositoryViewMode('grid')}
                 aria-pressed={repositoryViewMode === 'grid'}
                 aria-label={t('多列卡片', 'Grid view')}
-                className={`flex h-7 w-8 items-center justify-center rounded-md p-0 transition-colors ${repositoryViewMode === 'grid' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                className={`touch-target-44 flex h-11 w-11 items-center justify-center rounded-md p-0 transition-colors sm:h-7 sm:w-8 ${repositoryViewMode === 'grid' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
                 title={t('多列卡片', 'Grid view')}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -731,7 +804,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
                 onClick={() => setRepositoryViewMode('list')}
                 aria-pressed={repositoryViewMode === 'list'}
                 aria-label={t('单列列表', 'List view')}
-                className={`flex h-7 w-8 items-center justify-center rounded-md p-0 transition-colors ${repositoryViewMode === 'list' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                className={`touch-target-44 flex h-11 w-11 items-center justify-center rounded-md p-0 transition-colors sm:h-7 sm:w-8 ${repositoryViewMode === 'list' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
                 title={t('单列列表', 'List view')}
               >
                 <List className="w-4 h-4" />
@@ -762,6 +835,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
             allCategories={allCategories}
             viewMode={repositoryViewMode}
             onAskRepository={handleAskRepository}
+            readmeOpenToken={readmeRequest?.id === repo.id ? readmeRequest.token : 0}
           />
         ))}
       </div>

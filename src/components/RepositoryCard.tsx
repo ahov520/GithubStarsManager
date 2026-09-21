@@ -17,6 +17,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
+import { rememberRepository } from '../utils/recentRepositories';
 import { useRepositoryCardActions } from '../features/repositories/hooks/useRepositoryCardActions';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -141,6 +142,7 @@ interface RepositoryCardProps {
   allCategories: Category[];
   viewMode?: 'grid' | 'list';
   onAskRepository?: (repository: Repository) => void;
+  readmeOpenToken?: number;
 }
 
 const PluginRepositoryActionItems: React.FC<{
@@ -194,6 +196,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   allCategories,
   viewMode = 'grid',
   onAskRepository,
+  readmeOpenToken = 0,
 }) => {
   const language = useAppStore((state) => state.language);
   const pluginActions = usePluginActions('repository-card');
@@ -225,6 +228,16 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const restoreReadmeTriggerFocus = useCallback(() => {
     cardRef.current?.focus();
   }, []);
+
+  const openReadme = useCallback(() => {
+    rememberRepository(repository.id);
+    setReadmeModalOpen(true);
+  }, [repository.id]);
+
+  useEffect(() => {
+    if (!readmeOpenToken) return;
+    openReadme();
+  }, [readmeOpenToken, openReadme]);
 
   useEffect(() => {
     if (viewMode !== 'list' || selectionMode) {
@@ -691,8 +704,8 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       return;
     }
 
-    setReadmeModalOpen(true);
-  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen]);
+    openReadme();
+  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen, openReadme]);
 
   // 处理鼠标按下事件，阻止焦点变化导致页面滚动
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -718,10 +731,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       if (selectionMode && onSelect) {
         onSelect(repository.id);
       } else {
-        setReadmeModalOpen(true);
+        openReadme();
       }
     }
-  }, [selectionMode, onSelect, repository.id, isModalOpen]);
+  }, [selectionMode, onSelect, repository.id, isModalOpen, openReadme]);
 
   // 使用 useMemo 缓存卡片类名，避免重复计算
   const cardClassName = useMemo(() => {
@@ -1423,6 +1436,7 @@ export const RepositoryCard = React.memo(RepositoryCardComponent, (prevProps, ne
     prevProps.isExitingSelection === nextProps.isExitingSelection &&
     prevProps.viewMode === nextProps.viewMode &&
     prevProps.onAskRepository === nextProps.onAskRepository &&
+    prevProps.readmeOpenToken === nextProps.readmeOpenToken &&
     allCategoriesEqual
   );
 });
