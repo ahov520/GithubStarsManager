@@ -187,7 +187,7 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
 
   return (
     <div 
-      className="relative w-full border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm lg:hidden"
+      className="relative w-full overflow-x-hidden border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm lg:hidden"
     >
       <div
         ref={scrollContainerRef}

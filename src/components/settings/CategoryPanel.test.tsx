@@ -42,6 +42,7 @@ describe('CategoryPanel on a phone', () => {
 
     const editButtons = screen.getAllByRole('button', { name: '编辑' });
     expect(editButtons[0].className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '添加分类' }).className).toContain('h-11');
 
     await userEvent.click(editButtons[0]);
 

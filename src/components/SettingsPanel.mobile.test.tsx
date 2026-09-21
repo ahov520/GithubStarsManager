@@ -51,6 +51,7 @@ describe('SettingsPanel mobile tab search', () => {
     render(<SettingsPanel />);
     const bar = mobileTablist();
     expect(bar.getByRole('tab', { name: '星标同步' })).toBeTruthy();
+    expect(bar.getByRole('tablist').parentElement?.className).toContain('overflow-x-hidden');
 
     fireEvent.change(screen.getByRole('textbox', { name: '搜索设置项' }), { target: { value: 'AI' } });
 

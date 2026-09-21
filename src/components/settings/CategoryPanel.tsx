@@ -266,7 +266,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center space-x-3">
           <Package className="w-6 h-6 text-muted-foreground dark:text-muted-foreground " />
           <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
@@ -275,7 +275,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
         </div>
         <Button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" />
           <span>{t('添加分类', 'Add Category')}</span>
@@ -284,8 +284,8 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
 
       {/* 折叠侧边栏显示设置 */}
       <div className="p-4 bg-muted dark:bg-muted/40 rounded-lg border border-border dark:border-border dark:border-border dark:border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <LayoutGrid className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />
             <div>
               <h4 className="font-medium text-foreground dark:text-foreground">
@@ -302,7 +302,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center self-end sm:self-auto">
             <StepperInput
               value={collapsedSidebarCategoryCount}
               onChange={setCollapsedSidebarCategoryCount}
@@ -376,7 +376,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder={t('例如: 我的项目', 'e.g., My Projects')}
               />
             </div>
@@ -395,7 +395,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
                     setNewCategoryIcon(value);
                   }
                 }}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
                 placeholder="📁"
               />
             </div>
@@ -409,7 +409,7 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({ t }) => {
               type="text"
               value={newCategoryKeywords}
               onChange={(e) => setNewCategoryKeywords(e.target.value)}
-              className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+              className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
               placeholder={t('用逗号分隔关键词', 'Comma-separated keywords')}
             />
             <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
