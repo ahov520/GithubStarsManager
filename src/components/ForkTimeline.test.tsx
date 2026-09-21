@@ -147,6 +147,33 @@ describe('ForkTimeline owner filtering', () => {
     expect(screen.queryByText('org-fork')).not.toBeInTheDocument();
   });
 
+  it('copies a clone command and can share the fork without leaving the list', async () => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+
+    render(<ForkTimeline />);
+    await screen.findByText('personal-fork');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制克隆命令' }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('git clone https://github.com/tamina/personal-fork.git');
+    });
+    expect(toastMock).toHaveBeenCalledWith('克隆命令已复制', 'success');
+
+    fireEvent.click(screen.getByRole('button', { name: '分享' }));
+    await waitFor(() => {
+      expect(share).toHaveBeenCalledWith({
+        title: 'tamina/personal-fork',
+        text: 'personal-fork description',
+        url: 'https://github.com/tamina/personal-fork',
+      });
+    });
+    delete (navigator as { share?: unknown }).share;
+  });
+
   it('switches to organization-owned forks without mixing personal forks', async () => {
     render(<ForkTimeline />);
 
