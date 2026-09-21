@@ -639,7 +639,7 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
         deferOutsideDismiss(event, handleClose);
       }}
       footer={(
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button
             onClick={handleCloseWithConfirm}
             className="touch-target-44 flex min-h-[44px] w-full items-center justify-center space-x-2 rounded-xl border border-border bg-card px-4 py-2.5 text-muted-foreground shadow-sm transition-all duration-200 hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent sm:w-auto"
