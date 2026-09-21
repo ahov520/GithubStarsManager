@@ -679,10 +679,10 @@ Repository information:
             )}
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleSave}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground"
             >
               <Save className="w-4 h-4" />
               <span>{t('保存', 'Save')}</span>
@@ -690,7 +690,7 @@ Repository information:
             <Button
               onClick={handleTestForm}
               disabled={testingForm}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 dark:bg-primary dark:text-primary-foreground"
             >
               {testingForm ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -701,7 +701,7 @@ Repository information:
             </Button>
             <Button
               onClick={resetForm}
-              className="flex items-center space-x-2 px-4 py-2 bg-muted hover:bg-accent dark:bg-muted/40 dark:hover:bg-accent text-foreground dark:text-foreground rounded-lg border border-border dark:border-border transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg border border-border bg-muted px-4 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
             >
               <X className="w-4 h-4" />
               <span>{t('取消', 'Cancel')}</span>
@@ -723,15 +723,16 @@ Repository information:
                 : 'border-border dark:border-border hover:border-border dark:hover:border-border-strong'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
                 <RadioGroupItem
                   value={config.id}
                   id={`active-ai-${config.id}`}
                   aria-label={config.name || t('AI配置', 'AI configuration')}
+                  className="mt-1"
                 />
-                <div>
-                  <h4 className="font-medium text-foreground dark:text-foreground flex items-center">
+                <div className="min-w-0 flex-1">
+                  <h4 className="flex flex-wrap items-center font-medium text-foreground dark:text-foreground">
                     {config.name}
                     {config.useCustomPrompt && (
                       <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground">
@@ -740,7 +741,7 @@ Repository information:
                       </span>
                     )}
                   </h4>
-                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+                  <p className="break-all text-sm text-muted-foreground dark:text-muted-foreground">
                     {(config.apiType || 'openai').toUpperCase()} • {config.baseUrl} • {config.model} • {t('并发数', 'Concurrency')}: {config.concurrency || 1}
                     {config.reasoningEffort ? ` • reasoning: ${config.reasoningEffort}` : ''}
                   </p>
@@ -755,13 +756,14 @@ Repository information:
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 self-end sm:shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => handleTest(config)}
                   disabled={testingId === config.id}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors disabled:opacity-50"
+                  aria-label={t('测试连接', 'Test Connection')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent disabled:opacity-50 dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('测试连接', 'Test Connection')}
                 >
                   {testingId === config.id ? (
@@ -774,7 +776,8 @@ Repository information:
                   variant="ghost"
                   size="icon"
                   onClick={() => handleEdit(config)}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors"
+                  aria-label={t('编辑', 'Edit')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('编辑', 'Edit')}
                 >
                   <Edit3 className="w-4 h-4" />
@@ -797,7 +800,8 @@ Repository information:
                       }
                     }
                   }}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors"
+                  aria-label={t('删除', 'Delete')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('删除', 'Delete')}
                 >
                   <Trash2 className="w-4 h-4" />
