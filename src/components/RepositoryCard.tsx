@@ -5,7 +5,7 @@ import {
   getPlatformIcon,
 } from './platformMeta';
 import { useRepositoryPlatforms } from '../hooks/useRepositoryPlatforms';
-import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug } from 'lucide-react';
+import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2 } from 'lucide-react';
 import { Repository, Category } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -640,6 +640,20 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     editModalOutsideDismissedAtRef.current = Date.now();
   }, []);
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const handleShare = useCallback(async () => {
+    if (!canShare) return;
+    try {
+      await navigator.share({
+        title: repository.full_name,
+        text: repository.description || repository.full_name,
+        url: repository.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+    }
+  }, [canShare, repository.description, repository.full_name, repository.html_url]);
+
   // 使用 useCallback 优化事件处理函数
   const handleCardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // 点击目标是链接/按钮等交互元素时永不拦截：链接导航与按钮动作必须保留
@@ -796,27 +810,31 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate">
             {repository.owner.login}
           </p>
+          {viewMode === 'list' && (
+            <div className="mt-1">
+              {displayContent.isAnalysisFailed ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                  <Bot className="w-3 h-3" />
+                  {language === 'zh' ? '分析失败' : 'Analysis failed'}
+                </span>
+              ) : displayContent.isAnalyzed ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary dark:border-primary/20 dark:bg-primary/20">
+                  <Sparkles className="w-3 h-3" />
+                  {language === 'zh' ? '已分析' : 'Analyzed'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border/40 bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground">
+                  <Bot className="w-3 h-3" />
+                  {language === 'zh' ? '待分析' : 'Not analyzed'}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         
         {/* 拖拽按钮 - 右上角 - 手机和平板端隐藏 */}
         {viewMode === 'list' && (
           <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-            {displayContent.isAnalysisFailed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20">
-                  <Bot className="w-3 h-3" />
-                  {language === 'zh' ? '分析失败' : 'Analysis failed'}
-                </span>
-            ) : displayContent.isAnalyzed ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary border border-primary/20 dark:border-primary/20">
-                <Sparkles className="w-3 h-3" />
-                {language === 'zh' ? '已分析' : 'Analyzed'}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground border border-border/40">
-                <Bot className="w-3 h-3" />
-                {language === 'zh' ? '待分析' : 'Not analyzed'}
-              </span>
-            )}
             {!selectionMode && (
               <Button
                 type="button"
@@ -913,6 +931,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   {language === 'zh' ? '在 GitHub 中查看' : 'View on GitHub'}
                 </a>
               </DropdownMenuItem>
+              {canShare && (
+                <DropdownMenuItem onSelect={() => { void handleShare(); }}>
+                  <Share2 className="mr-2 h-3.5 w-3.5" />
+                  {language === 'zh' ? '分享' : 'Share'}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={unstarring} onSelect={() => void handleUnstar()}>
                 <StarOff className={`mr-2 h-3.5 w-3.5 ${unstarring ? 'animate-pulse' : ''}`} />
@@ -1131,6 +1155,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                       <ExternalLink className="mr-2 h-3.5 w-3.5" />
                       {language === 'zh' ? '在 GitHub 中查看' : 'View on GitHub'}
                     </a>
+                  </DropdownMenuItem>
+                )}
+                {canShare && (
+                  <DropdownMenuItem onSelect={() => { void handleShare(); }}>
+                    <Share2 className="mr-2 h-3.5 w-3.5" />
+                    {language === 'zh' ? '分享' : 'Share'}
                   </DropdownMenuItem>
                 )}
                 {visibleGridActionCount < 8 && (

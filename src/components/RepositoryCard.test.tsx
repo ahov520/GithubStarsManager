@@ -173,6 +173,24 @@ describe('RepositoryCard view modes', () => {
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
   });
 
+  it('shares the repository from the list menu when the browser can share', async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    try {
+      renderRepositoryCard('list');
+      await user.click(screen.getByRole('button', { name: '更多操作' }));
+      await user.click(screen.getByRole('menuitem', { name: '分享' }));
+      expect(share).toHaveBeenCalledWith({
+        title: 'owner/example-repository',
+        text: 'Repository description',
+        url: 'https://github.com/owner/example-repository',
+      });
+    } finally {
+      Reflect.deleteProperty(navigator, 'share');
+    }
+  });
+
   it('only exposes similar-repository search in the menu when vector search is available', async () => {
     const user = userEvent.setup();
     const originalVectorSearchAvailable = actionMocks.actions.vectorSearchAvailable;
