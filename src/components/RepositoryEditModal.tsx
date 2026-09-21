@@ -618,7 +618,7 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
   const labelClass = "flex items-center space-x-2 text-[13px] font-medium text-foreground dark:text-foreground mb-3";
   const inputClass = "h-auto w-full px-4 py-3 bg-accent/50 dark:bg-muted/40 border border-border dark:border-border rounded-xl text-foreground dark:text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-ring dark:focus:ring-ring/50 dark:focus:border-ring transition-[color,background-color,border-color] duration-200 hover:bg-accent/50 dark:hover:bg-accent hover:border-border dark:hover:border-border-strong text-[13px] leading-[1.625]";
   const textareaClass = `${inputClass} resize-y min-h-[120px] max-h-[400px] overflow-y-auto scrollbar-auto`;
-  const buttonSecondaryClass = "h-auto flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all duration-200";
+  const buttonSecondaryClass = "touch-target-44 flex min-h-[44px] items-center space-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200";
   const tagClass = "inline-flex items-center px-2.5 py-1 bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground rounded-md text-sm border border-border dark:border-border";
   const infoBoxClass = "mt-3 p-3.5 border border-border dark:border-border rounded-xl text-[12px] leading-[1.5] transition-all duration-200";
   const infoTextClass = "text-muted-foreground dark:text-muted-foreground flex items-start";
@@ -630,6 +630,7 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
       title={t('编辑仓库信息', 'Edit Repository Info')}
       maxWidth="max-w-2xl"
       scrollable
+      mobileFullScreen
       onOverlayPointerDown={onOutsideDismiss}
       onPointerDownOutside={(event) => {
         // Keep the overlay mounted through this click sequence. Otherwise the
@@ -638,10 +639,10 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
         deferOutsideDismiss(event, handleClose);
       }}
       footer={(
-        <div className="flex justify-end space-x-3">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             onClick={handleCloseWithConfirm}
-            className="flex items-center space-x-2 px-4 py-2.5 text-muted-foreground dark:text-foreground bg-card dark:bg-muted/40 rounded-xl hover:bg-accent dark:hover:bg-accent border border-border dark:border-border transition-all duration-200 shadow-sm"
+            className="touch-target-44 flex min-h-[44px] w-full items-center justify-center space-x-2 rounded-xl border border-border bg-card px-4 py-2.5 text-muted-foreground shadow-sm transition-all duration-200 hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent sm:w-auto"
           >
             <X className="w-4 h-4" />
             <span className="font-medium">{t('取消', 'Cancel')}</span>
@@ -649,7 +650,7 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
           <Button
             onClick={() => void handleSave()}
             disabled={!hasChanges}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm font-medium"
+            className="touch-target-44 flex min-h-[44px] w-full items-center justify-center space-x-2 rounded-xl bg-primary px-5 py-2.5 font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             <Save className="w-4 h-4" />
             <span>{t('保存', 'Save')}</span>
@@ -672,12 +673,12 @@ export const RepositoryEditModal: React.FC<RepositoryEditModalProps> = ({
             <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               {repository.owner.login}
             </p>
+            {repository.description && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground dark:text-muted-foreground">
+                {repository.description}
+              </p>
+            )}
           </div>
-          {repository.description && (
-            <div className="hidden sm:block text-xs text-muted-foreground dark:text-muted-foreground max-w-xs truncate">
-              {repository.description}
-            </div>
-          )}
         </div>
 
         {/* Description Section */}

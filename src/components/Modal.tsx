@@ -74,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
         {children}
       </div>
       {footer && (
-        <div data-testid="modal-footer" className="shrink-0 border-t border-border px-6 py-4">
+        <div data-testid="modal-footer" className="shrink-0 border-t border-border px-6 pt-4 pb-safe">
           {footer}
         </div>
       )}

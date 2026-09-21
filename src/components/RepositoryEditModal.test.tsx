@@ -87,7 +87,8 @@ describe("RepositoryEditModal", () => {
     const scrollArea = screen.getByTestId("modal-scroll-area");
     const footer = screen.getByTestId("modal-footer");
 
-    expect(dialog).toHaveClass("flex", "flex-col", "overflow-hidden");
+    expect(dialog).toHaveClass("flex", "flex-col", "overflow-hidden", "mobile-fullscreen-dialog");
+    expect(screen.getByRole("button", { name: "保存" })).toHaveClass("min-h-[44px]", "w-full");
     expect(scrollArea).toHaveClass(
       "min-h-0",
       "flex-1",
