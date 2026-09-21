@@ -45,14 +45,14 @@ const ReadmeModalLoadingFallback: React.FC<{
   <Dialog open onOpenChange={(open) => !open && onClose()}>
     <DialogContent
       aria-describedby={undefined}
-      className="w-[calc(100%_-_2rem)] max-w-[1130px] p-6"
+      className="repo-detail-dialog"
       onCloseAutoFocus={(event) => {
         event.preventDefault();
         onCloseAutoFocus();
       }}
     >
       <DialogTitle className="sr-only">Loading README</DialogTitle>
-      <div className="flex min-h-40 flex-col items-center justify-center gap-4" role="status" aria-live="polite">
+      <div className="flex h-full min-h-40 flex-1 flex-col items-center justify-center gap-4 p-6" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
         <p className="text-muted-foreground">Loading README…</p>
       </div>
@@ -726,8 +726,8 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   // 使用 useMemo 缓存卡片类名，避免重复计算
   const cardClassName = useMemo(() => {
     const baseClasses = viewMode === 'list'
-      ? 'repository-card repository-card--list ui-card group relative px-6 pt-5 pb-0 transition-[color,background-color,border-color,box-shadow] duration-200 cursor-pointer'
-      : 'repository-card ui-card group p-5 transition-[color,background-color,border-color,box-shadow] duration-200 flex flex-col h-full cursor-pointer';
+      ? 'repository-card repository-card--list ui-card group relative px-4 pt-4 sm:px-6 sm:pt-5 pb-0 transition-[color,background-color,border-color,box-shadow] duration-200 cursor-pointer'
+      : 'repository-card ui-card group p-4 sm:p-5 transition-[color,background-color,border-color,box-shadow] duration-200 flex flex-col h-full cursor-pointer';
     const selectedClasses = isSelected
       ? 'linear-card-selected'
       : '';
@@ -1342,6 +1342,18 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               onClose={() => setReadmeModalOpen(false)}
               onCloseAutoFocus={restoreReadmeTriggerFocus}
               repository={repository}
+              isSubscribed={isSubscribed}
+              onAsk={onAskRepository ? () => {
+                setReadmeModalOpen(false);
+                onAskRepository(repository);
+              } : undefined}
+              onOpenReleases={() => {
+                setReadmeModalOpen(false);
+                setReleaseSheetOpen(true);
+              }}
+              onToggleSubscribe={() => {
+                void toggleReleaseSubscription();
+              }}
             />
           </Suspense>
         </ErrorBoundary>,

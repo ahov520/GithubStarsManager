@@ -208,6 +208,108 @@
   background: hsl(var(--muted-foreground) / 0.9);
 }
 
+/* 点开仓库后的 README 阅读层。桌面保持居中阅读窗；手机铺满屏幕，
+   避免 85vh 居中弹层把正文裁掉且无法滚动。 */
+.repo-detail-dialog {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+  height: min(92dvh, 920px);
+  max-height: 92dvh !important;
+  width: min(1130px, calc(100% - 1rem)) !important;
+  max-width: 1130px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .repo-detail-dialog {
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+  }
+
+  .sheet-mobile-full {
+    width: 100% !important;
+    max-width: none !important;
+    border-left-width: 0 !important;
+    border-radius: 0 !important;
+    padding-top: max(1.25rem, env(safe-area-inset-top, 0px)) !important;
+  }
+
+  .repo-detail-markdown .markdown-body figure {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .repo-detail-markdown .markdown-body pre,
+  .repo-detail-markdown .markdown-body img,
+  .repo-detail-markdown .markdown-body video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .repo-detail-markdown .markdown-body :is(p, li, td, th, h1, h2, h3, h4, h5, h6) {
+    overflow-wrap: anywhere;
+  }
+
+  .release-asset-table table,
+  .release-asset-table tbody,
+  .release-asset-table tr,
+  .release-asset-table td {
+    display: block;
+    width: auto;
+    max-width: none;
+  }
+
+  .release-asset-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .release-asset-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    padding: 0.75rem 0.125rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .release-asset-table td {
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .release-asset-table td:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    max-width: 100%;
+  }
+
+  .release-asset-table td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .release-asset-table td:last-child {
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+    text-align: right;
+  }
+}
+
 /* ========== highlight.js Dark Mode Scope Isolation ========== */
 
 .dark .hljs {

@@ -310,7 +310,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-[min(100vw-1rem,48rem)] sm:max-w-none safe-area-bottom"
+        className="sheet-mobile-full w-full gap-3 safe-area-bottom sm:w-[min(100vw-1rem,48rem)] sm:max-w-none"
         closeLabel={t('关闭仓库问答', 'Close repository chat')}
         onPointerDownOutside={(event) => {
           event.preventDefault();
@@ -375,7 +375,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
 
         <div className="min-h-0 flex flex-1 gap-4 overflow-hidden">
           {showHistory ? (
-            <div className="min-h-0 w-full max-w-sm border-r border-border pr-3">
+            <div className="min-h-0 h-full w-full md:max-w-sm md:border-r md:border-border md:pr-3">
               <RepositoryChatHistoryPanel
                 sessions={sessions}
                 activeSessionId={activeSession?.id}

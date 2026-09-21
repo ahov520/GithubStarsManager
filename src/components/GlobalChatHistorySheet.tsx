@@ -102,7 +102,7 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-[min(100vw-1rem,32rem)] sm:max-w-none"
+        className="sheet-mobile-full w-full safe-area-bottom sm:w-[min(100vw-1rem,32rem)] sm:max-w-none"
         closeLabel={t('关闭问答历史', 'Close chat history')}
         onPointerDownOutside={(event) => {
           event.preventDefault();
