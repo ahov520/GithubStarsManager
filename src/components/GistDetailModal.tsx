@@ -196,7 +196,7 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
   if (!gist) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={getGistTitle(gist)} maxWidth="max-w-5xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={getGistTitle(gist)} maxWidth="max-w-5xl" mobileFullScreen>
       <div className="min-w-0 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 text-sm text-muted-foreground dark:text-muted-foreground">

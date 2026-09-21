@@ -52,6 +52,7 @@ export const GistView: React.FC = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingGist, setEditingGist] = useState<Gist | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const detailRequestSeqRef = useRef(0);
 
   const categoryItems = useMemo(() => ({
@@ -105,28 +106,37 @@ export const GistView: React.FC = () => {
   return (
     <div className="flex w-full flex-col items-start gap-4 lg:flex-row lg:gap-6">
       <aside className="w-full lg:w-64 lg:flex-shrink-0 lg:self-start">
-        <div className="linear-sidebar sticky top-24 z-10 p-3">
-          <div className="mb-3 flex items-center justify-between px-2">
-            <div className="flex items-center gap-1">
-              <h2 className="text-lg font-semibold text-foreground dark:text-foreground">Gist</h2>
-              <div className="group relative">
-                <HelpCircle className="h-3.5 w-3.5 cursor-help text-muted-foreground dark:text-muted-foreground/70" />
-                <div className="absolute left-0 top-full z-[9999] mt-2 w-72 max-w-xs whitespace-normal rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground shadow-lg opacity-0 invisible transition-all break-words group-hover:visible group-hover:opacity-100 dark:border-border dark:bg-card dark:text-muted-foreground">
-                  <p className="mb-1 font-medium text-foreground dark:text-foreground">
-                    {t('访问 Gist 需要 gist 权限', 'Gist access requires the gist scope')}
-                  </p>
-                  <p className="leading-relaxed">
-                    {t(
-                      '若私有 gist 未拉取到，或无法新建/编辑/删除 gist，请到 GitHub → Settings → Developer settings → Personal access tokens 中确认当前 token 已勾选 gist 权限。修改权限后请重新输入 token 登录。',
-                      'If your private gists are missing, or you cannot create/edit/delete gists, go to GitHub → Settings → Developer settings → Personal access tokens and make sure the gist scope is checked for your current token. Re-login with the updated token after changing scopes.'
-                    )}
-                  </p>
-                  <div className="absolute bottom-full left-3 -mb-px h-2 w-2 rotate-45 border-l border-t border-border bg-card dark:border-border dark:bg-card"></div>
-                </div>
-              </div>
-            </div>
+        <div className="linear-sidebar z-10 p-3 lg:sticky lg:top-24">
+          <div className="mb-2 flex items-center justify-between px-1 lg:mb-3 lg:px-2">
+            <h2 className="text-lg font-semibold text-foreground dark:text-foreground">Gist</h2>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-expanded={helpOpen}
+              aria-controls="gist-permission-help"
+              onClick={() => setHelpOpen((open) => !open)}
+              className="touch-target-44 h-11 w-11 text-muted-foreground lg:h-8 lg:w-8"
+              title={t('Gist 权限说明', 'Gist permission help')}
+              aria-label={t('Gist 权限说明', 'Gist permission help')}
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="space-y-1">
+          {helpOpen && (
+            <div id="gist-permission-help" role="note" className="mb-3 rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+              <p className="mb-1 font-medium text-foreground">
+                {t('访问 Gist 需要 gist 权限', 'Gist access requires the gist scope')}
+              </p>
+              <p>
+                {t(
+                  '若私有 gist 未拉取到，或无法新建/编辑/删除 gist，请到 GitHub → Settings → Developer settings → Personal access tokens 中确认当前 token 已勾选 gist 权限。修改权限后请重新输入 token 登录。',
+                  'If your private gists are missing, or you cannot create/edit/delete gists, go to GitHub → Settings → Developer settings → Personal access tokens and make sure the gist scope is checked for your current token. Re-login with the updated token after changing scopes.'
+                )}
+              </p>
+            </div>
+          )}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
             {categories.map(category => {
               const Icon = categoryIcons[category.id];
               const active = selectedGistCategory === category.id;
@@ -137,7 +147,7 @@ export const GistView: React.FC = () => {
                   aria-pressed={active}
                   onClick={() => setSelectedGistCategory(category.id)}
                   variant="ghost"
-                  className={`linear-settings-nav-item group flex w-full items-center justify-between px-3 py-2 text-sm text-muted-foreground hover:text-accent-foreground ${
+                  className={`linear-settings-nav-item group touch-target-44 flex h-11 shrink-0 items-center justify-between gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-accent-foreground lg:h-auto lg:w-full ${
                     active ? 'is-active' : ''
                   }`}
                 >
@@ -168,7 +178,7 @@ export const GistView: React.FC = () => {
                     if (event.key === 'Enter' && !event.nativeEvent.isComposing) basicSearch();
                   }}
                   aria-label={t('搜索 gist、文件名或摘要', 'Search gists, filenames, or summaries')}
-                  className="ui-field w-full py-2 pl-9 pr-9 text-sm text-foreground dark:text-foreground"
+                  className="ui-field w-full py-2 pl-9 pr-12 text-sm text-foreground dark:text-foreground"
                   placeholder={t('搜索 gist、文件名、摘要…', 'Search gists, filenames, summaries…')}
                 />
                 {query && (
@@ -182,7 +192,7 @@ export const GistView: React.FC = () => {
                     }}
                     aria-label={t('清除搜索', 'Clear search')}
                     title={t('清除搜索', 'Clear search')}
-                    className="absolute right-2 top-1/2 h-7 w-7 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground"
+                    className="touch-target-44 absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -192,14 +202,14 @@ export const GistView: React.FC = () => {
                 type="button"
                 onClick={aiSearch}
                 disabled={isSearching || !query.trim()}
-                className="ui-button-primary inline-flex items-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                className="ui-button-primary touch-target-44 inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
                 {t('AI搜索', 'AI search')}
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Select
                 value={gistSearchFilters.sortBy}
                 onValueChange={(value) => {
@@ -208,7 +218,7 @@ export const GistView: React.FC = () => {
                   }
                 }}
               >
-                <SelectTrigger aria-label={t('Gist 排序方式', 'Gist sort order')} className="ui-field h-9 w-40 px-3 py-1 text-sm">
+                <SelectTrigger aria-label={t('Gist 排序方式', 'Gist sort order')} className="ui-field touch-target-44 h-11 w-[9.5rem] shrink-0 px-3 py-1 text-sm sm:h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,11 +229,12 @@ export const GistView: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setGistSearchFilters({ sortOrder: gistSearchFilters.sortOrder === 'desc' ? 'asc' : 'desc' })}
-                className="ui-button px-3 py-2 text-sm"
+                className="ui-button touch-target-44 shrink-0 whitespace-nowrap px-3 py-2 text-sm"
               >
                 {gistSearchFilters.sortOrder === 'desc' ? t('降序', 'Desc') : t('升序', 'Asc')}
               </Button>
@@ -232,7 +243,7 @@ export const GistView: React.FC = () => {
                 variant="outline"
                 onClick={analyzeVisibleGists}
                 disabled={isAnalyzingAll || gistSearchResults.length === 0}
-                className="ui-button inline-flex items-center gap-2 px-3 py-2 text-sm disabled:opacity-50"
+                className="ui-button touch-target-44 inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm disabled:opacity-50"
               >
                 {isAnalyzingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
                 {t('AI分析', 'AI analyze')}
@@ -242,18 +253,19 @@ export const GistView: React.FC = () => {
                 variant="outline"
                 onClick={refreshGists}
                 disabled={isRefreshing}
-                className="ui-button inline-flex items-center gap-2 px-3 py-2 text-sm disabled:opacity-50"
+                className="ui-button touch-target-44 inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {t('同步', 'Sync')}
               </Button>
+              </div>
               <Button
                 type="button"
                 onClick={() => {
                   setEditingGist(null);
                   setIsEditorOpen(true);
                 }}
-                className="ui-button-primary inline-flex items-center gap-2 px-3 py-2 text-sm font-medium"
+                className="ui-button-primary touch-target-44 inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-medium"
               >
                 <Plus className="h-4 w-4" />
                 {t('新建', 'New')}

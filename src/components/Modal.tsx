@@ -19,6 +19,7 @@ interface ModalProps {
   maxWidth?: string;
   footer?: React.ReactNode;
   scrollable?: boolean;
+  mobileFullScreen?: boolean;
   onPointerDownOutside?: DialogContentPointerDownOutsideHandler;
   onOverlayPointerDown?: React.PointerEventHandler<HTMLDivElement>;
 }
@@ -31,6 +32,7 @@ export const Modal: React.FC<ModalProps> = ({
   maxWidth = 'max-w-md',
   footer,
   scrollable = false,
+  mobileFullScreen = false,
   onPointerDownOutside,
   onOverlayPointerDown,
 }) => {
@@ -90,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         aria-describedby={undefined}
-        className={cn(maxWidth, scrollable && 'flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0')}
+        className={cn(maxWidth, scrollable && 'flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0', mobileFullScreen && 'mobile-fullscreen-dialog')}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         onPointerDownOutside={onPointerDownOutside}

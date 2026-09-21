@@ -243,6 +243,18 @@
     padding-top: max(1.25rem, env(safe-area-inset-top, 0px)) !important;
   }
 
+  .mobile-fullscreen-dialog {
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+  }
+
   .repo-detail-markdown .markdown-body figure {
     margin-left: 0;
     margin-right: 0;
