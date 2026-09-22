@@ -58,6 +58,9 @@ describe('ForkCard phone actions', () => {
       />,
     );
 
+    expect(screen.getByRole('heading', { name: 'demo' }).className).toContain('break-words');
+    expect(screen.getByText('me/demo').className).toContain('break-all');
+    expect(screen.getByRole('link', { name: 'upstream/demo' }).className).toContain('break-all');
     expect(screen.getByRole('button', { name: '显示工作流' }).className).toContain('h-11');
     fireEvent.click(screen.getByRole('button', { name: '复刻操作' }));
     const update = screen.getAllByRole('button', { name: '更新分支' }).find((node) => node.className.includes('w-full'));

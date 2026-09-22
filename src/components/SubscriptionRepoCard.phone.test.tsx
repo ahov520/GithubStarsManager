@@ -78,6 +78,7 @@ describe('SubscriptionRepoCard phone actions', () => {
 
   it('opens labeled discovery actions from the phone sheet', () => {
     render(<TooltipProvider><SubscriptionRepoCard repo={repo} /></TooltipProvider>);
+    expect(screen.getByText('octocat/demo').className).toContain('break-words');
 
     fireEvent.click(screen.getByRole('button', { name: '发现操作' }));
 

@@ -222,7 +222,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                   className="w-6 h-6 rounded-full flex-shrink-0"
                 />
               )}
-              <span className="font-semibold text-foreground dark:text-foreground truncate">
+              <span className="min-w-0 break-words font-semibold text-foreground dark:text-foreground sm:truncate">
                 {cardTitle}
               </span>
             </div>

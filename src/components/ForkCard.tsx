@@ -92,7 +92,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
             </div>
             <div className="min-w-0 flex-1 ml-3">
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                <h4 className="font-semibold text-foreground dark:text-foreground text-sm truncate">
+                <h4 className="min-w-0 break-words text-sm font-semibold text-foreground dark:text-foreground sm:truncate">
                   {fork.name}
                 </h4>
                 {fork.language && (
@@ -101,8 +101,8 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-1 flex items-center gap-1.5 flex-wrap">
-                <span>{fork.full_name}</span>
+              <p className="mt-1 flex flex-wrap items-center gap-1.5 break-words text-xs text-muted-foreground dark:text-muted-foreground/70 sm:truncate">
+                <span className="min-w-0 break-all">{fork.full_name}</span>
                 {fork.updated_at && (
                   <>
                     <span className="inline md:hidden text-muted-foreground/50">·</span>
@@ -114,14 +114,14 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                 )}
               </p>
               {sourceFullName && (
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-0.5 flex items-center gap-1">
+                <p className="mt-0.5 flex flex-wrap items-center gap-1 break-words text-xs text-muted-foreground dark:text-muted-foreground/70 sm:truncate">
                   <span>{t('派生自', 'Forked from')}</span>
                   {fork.parent?.html_url || fork.source?.html_url ? (
                     <a
                       href={fork.parent?.html_url || fork.source?.html_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline truncate"
+                      className="min-w-0 break-all text-primary hover:underline sm:truncate"
                       onClick={(e) => {
                         e.stopPropagation();
                         onMarkAsRead();
@@ -130,7 +130,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                       {sourceFullName}
                     </a>
                   ) : (
-                    <span className="text-primary truncate">{sourceFullName}</span>
+                    <span className="min-w-0 break-all text-primary sm:truncate">{sourceFullName}</span>
                   )}
                 </p>
               )}

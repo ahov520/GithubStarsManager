@@ -75,6 +75,7 @@ describe('GistCard share', () => {
       expect(toggle.className).toContain('h-11');
       const paragraph = screen.getAllByText(description).find((node) => node.tagName === 'P');
       expect(paragraph?.className).toContain('line-clamp-2');
+      expect(screen.getByRole('heading', { name: description }).className).toContain('break-words');
       fireEvent.click(toggle);
       expect(onOpen).not.toHaveBeenCalled();
       expect(paragraph?.className).not.toContain('line-clamp-2');
