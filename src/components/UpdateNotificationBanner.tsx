@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Calendar, Download, Package, X } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -13,8 +14,12 @@ export const UpdateNotificationBanner: React.FC = () => {
   })));
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
   const { openDownloadUrl } = useUpdateActions();
+  const [notesOpen, setNotesOpen] = useState(false);
 
   if (!updateNotification || updateNotification.dismissed) return null;
+
+  const preview = `${updateNotification.changelog.slice(0, 2).join(' • ')}${updateNotification.changelog.length > 2 ? '…' : ''}`;
+  const notesExpandable = updateNotification.changelog.length > 2 || preview.length > 80;
 
   const handleDownload = () => {
     openDownloadUrl(updateNotification.downloadUrl);
@@ -40,7 +45,25 @@ export const UpdateNotificationBanner: React.FC = () => {
                 <h4 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">{t('发现新版本', 'New Version Available')} v{updateNotification.version}</h4>
                 <div className="flex items-center space-x-1 text-xs text-muted-foreground dark:text-muted-foreground"><Calendar className="h-3 w-3 shrink-0" /><span>{formatDate(updateNotification.releaseDate)}</span></div>
               </div>
-              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground dark:text-muted-foreground sm:line-clamp-1">{updateNotification.changelog.slice(0, 2).join(' • ')}{updateNotification.changelog.length > 2 && '…'}</p>
+              {notesOpen ? (
+                <ul className="mt-2 space-y-1">
+                  {updateNotification.changelog.map((item, index) => (
+                    <li key={`${index}-${item.slice(0, 24)}`} className="break-words text-xs leading-5 text-muted-foreground dark:text-muted-foreground">{item}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 line-clamp-2 break-words text-xs text-muted-foreground dark:text-muted-foreground sm:line-clamp-1">{preview}</p>
+              )}
+              {notesExpandable && (
+                <button
+                  type="button"
+                  className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+                  aria-expanded={notesOpen}
+                  onClick={() => setNotesOpen((open) => !open)}
+                >
+                  {notesOpen ? t('收起说明', 'Hide notes') : t('展开说明', 'Show notes')}
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 sm:shrink-0">
