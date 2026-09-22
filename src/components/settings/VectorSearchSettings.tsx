@@ -86,8 +86,9 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
   const canPaste = isReadSupported();
   const pasteSecret = async (apply: (value: string) => void) => {
     const result = await safeReadText();
-    if (result.success && result.text.trim()) {
-      apply(result.text.trim());
+    const text = result.text?.trim();
+    if (result.success && text) {
+      apply(text);
       return;
     }
     toast(result.error || t('无法读取剪贴板', 'Could not read the clipboard'), 'error');

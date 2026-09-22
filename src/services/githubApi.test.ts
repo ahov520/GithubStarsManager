@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Repository, Release } from '../types';
+import type { Gist, Repository, Release } from '../types';
 import { BACKEND_PROXY_UNAUTHORIZED_ERROR, GITHUB_TOKEN_INVALID_ERROR, GitHubApiService } from './githubApi';
 
 const makeRepository = (id: number, fullName: string, overrides: Partial<Repository> = {}): Repository => {
@@ -420,5 +420,46 @@ describe('GitHubApiService 401 来源区分', () => {
 
     await expect(service.getCurrentUser()).rejects.toThrow(GITHUB_TOKEN_INVALID_ERROR);
     expect(window.fetch).toHaveBeenCalledWith('https://api.github.com/user', expect.anything());
+  });
+});
+
+describe('GitHubApiService.getGist', () => {
+  const makeJsonResponse = (body: unknown): Response => ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: { get: () => null, forEach: () => undefined },
+    json: async () => body,
+    clone: () => ({ text: async () => JSON.stringify(body) }),
+  } as unknown as Response);
+
+  const cached = {
+    id: 'abc',
+    description: 'cached gist',
+    public: true,
+    html_url: 'https://gist.github.com/me/abc',
+    created_at: '2026-09-01T00:00:00Z',
+    updated_at: '2026-09-02T00:00:00Z',
+    comments: 0,
+    owner: null,
+    files: { 'a.ts': { filename: 'a.ts', type: 'text/plain', language: 'TypeScript', size: 1 } },
+  } satisfies Gist;
+
+  afterEach(() => {
+    vi.mocked(window.fetch).mockReset();
+  });
+
+  it('keeps the cached gist when the detail payload is not a gist', async () => {
+    const service = new GitHubApiService('token');
+    vi.mocked(window.fetch).mockResolvedValue(makeJsonResponse([]));
+
+    await expect(service.getGist('abc', cached)).resolves.toBe(cached);
+  });
+
+  it('rejects a non-gist payload when there is no cache', async () => {
+    const service = new GitHubApiService('token');
+    vi.mocked(window.fetch).mockResolvedValue(makeJsonResponse([]));
+
+    await expect(service.getGist('abc')).rejects.toThrow(/invalid gist payload/);
   });
 });

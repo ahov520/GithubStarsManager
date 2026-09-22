@@ -1,7 +1,7 @@
 import { Button } from './ui/button';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import hljs from 'highlight.js';
-import { AlertCircle, Copy, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, Copy, ExternalLink, Loader2, RefreshCw, Share2 } from 'lucide-react';
 import { Modal } from './Modal';
 import type { Gist, GistFile } from '../types';
 import { getGistTitle, inferGistCodeLanguage } from '../utils/gistUtils';
@@ -104,7 +104,7 @@ const HighlightedCode: React.FC<HighlightedCodeProps> = ({ file, fetchRaw, onCon
             setRawContent(null);
             setRetryTick(tick => tick + 1);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <RefreshCw className="h-4 w-4" />
           {t('重试', 'Retry')}
@@ -193,6 +193,23 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
     toast(result.success ? message : (result.error || t('复制失败', 'Copy failed')), result.success ? 'success' : 'error');
   };
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const handleShare = async () => {
+    if (!gist) return;
+    const title = getGistTitle(gist);
+    try {
+      await navigator.share({
+        title,
+        text: gist.description || title,
+        url: gist.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast(t('分享失败', 'Share failed'), 'error');
+    }
+  };
+
   if (!gist) return null;
 
   return (
@@ -210,7 +227,7 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
             <Button
               type="button"
               onClick={() => handleCopy(gist.html_url, t('链接已复制', 'Link copied'))}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+              className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
             >
               <Copy className="h-4 w-4" />
               {t('复制链接', 'Copy link')}
@@ -219,11 +236,21 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
               href={gist.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <ExternalLink className="h-4 w-4" />
               {t('打开', 'Open')}
             </a>
+            {canShare && (
+              <Button
+                type="button"
+                onClick={() => void handleShare()}
+                className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+              >
+                <Share2 className="h-4 w-4" />
+                {t('分享', 'Share')}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -240,7 +267,7 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
               type="button"
               aria-pressed={activeFile?.filename === file.filename}
               onClick={() => setActiveFilename(file.filename)}
-                className={`min-w-0 max-w-full break-all rounded-lg border px-3 py-1.5 text-left text-sm transition-colors ${
+                className={`touch-target-44 min-h-11 min-w-0 max-w-full break-all rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                 activeFile?.filename === file.filename
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-card text-muted-foreground hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent'
@@ -257,7 +284,7 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
               <div className="min-w-0">
                 <div className="truncate font-medium text-foreground dark:text-foreground">{activeFile.filename}</div>
                 <div className="text-xs text-muted-foreground dark:text-muted-foreground">
-                  {activeFile.language || inferGistCodeLanguage(activeFile.filename)} · {activeFile.size.toLocaleString()} bytes
+                  {activeFile.language || inferGistCodeLanguage(activeFile.filename)} · {(activeFile.size ?? 0).toLocaleString()} bytes
                   {activeFile.truncated ? ` · ${t('内容已截断', 'Content truncated')}` : ''}
                 </div>
               </div>
@@ -265,7 +292,7 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
                 type="button"
                 disabled={!canCopyActiveFile}
                 onClick={() => handleCopy(activeCopyContent, t('文件内容已复制', 'File copied'))}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+                className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
               >
                 <Copy className="h-4 w-4" />
                 {t('复制文件', 'Copy file')}

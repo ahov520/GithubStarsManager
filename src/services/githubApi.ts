@@ -309,6 +309,16 @@ export interface MultipleReleasesResult {
 /** GitHub 搜索的裸布尔操作符：不可信关键词中一律丢弃，防止改变查询语义。 */
 const SEARCH_BOOLEAN_OPERATORS = new Set(['or', 'and', 'not']);
 
+function isGistPayload(value: unknown): value is Gist {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as { id?: unknown; files?: unknown };
+  return typeof record.id === 'string'
+    && record.id.length > 0
+    && record.files != null
+    && typeof record.files === 'object'
+    && !Array.isArray(record.files);
+}
+
 export class GitHubApiService {
   private token: string;
   private rateLimitRemaining: number | null = null;
@@ -678,7 +688,12 @@ export class GitHubApiService {
   }
 
   async getGist(gistId: string, existing?: Gist): Promise<Gist> {
-    const gist = await this.makeRequest<Gist>(`/gists/${encodeURIComponent(gistId)}`);
+    const gist = await this.makeRequest<unknown>(`/gists/${encodeURIComponent(gistId)}`);
+    if (!isGistPayload(gist)) {
+      // 代理或拦截可能用 200 返回空数组等非 gist 体。有缓存时继续用缓存，避免把列表里的 gist 覆盖成没有 id 的对象后渲染崩溃。
+      if (existing?.id) return existing;
+      throw new Error('GitHub API error: invalid gist payload');
+    }
     return this.mergeGistMetadata(existing, gist, existing?.starred);
   }
 

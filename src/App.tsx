@@ -23,6 +23,7 @@ import type { AppState } from './types';
 import { hasActiveSearchFilters } from './utils/repoSearch';
 import { isElectron, loadEncryptedXAuthViaDesktop } from './services/electronProxy';
 import { BottomNav } from './components/BottomNav';
+import { useAndroidBackButton } from './hooks/useAndroidBackButton';
 
 const LazyReleaseTimeline = React.lazy(() =>
   import('./components/ReleaseTimeline').then((module) => ({ default: module.ReleaseTimeline }))
@@ -155,6 +156,7 @@ function App() {
 
   useAutoUpdateCheck();
   useBackendLifecycle(hasHydrated);
+  useAndroidBackButton();
 
   // Restore persisted frontend debug level at startup so capture is active
   // app-wide, not only after DiagnosticLogsPanel mounts.

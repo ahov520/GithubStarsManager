@@ -158,8 +158,9 @@ export const AIConfigPanel: React.FC<AIConfigPanelProps> = ({ t }) => {
 
   const pasteSecret = async () => {
     const result = await safeReadText();
-    if (result.success && result.text.trim()) {
-      setForm((prev) => ({ ...prev, apiKey: result.text.trim() }));
+    const text = result.text?.trim();
+    if (result.success && text) {
+      setForm((prev) => ({ ...prev, apiKey: text }));
       return;
     }
     toast(result.error || t('无法读取剪贴板', 'Could not read the clipboard'), 'error');
