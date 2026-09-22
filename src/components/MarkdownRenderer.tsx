@@ -150,7 +150,7 @@ const CodeBlock: React.FC<{
         onClick={handleCopy}
         aria-label={uiLanguage === 'zh' ? '复制代码' : 'Copy code'}
         title={copyError || (uiLanguage === 'zh' ? '复制代码' : 'Copy code')}
-        className={`absolute top-2 right-2 z-10 h-7 w-7 rounded-md p-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 ${
+        className={`absolute top-2 right-2 z-10 touch-target-44 h-11 w-11 rounded-md p-0 opacity-100 md:h-7 md:w-7 md:opacity-0 md:transition-opacity md:duration-150 md:group-hover:opacity-100 md:group-focus-within:opacity-100 focus-visible:opacity-100 ${
           copyError
             ? 'text-destructive opacity-100'
             : copied

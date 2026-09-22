@@ -189,10 +189,14 @@ describe('MarkdownRenderer', () => {
       expect(pre?.querySelectorAll('span[aria-hidden="true"]')).toHaveLength(0);
     });
 
-    it('should provide a hover copy button for code blocks', () => {
+    it('keeps the code copy button visible on a phone', () => {
       const content = '```javascript\nconsole.log("hello");\n```';
       const { container } = render(<MarkdownRenderer content={content} />);
-      expect(container.querySelector('button[aria-label="复制代码"]')).toBeInTheDocument();
+      const button = container.querySelector('button[aria-label="复制代码"]');
+      expect(button).toBeInTheDocument();
+      expect(button?.className).toContain('opacity-100');
+      expect(button?.className).toContain('h-11');
+      expect(button?.className).toContain('md:opacity-0');
     });
 
     it('should normalize language aliases', () => {
