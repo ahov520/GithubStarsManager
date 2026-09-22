@@ -138,6 +138,11 @@ describe('ForkTimeline owner filtering', () => {
     } as unknown as GitHubApiService; });
   });
 
+  it('keeps fork search at 44px', async () => {
+    render(<ForkTimeline />);
+    expect(await screen.findByRole('textbox', { name: '搜索 Fork' })).toHaveClass('h-11');
+  });
+
   it('shows only personal-account forks by default', async () => {
     render(<ForkTimeline />);
 
