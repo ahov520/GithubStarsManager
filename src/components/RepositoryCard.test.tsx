@@ -340,6 +340,9 @@ describe('RepositoryCard view modes', () => {
     try {
       renderRepositoryCard('list');
       await user.click(screen.getByRole('button', { name: '更多操作' }));
+      await user.click(screen.getByRole('button', { name: '复制仓库名' }));
+      await waitFor(() => expect(writeText).toHaveBeenCalledWith(repository.full_name));
+      expect(screen.getByRole('button', { name: '已复制仓库名' })).toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: '复制链接' }));
       await waitFor(() => expect(writeText).toHaveBeenCalledWith(repository.html_url));
       expect(screen.getByRole('button', { name: '已复制链接' })).toBeInTheDocument();

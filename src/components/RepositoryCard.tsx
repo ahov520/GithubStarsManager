@@ -279,7 +279,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const dragHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
-  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
+  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | 'name' | null>(null);
   const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
   const isCompact = useCompactViewport();
   const descriptionRef = useRef<HTMLParagraphElement>(null);
@@ -733,13 +733,17 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     }
   }, [canShare, repository.description, repository.full_name, repository.html_url]);
 
-  const copyRepositoryText = useCallback(async (kind: 'url' | 'clone') => {
-    const text = kind === 'clone' ? `git clone ${repository.html_url}.git` : repository.html_url;
+  const copyRepositoryText = useCallback(async (kind: 'url' | 'clone' | 'name') => {
+    const text = kind === 'clone'
+      ? `git clone ${repository.html_url}.git`
+      : kind === 'name'
+        ? repository.full_name
+        : repository.html_url;
     const result = await safeWriteText(text);
     if (!result.success) return;
     setCopiedAction(kind);
     window.setTimeout(() => setCopiedAction((current) => (current === kind ? null : current)), 1500);
-  }, [repository.html_url]);
+  }, [repository.full_name, repository.html_url]);
 
   // 使用 useCallback 优化事件处理函数
   const handleCardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -1643,7 +1647,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <SheetTitle className="text-base">{language === 'zh' ? '仓库操作' : 'Repository actions'}</SheetTitle>
-                  <SheetDescription className="truncate">{repository.full_name}</SheetDescription>
+                  <SheetDescription className="break-all">{repository.full_name}</SheetDescription>
                 </div>
                 <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setActionsSheetOpen(false)}>
                   {language === 'zh' ? '完成' : 'Done'}
@@ -1697,6 +1701,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   {language === 'zh' ? '在 Zread 中查看' : 'View on DeepWiki'}
                 </a>
               )}
+              <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('name'); }}>
+                <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {copiedAction === 'name' ? (language === 'zh' ? '已复制仓库名' : 'Name copied') : (language === 'zh' ? '复制仓库名' : 'Copy repository name')}
+              </button>
               <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('url'); }}>
                 <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {copiedAction === 'url' ? (language === 'zh' ? '已复制链接' : 'Link copied') : (language === 'zh' ? '复制链接' : 'Copy link')}
