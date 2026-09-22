@@ -339,11 +339,45 @@ describe('ReadmeModal mobile repository detail', () => {
       const ask = await screen.findByRole('button', { name: '问答此仓库' });
       expect(ask.className).toContain('min-h-11');
       expect(ask.className).toContain('w-full');
+      const findInSheet = screen.getAllByRole('button', { name: '查找' }).find((node) => node.className.includes('w-full'));
+      expect(findInSheet?.className).toContain('min-h-11');
       expect(screen.getByRole('link', { name: '在 GitHub 上查看' }).className).toContain('min-h-11');
       await user.click(ask);
       expect(onAsk).toHaveBeenCalledOnce();
     } finally {
       window.matchMedia = originalMatchMedia;
     }
+  });
+
+  it('finds README text and steps between matches', async () => {
+    (backend.getRepositoryReadme as ReturnType<typeof vi.fn>).mockResolvedValue('Alpha README line\nBeta README line');
+    render(<ReadmeModal isOpen onClose={vi.fn()} repository={mockRepository} />);
+    expect(await screen.findByText(/Alpha README line/)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    const find = screen.getByRole('button', { name: '查找' });
+    expect(find.className).toContain('h-11');
+    await user.click(find);
+
+    const input = await screen.findByRole('textbox', { name: '在 README 中查找' });
+    expect(input.className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '下一处' }).className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '上一处' }).className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '关闭查找' }).className).toContain('h-11');
+
+    await user.type(input, 'README');
+    await waitFor(() => {
+      expect(document.querySelectorAll('mark[data-readme-find]')).toHaveLength(2);
+    });
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(document.querySelector('mark[data-current="true"]')?.textContent).toBe('README');
+
+    await user.click(screen.getByRole('button', { name: '下一处' }));
+    await waitFor(() => {
+      const marks = [...document.querySelectorAll('mark[data-readme-find]')];
+      expect(marks[1]?.getAttribute('data-current')).toBe('true');
+      expect(marks[0]?.getAttribute('data-current')).not.toBe('true');
+    });
+    expect(screen.getByText('2/2')).toBeInTheDocument();
   });
 });

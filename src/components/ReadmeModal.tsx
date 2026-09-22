@@ -1,7 +1,7 @@
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye, Star, GitFork, Copy, Check, Share2, Bell, BellOff, MessageSquareText, PackageOpen, MoreHorizontal } from 'lucide-react';
+import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye, Star, GitFork, Copy, Check, Share2, Bell, BellOff, MessageSquareText, PackageOpen, MoreHorizontal, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import BilingualMarkdownRenderer, { DisplayMode, BilingualMarkdownRendererHandle, TranslationStatus } from './BilingualMarkdownRenderer';
 import { stripMarkdownFormatting } from '../utils/markdownUtils';
 import { formatDistanceToNow } from 'date-fns';
@@ -59,6 +59,52 @@ const repoBlurb = (repository: Repository): { text: string; source: 'custom' | '
   if (ai) return { text: ai, source: 'ai' };
   const github = repository.description?.trim();
   return github ? { text: github, source: 'github' } : null;
+};
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const highlightReadmeMatches = (root: HTMLElement, query: string): HTMLElement[] => {
+  const needle = query.trim();
+  if (!needle) return [];
+  const pattern = new RegExp(escapeRegExp(needle), 'gi');
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || parent.closest('script, style, mark, button, textarea, input')) return NodeFilter.FILTER_REJECT;
+      pattern.lastIndex = 0;
+      return pattern.test(node.nodeValue ?? '') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  const nodes: Text[] = [];
+  let current = walker.nextNode();
+  while (current) {
+    nodes.push(current as Text);
+    current = walker.nextNode();
+  }
+  const marks: HTMLElement[] = [];
+  nodes.forEach((textNode) => {
+    const text = textNode.nodeValue ?? '';
+    const fragment = document.createDocumentFragment();
+    let cursor = 0;
+    pattern.lastIndex = 0;
+    let match = pattern.exec(text);
+    while (match) {
+      const index = match.index;
+      if (index > cursor) fragment.append(text.slice(cursor, index));
+      const mark = document.createElement('mark');
+      mark.dataset.readmeFind = 'true';
+      mark.className = 'readme-find-mark rounded-sm bg-yellow-200 px-0.5 text-inherit dark:bg-yellow-500/40 data-[current=true]:bg-orange-300 dark:data-[current=true]:bg-orange-500/70';
+      mark.textContent = match[0];
+      fragment.append(mark);
+      marks.push(mark);
+      cursor = index + match[0].length;
+      if (match[0].length === 0) pattern.lastIndex += 1;
+      match = pattern.exec(text);
+    }
+    if (cursor < text.length) fragment.append(text.slice(cursor));
+    textNode.parentNode?.replaceChild(fragment, textNode);
+  });
+  return marks;
 };
 
 const viewportIsCompact = (): boolean => {
@@ -170,7 +216,12 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
+  const [findQuery, setFindQuery] = useState('');
+  const [findIndex, setFindIndex] = useState(0);
+  const [findCount, setFindCount] = useState(0);
   const copyResetRef = useRef<number | null>(null);
+  const findInputRef = useRef<HTMLInputElement>(null);
 
   const defaultReadmeVariant = useMemo(() => getDefaultReadmeVariant(language), [language]);
 
@@ -570,6 +621,10 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       setTranslateError(null);
       setTranslatedHeadingMap(new Map());
       setMoreActionsOpen(false);
+      setFindOpen(false);
+      setFindQuery('');
+      setFindIndex(0);
+      setFindCount(0);
       isResizingRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
@@ -610,6 +665,54 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
     }
     if (saved > 0) contentRef.current.scrollTop = saved;
   }, [isOpen, repository, loading, readmeContent, selectedReadmeKey]);
+
+  const clearFindMarks = useCallback(() => {
+    const root = contentRef.current;
+    if (!root) return;
+    root.querySelectorAll('mark[data-readme-find]').forEach((mark) => {
+      const parent = mark.parentNode;
+      if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
+      parent.normalize();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!findOpen || !readmeContent || loading || !contentRef.current) {
+      clearFindMarks();
+      setFindCount((current) => (current === 0 ? current : 0));
+      return;
+    }
+    clearFindMarks();
+    const marks = highlightReadmeMatches(contentRef.current, findQuery);
+    marks.forEach((mark, index) => {
+      if (index === findIndex) mark.dataset.current = 'true';
+    });
+    const active = marks[findIndex];
+    if (active && findQuery.trim()) {
+      try {
+        active.scrollIntoView({ block: 'center', inline: 'nearest' });
+      } catch {
+        // 测试环境没有布局，滚动失败不影响高亮。
+      }
+    }
+    setFindCount((current) => (current === marks.length ? current : marks.length));
+    if (marks.length > 0 && findIndex > marks.length - 1) setFindIndex(marks.length - 1);
+  }, [findOpen, findQuery, findIndex, findCount, readmeContent, displayMode, loading, clearFindMarks]);
+
+  useEffect(() => {
+    if (!findOpen) return undefined;
+    const frame = window.requestAnimationFrame(() => findInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [findOpen]);
+
+  const stepFind = (delta: number) => {
+    setFindIndex((current) => {
+      if (findCount <= 0) return 0;
+      return (current + delta + findCount) % findCount;
+    });
+  };
 
   const copyLink = useCallback(async () => {
     if (!repository) return;
@@ -809,6 +912,21 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                   </Button>
                 )
               )}
+              {readmeContent && !loading && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setFindOpen(true)}
+                  aria-pressed={findOpen}
+                  aria-label={t('查找', 'Find')}
+                  className={`touch-target-44 h-11 shrink-0 gap-1 rounded-lg px-2.5 sm:h-8 sm:px-2 ${
+                    findOpen ? 'bg-primary/20 text-primary' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="sm:hidden">{t('查找', 'Find')}</span>
+                </Button>
+              )}
               {isCompact ? (
                 <Button
                   type="button"
@@ -903,6 +1021,44 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
             )}
           </header>
 
+          {findOpen && readmeContent && !loading && (
+            <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center gap-1 border-b border-border px-2 py-2">
+              <input
+                ref={findInputRef}
+                value={findQuery}
+                onChange={(event) => {
+                  setFindQuery(event.target.value);
+                  setFindIndex(0);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    stepFind(event.shiftKey ? -1 : 1);
+                  } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    setFindOpen(false);
+                  }
+                }}
+                aria-label={t('在 README 中查找', 'Find in README')}
+                placeholder={t('查找', 'Find')}
+                enterKeyHint="search"
+                className="h-11 min-w-[8rem] flex-1 rounded-lg border border-border bg-background px-3 text-base text-foreground"
+              />
+              <span className="shrink-0 px-1 text-center text-xs tabular-nums text-muted-foreground" aria-live="polite">
+                {findQuery.trim() ? (findCount > 0 ? `${findIndex + 1}/${findCount}` : t('无匹配', 'No matches')) : ''}
+              </span>
+              <Button type="button" variant="ghost" aria-label={t('上一处', 'Previous match')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => stepFind(-1)} disabled={findCount === 0}>
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" aria-label={t('下一处', 'Next match')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => stepFind(1)} disabled={findCount === 0}>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="ghost" aria-label={t('关闭查找', 'Close find')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => setFindOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           {isCompact && (
             <Sheet open={moreActionsOpen} onOpenChange={setMoreActionsOpen}>
               <SheetContent
@@ -927,6 +1083,12 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                   </div>
                 </SheetHeader>
                 <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+                  {readmeContent && !loading && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { setMoreActionsOpen(false); setFindOpen(true); }}>
+                      <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t('查找', 'Find')}
+                    </button>
+                  )}
                   {tocItems.length > 0 && (
                     <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" aria-pressed={showToc} onClick={() => { setShowToc((open) => !open); setMoreActionsOpen(false); }}>
                       <List className="h-4 w-4 shrink-0" aria-hidden="true" />
