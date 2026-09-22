@@ -166,6 +166,25 @@ describe('MarkdownRenderer', () => {
       expect(img).toHaveAttribute('alt', 'Alt text');
     });
 
+    it('keeps the zoom hint and image link visible on a phone', () => {
+      const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+      render(<MarkdownRenderer content="[![shot](https://example.com/image.png)](https://example.com/docs)" />);
+      const img = screen.getByRole('img', { name: 'shot' });
+      Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 800 });
+      Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 400 });
+      fireEvent.load(img);
+      const hint = screen.getByText('点击可放大');
+      expect(hint.parentElement?.className).toContain('opacity-100');
+      expect(hint.parentElement?.className).toContain('md:opacity-0');
+      const link = screen.getByRole('button', { name: '打开链接' });
+      expect(link.className).toContain('h-11');
+      expect(link.className).toContain('opacity-100');
+      fireEvent.click(link);
+      expect(open).toHaveBeenCalledWith('https://example.com/docs', '_blank', 'noopener,noreferrer');
+      expect(screen.queryByRole('button', { name: '关闭' })).not.toBeInTheDocument();
+      open.mockRestore();
+    });
+
     it('opens phone-sized controls when an image is tapped', () => {
       render(<MarkdownRenderer content="![Alt text](https://example.com/image.png)" />);
       fireEvent.click(screen.getByRole('img', { name: 'Alt text' }));

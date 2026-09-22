@@ -533,13 +533,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
           </span>
 
           {!isLoading && !hasError && (
-            <span data-translate="false" className="text-center mt-2 text-xs text-muted-foreground dark:text-muted-foreground opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center gap-3">
-              <span>
-                {isInsideLink
-                  ? (language === 'zh' ? '单击放大 · Ctrl+点击打开链接' : 'Click to zoom · Ctrl+Click to open link')
-                  : (language === 'zh' ? '点击可放大' : 'Click to zoom')
-                }
-              </span>
+            <span data-translate="false" className="mt-2 flex items-center justify-center gap-3 text-center text-xs text-muted-foreground opacity-100 transition-opacity duration-200 dark:text-muted-foreground md:opacity-0 md:group-hover/img:opacity-100">
+              <span>{language === 'zh' ? '点击可放大' : 'Click to zoom'}</span>
               {naturalWidth > 0 && (
                 <span className="text-muted-foreground">|</span>
               )}
@@ -550,9 +545,11 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
           )}
 
           {!isLoading && !hasError && isInsideLink && parentLinkHref && (
-            <span
+            <button
+              type="button"
               data-translate="false"
-              className="text-center mt-1 text-xs text-primary dark:text-primary opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1 cursor-pointer"
+              aria-label={language === 'zh' ? '打开链接' : 'Open link'}
+              className="touch-target-44 mt-1 inline-flex h-11 max-w-full items-center justify-center gap-1 rounded-md px-3 text-sm text-primary opacity-100 dark:text-primary md:h-auto md:min-h-0 md:px-1 md:text-xs md:opacity-0 md:transition-opacity md:group-hover/img:opacity-100"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -565,7 +562,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
               <span className="truncate max-w-[200px]" title={parentLinkHref}>
                 {truncateUrl(parentLinkHref)}
               </span>
-            </span>
+            </button>
           )}
         </span>
       )}
