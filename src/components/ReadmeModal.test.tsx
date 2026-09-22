@@ -313,4 +313,37 @@ describe('ReadmeModal mobile repository detail', () => {
     render(<ReadmeModal isOpen onClose={vi.fn()} repository={mockRepository} />);
     expect(await screen.findByRole('button', { name: '字体大小: 大' })).toBeInTheDocument();
   });
+
+  it('opens labeled repository actions from a phone sheet', async () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      const onAsk = vi.fn();
+      render(<ReadmeModal isOpen onClose={vi.fn()} repository={mockRepository} onAsk={onAsk} />);
+      expect(await screen.findByText('Default README content')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '问答此仓库' })).not.toBeInTheDocument();
+      const more = screen.getByRole('button', { name: '更多操作' });
+      expect(more.className).toContain('h-11');
+
+      const user = userEvent.setup();
+      await user.click(more);
+      const ask = await screen.findByRole('button', { name: '问答此仓库' });
+      expect(ask.className).toContain('min-h-11');
+      expect(ask.className).toContain('w-full');
+      expect(screen.getByRole('link', { name: '在 GitHub 上查看' }).className).toContain('min-h-11');
+      await user.click(ask);
+      expect(onAsk).toHaveBeenCalledOnce();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
 });

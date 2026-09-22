@@ -495,7 +495,7 @@ export const CodeSearchView: React.FC = () => {
                   : t('没有匹配结果，换个关键词或放宽过滤器试试', 'No matches, try another keyword or looser filters')}
               </p>
               {starredOnly && (
-                <Button variant="outline" size="sm" onClick={() => setStarredOnly(false)}>
+                <Button variant="outline" size="sm" onClick={() => setStarredOnly(false)} className="h-11 px-4 sm:h-8">
                   {t('关闭收藏过滤', 'Turn off starred-only')}
                 </Button>
               )}

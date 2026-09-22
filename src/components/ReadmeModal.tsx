@@ -1,7 +1,7 @@
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye, Star, GitFork, Copy, Check, Share2, Bell, BellOff, MessageSquareText, PackageOpen } from 'lucide-react';
+import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye, Star, GitFork, Copy, Check, Share2, Bell, BellOff, MessageSquareText, PackageOpen, MoreHorizontal } from 'lucide-react';
 import BilingualMarkdownRenderer, { DisplayMode, BilingualMarkdownRendererHandle, TranslationStatus } from './BilingualMarkdownRenderer';
 import { stripMarkdownFormatting } from '../utils/markdownUtils';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,6 +13,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useReadmeFetch, pickReadmeCandidate } from '../hooks/useReadmeFetch';
 import { buildReadmeVariants, DEFAULT_README_VARIANT, type ReadmeVariant } from '../utils/readmeVariants';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 
 interface TocItem {
   id: string;
@@ -166,6 +167,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   const [variantsLoading, setVariantsLoading] = useState(false);
   const [readmeCache, setReadmeCache] = useState<Record<string, string>>({});
   const [isCompact, setIsCompact] = useState(viewportIsCompact);
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const copyResetRef = useRef<number | null>(null);
@@ -567,6 +569,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       setTranslateProgress({ current: 0, total: 0 });
       setTranslateError(null);
       setTranslatedHeadingMap(new Map());
+      setMoreActionsOpen(false);
       isResizingRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
@@ -713,7 +716,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
             <div className="flex max-w-full flex-wrap items-center gap-1 px-2 pb-2 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
               {readmeVariants.length > 1 && (
                 <Select value={selectedReadmeKey} onValueChange={handleReadmeVariantChange} disabled={loading || variantsLoading}>
-                  <SelectTrigger className="h-9 w-auto min-w-[7rem] max-w-[220px] shrink-0 px-2 py-2 text-sm" title={t('切换 README 语言', 'Switch README language')} aria-label={t('切换 README 语言', 'Switch README language')}><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 w-auto min-w-[7rem] max-w-[220px] shrink-0 px-2 text-sm sm:h-9" title={t('切换 README 语言', 'Switch README language')} aria-label={t('切换 README 语言', 'Switch README language')}><SelectValue /></SelectTrigger>
                   <SelectContent>{readmeVariants.map((variant) => <SelectItem key={variant.key} value={variant.key}>{variant.label}</SelectItem>)}</SelectContent>
                 </Select>
               )}
@@ -806,6 +809,20 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                   </Button>
                 )
               )}
+              {isCompact ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setMoreActionsOpen(true)}
+                  aria-expanded={moreActionsOpen}
+                  aria-label={t('更多操作', 'More actions')}
+                  className="touch-target-44 h-11 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span>{t('更多', 'More')}</span>
+                </Button>
+              ) : (
+                <>
               {tocItems.length > 0 && (
                 <Button
                   variant="ghost"
@@ -871,6 +888,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                 <ExternalLink className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('在 GitHub 上查看', 'View on GitHub')}</span>
               </a>
+                </>
+              )}
             </div>
             {translateError && (
               <button
@@ -883,6 +902,83 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
               </button>
             )}
           </header>
+
+          {isCompact && (
+            <Sheet open={moreActionsOpen} onOpenChange={setMoreActionsOpen}>
+              <SheetContent
+                side="bottom"
+                showClose={false}
+                className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+              >
+                <SheetHeader className="pr-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <SheetTitle className="text-base">{t('仓库操作', 'Repository actions')}</SheetTitle>
+                      <SheetDescription>{repository.full_name}</SheetDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="touch-target-44 h-11 shrink-0 px-3"
+                      onClick={() => setMoreActionsOpen(false)}
+                    >
+                      {t('完成', 'Done')}
+                    </Button>
+                  </div>
+                </SheetHeader>
+                <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+                  {tocItems.length > 0 && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" aria-pressed={showToc} onClick={() => { setShowToc((open) => !open); setMoreActionsOpen(false); }}>
+                      <List className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t('目录', 'Table of Contents')}
+                    </button>
+                  )}
+                  <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" aria-label={t(`字体大小: ${FONT_SIZES[fontSizeIndex].label}`, `Font Size: ${FONT_SIZES[fontSizeIndex].labelEn}`)} onClick={cycleFontSize}>
+                    <Type className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {t(`字体大小: ${FONT_SIZES[fontSizeIndex].label}`, `Font Size: ${FONT_SIZES[fontSizeIndex].labelEn}`)}
+                  </button>
+                  {onAsk && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { setMoreActionsOpen(false); onAsk(); }}>
+                      <MessageSquareText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t('问答此仓库', 'Ask this repository')}
+                    </button>
+                  )}
+                  {onOpenReleases && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { setMoreActionsOpen(false); onOpenReleases(); }}>
+                      <PackageOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t('查看 Release', 'View releases')}
+                    </button>
+                  )}
+                  {onToggleSubscribe && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" aria-pressed={isSubscribed} onClick={() => { setMoreActionsOpen(false); onToggleSubscribe(); }}>
+                      {isSubscribed ? <Bell className="h-4 w-4 shrink-0" aria-hidden="true" /> : <BellOff className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                      {isSubscribed ? t('取消订阅 Release', 'Unsubscribe from releases') : t('订阅 Release', 'Subscribe to releases')}
+                    </button>
+                  )}
+                  <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => void copyLink()}>
+                    {linkCopied ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                    {linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}
+                  </button>
+                  {canNativeShare && (
+                    <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { setMoreActionsOpen(false); void shareRepository(); }}>
+                      <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t('分享', 'Share')}
+                    </button>
+                  )}
+                  <a
+                    href={repository.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-accent"
+                    onClick={() => setMoreActionsOpen(false)}
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {t('在 GitHub 上查看', 'View on GitHub')}
+                  </a>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
 
           <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
             {showToc && tocItems.length > 0 && (
@@ -908,7 +1004,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowToc(false)}
-                      className="md:hidden touch-target-44 h-8 w-8 text-muted-foreground hover:text-foreground"
+                      className="md:hidden touch-target-44 h-11 w-11 text-muted-foreground hover:text-foreground"
                       aria-label={t('关闭目录', 'Close TOC')}
                     >
                       <X className="w-4 h-4" />

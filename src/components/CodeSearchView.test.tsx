@@ -106,6 +106,21 @@ describe('CodeSearchView', () => {
     expect(screen.getByText('已收藏')).toBeInTheDocument();
   });
 
+  it('turns the starred filter off from a tappable empty state', async () => {
+    mockedStore.mockImplementation(
+      ((selector: (s: unknown) => unknown) =>
+        selector({ repositories: [], language: 'zh' })) as unknown as typeof useAppStore
+    );
+    render(<CodeSearchView />);
+    fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
+    await screen.findByRole('link', { name: 'facebook/react' });
+    fireEvent.click(screen.getByLabelText('只显示我收藏的仓库'));
+    const turnOff = await screen.findByRole('button', { name: '关闭收藏过滤' });
+    expect(turnOff.className).toContain('h-11');
+    fireEvent.click(turnOff);
+    expect(await screen.findByRole('link', { name: 'facebook/react' })).toBeInTheDocument();
+  });
+
   it('starred-only switch filters out non-starred hits', async () => {
     render(<CodeSearchView />);
     fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
