@@ -31,6 +31,7 @@ import { TelegramSettingsModal } from './TelegramSettingsModal';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DiscoveryChannelPicker } from './DiscoveryChannelPicker';
 import type {
   DiscoveryChannelId,
   DiscoveryChannelIcon,
@@ -186,14 +187,15 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
   }, []);
 
   return (
-    <div 
-      className="relative w-full overflow-x-hidden border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm lg:hidden"
+    <div
+      className="relative flex w-full items-stretch overflow-x-hidden border-b border-border bg-background/95 backdrop-blur-sm dark:border-border dark:bg-card/95 lg:hidden"
     >
+      <div className="relative min-w-0 flex-1">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
         role="tablist"
-        className="flex overflow-x-auto scrollbar-hide py-2 px-2 gap-1 snap-x snap-mandatory"
+        className="flex gap-1 overflow-x-auto scrollbar-hide px-2 py-2 snap-x snap-mandatory"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -231,14 +233,23 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
           </Button>
         ))}
       </div>
-      
-      {/* Active indicator */}
+
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background/95 to-transparent dark:from-card/95" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background/95 to-transparent dark:from-card/95" />
+
       <div
-        className="absolute bottom-0 h-0.5 bg-primary rounded-full transition-transform duration-200 ease-out will-change-transform"
+        className="absolute bottom-0 h-0.5 rounded-full bg-primary transition-transform duration-200 ease-out will-change-transform"
         style={{
           width: indicatorStyle.width,
           transform: `translateX(${indicatorStyle.translateX}px)`,
         }}
+      />
+      </div>
+      <DiscoveryChannelPicker
+        channels={channels}
+        selectedChannel={selectedChannel}
+        onChannelSelect={onChannelSelect}
+        language={language}
       />
     </div>
   );
