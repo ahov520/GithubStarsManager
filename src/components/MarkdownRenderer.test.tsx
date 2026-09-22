@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
@@ -164,6 +164,14 @@ describe('MarkdownRenderer', () => {
       const img = container.querySelector('img');
       expect(img).toHaveAttribute('src', 'https://example.com/image.png');
       expect(img).toHaveAttribute('alt', 'Alt text');
+    });
+
+    it('opens phone-sized controls when an image is tapped', () => {
+      render(<MarkdownRenderer content="![Alt text](https://example.com/image.png)" />);
+      fireEvent.click(screen.getByRole('img', { name: 'Alt text' }));
+      for (const name of ['下载图片', '放大', '缩小', '重置', '关闭']) {
+        expect(screen.getByRole('button', { name }).className).toContain('h-11');
+      }
     });
 
     it('should resolve relative image URLs with baseUrl', () => {

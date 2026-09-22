@@ -580,16 +580,16 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
             }
           }}
         >
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-overlay/60 to-transparent pointer-events-none">
-            <div className="flex items-center gap-2 pointer-events-auto">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 bg-gradient-to-b from-overlay/60 to-transparent px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:flex-row sm:items-center sm:justify-between sm:px-4">
+            <div className="flex min-w-0 items-center gap-2 pointer-events-auto">
               {alt && (
-                <span className="text-overlay-foreground/70 text-sm truncate max-w-[300px]">{alt}</span>
+                <span className="max-w-[12rem] truncate text-sm text-overlay-foreground/70 sm:max-w-[300px]">{alt}</span>
               )}
               {naturalWidth > 0 && (
                 <span className="text-overlay-foreground/50 text-xs">{naturalWidth} × {naturalHeight}</span>
               )}
             </div>
-            <div className="flex items-center gap-2 pointer-events-auto">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
               {isInsideLink && parentLinkHref && (
                 <Button
                   type="button"
@@ -599,7 +599,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                     e.stopPropagation();
                     window.open(parentLinkHref, '_blank', 'noopener,noreferrer');
                   }}
-                  className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm"
+                  className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                  aria-label={language === 'zh' ? '打开链接' : 'Open link'}
                   title={language === 'zh' ? '打开链接' : 'Open link'}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -616,7 +617,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                   handleDownload(e);
                 }}
                 disabled={isDownloading}
-                className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                aria-label={language === 'zh' ? '下载图片' : 'Download image'}
                 title={language === 'zh' ? '下载图片' : 'Download image'}
               >
                 <Download className={`w-4 h-4 ${isDownloading ? 'animate-bounce' : ''}`} />
@@ -629,7 +631,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                   e.stopPropagation();
                   setZoomScale(prev => Math.min(5, prev + 0.5));
                 }}
-                className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm text-sm font-bold"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-sm font-bold text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                aria-label={language === 'zh' ? '放大' : 'Zoom in'}
                 title={language === 'zh' ? '放大' : 'Zoom in'}
               >
                 +
@@ -645,7 +648,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                   e.stopPropagation();
                   setZoomScale(prev => Math.max(0.5, prev - 0.5));
                 }}
-                className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm text-sm font-bold"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-sm font-bold text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                aria-label={language === 'zh' ? '缩小' : 'Zoom out'}
                 title={language === 'zh' ? '缩小' : 'Zoom out'}
               >
                 −
@@ -659,7 +663,8 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                   setZoomScale(1);
                   setZoomPos({ x: 0, y: 0 });
                 }}
-                className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm text-xs"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-xs text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                aria-label={language === 'zh' ? '重置' : 'Reset'}
                 title={language === 'zh' ? '重置' : 'Reset'}
               >
                 1:1
@@ -668,12 +673,13 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string; baseUrl?: string }> 
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 p-0 bg-overlay-foreground/10 hover:bg-overlay-foreground/20 text-overlay-foreground/80 hover:text-overlay-foreground rounded-lg transition-colors backdrop-blur-sm"
+                className="touch-target-44 h-11 w-11 rounded-lg bg-overlay-foreground/10 p-0 text-overlay-foreground/80 backdrop-blur-sm transition-colors hover:bg-overlay-foreground/20 hover:text-overlay-foreground sm:h-8 sm:w-8"
+                aria-label={language === 'zh' ? '关闭' : 'Close'}
+                title={language === 'zh' ? '关闭 (Esc)' : 'Close (Esc)'}
                 onClick={(e) => {
                   e.stopPropagation();
                   closeZoom();
                 }}
-                title={language === 'zh' ? '关闭 (Esc)' : 'Close (Esc)'}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
