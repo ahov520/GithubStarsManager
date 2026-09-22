@@ -14,6 +14,7 @@ import { applyRepoFilters, performBasicTextSearch as basicTextSearch, sortReposi
 import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
 import { NumberInput } from './ui/NumberInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from './ui/sheet';
 import {
@@ -806,12 +807,13 @@ export const SearchBar: React.FC = () => {
             variant="default"
             aria-label={isSearching ? t('AI搜索中…', 'AI Searching…') : t('AI搜索', 'AI Search')}
             disabled={isSearching || !searchQuery.trim()}
-            className="touch-target-44 sm:min-h-0 sm:min-w-0 flex shrink-0 items-center sm:px-4"
+            className="touch-target-44 h-11 shrink-0 gap-1 px-2.5 sm:h-9 sm:min-h-0 sm:min-w-0 sm:px-4"
             title={activeAIConfig
               ? t('使用配置的AI服务进行语义搜索和重排序', 'Use configured AI service for semantic search and reranking')
               : t('使用本地智能排序算法进行搜索', 'Use local intelligent ranking algorithm for search')}
           >
             <Bot className="w-4 h-4" />
+            <span className="sm:hidden">{isSearching ? '…' : 'AI'}</span>
             <span className="hidden sm:inline">{isSearching ? t('AI搜索中…', 'AI Searching…') : t('AI搜索', 'AI Search')}</span>
           </Button>
           {isSearching && searchPhase && (
@@ -819,21 +821,21 @@ export const SearchBar: React.FC = () => {
               {searchPhase}
             </span>
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <Popover>
+            <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 aria-label={t('关于 AI 搜索', 'About AI Search')}
-                className="touch-target-44 sm:h-9 sm:w-9 h-11 w-11 shrink-0 text-muted-foreground"
+                className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground sm:h-9 sm:w-9"
               >
                 <AlertCircle className="h-4 w-4" aria-hidden="true" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="end" className="w-80 max-w-xs whitespace-normal break-words text-left">
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="end" className="w-[min(20rem,calc(100vw-1.5rem))] whitespace-normal break-words p-4 text-left text-sm">
               <p className="mb-1 font-medium">{t('关于AI搜索', 'About AI Search')}</p>
-              <p className="leading-relaxed text-primary-foreground/80">
+              <p className="leading-relaxed text-muted-foreground">
                 {activeAIConfig ? t(
                   'AI语义搜索模式：使用配置的AI服务进行智能语义理解和重排序。AI将分析查询意图，理解上下文关系，并提供语义相关的搜索结果。支持自然语言查询和概念匹配。',
                   'AI semantic search mode: Uses configured AI service for intelligent semantic understanding and reranking. AI analyzes query intent, understands context, and provides semantically relevant search results. Supports natural language queries and concept matching.'
@@ -842,8 +844,8 @@ export const SearchBar: React.FC = () => {
                   'Fallback mode: Basic text search with default sorting. When no AI service is configured, the system uses basic text matching for search (supports name, description, tags, language, etc.) and applies standard sort and filter controls. This is a lightweight search solution without semantic understanding capabilities.'
                 )}
               </p>
-            </TooltipContent>
-          </Tooltip>
+            </PopoverContent>
+          </Popover>
           </div>
         </div>
         {searchHistory.length > 0 && (
