@@ -549,14 +549,14 @@ export const ReleaseTimeline: React.FC = () => {
                <Button
                  onClick={handleRefresh}
                  disabled={releaseIsRefreshing}
-                 className="flex items-center space-x-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="touch-target-44 flex h-11 items-center space-x-2 rounded-lg bg-primary px-6 text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                >
                  <RefreshCw className={`w-5 h-5 ${releaseIsRefreshing ? 'animate-spin' : ''}`} />
                  <span>{releaseIsRefreshing ? t('刷新中…', 'Refreshing…') : t('刷新Release', 'Refresh Releases')}</span>
                </Button>
                <Button
                  onClick={() => setIsReleaseSourceSettingsOpen(true)}
-                 className="flex items-center space-x-2 px-4 py-3 bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors"
+                 className="touch-target-44 flex h-11 items-center space-x-2 rounded-lg bg-muted px-4 text-muted-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
                  title={t('Release 来源设置', 'Release Source Settings')}
                >
                  <Settings className="w-5 h-5" />
