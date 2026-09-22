@@ -214,6 +214,42 @@ describe('RepositoryCard view modes', () => {
     }
   });
 
+  it('shows the AI failure reason from a phone tap without opening the README', async () => {
+    const user = userEvent.setup();
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard
+            repository={{ ...repository, analysis_failed: true, analysis_error: '密钥无效，请检查 AI 配置' }}
+            allCategories={[]}
+            viewMode="grid"
+          />
+        </TooltipProvider>
+      );
+      const toggle = await screen.findByRole('button', { name: '分析失败' });
+      expect(toggle.className).toContain('h-11');
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText('密钥无效，请检查 AI 配置')).not.toBeInTheDocument();
+      await user.click(toggle);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+      expect(screen.getByText('密钥无效，请检查 AI 配置').className).toContain('break-words');
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('opens labeled repository actions from a phone sheet', async () => {
     const user = userEvent.setup();
     const onAskRepository = vi.fn();

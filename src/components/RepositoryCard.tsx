@@ -285,6 +285,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+  const [failureReasonOpen, setFailureReasonOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const menuDismissedByPointerDownRef = useRef(false);
   const releaseSheetOutsideDismissedAtRef = useRef<number | null>(null);
@@ -536,6 +537,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
 
   useLayoutEffect(() => {
     setDescriptionExpanded(false);
+    setFailureReasonOpen(false);
   }, [repository.id, displayContent.content]);
 
   useLayoutEffect(() => {
@@ -896,12 +898,34 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
             {repository.owner.login}
           </p>
           {viewMode === 'list' && (
-            <div className="mt-1">
+            <div className="mt-1 min-w-0 max-w-full">
               {displayContent.isAnalysisFailed ? (
+                isCompact ? (
+                  <>
+                    <button
+                      type="button"
+                      className="touch-target-44 inline-flex h-11 items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-3 text-xs font-medium text-destructive"
+                      aria-expanded={failureReasonOpen}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setFailureReasonOpen((open) => !open);
+                      }}
+                    >
+                      <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                      {language === 'zh' ? '分析失败' : 'Analysis failed'}
+                    </button>
+                    {failureReasonOpen && (
+                      <p className="mt-1 break-words text-xs leading-5 text-destructive">
+                        {repository.analysis_error || (language === 'zh' ? 'AI分析失败，请检查AI配置和网络连接' : 'AI analysis failed, please check AI configuration and network connection')}
+                      </p>
+                    )}
+                  </>
+                ) : (
                 <span className="inline-flex items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                   <Bot className="w-3 h-3" />
                   {language === 'zh' ? '分析失败' : 'Analysis failed'}
                 </span>
+                )
               ) : displayContent.isAnalyzed ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary dark:border-primary/20 dark:bg-primary/20">
                   <Sparkles className="w-3 h-3" />
@@ -1361,6 +1385,28 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           )}
           {/* AI 分析状态标签 (合并展示) */}
           {displayContent.isAnalysisFailed ? (
+            isCompact ? (
+              <div className="min-w-0 max-w-full">
+                <button
+                  type="button"
+                  className="touch-target-44 inline-flex h-11 items-center gap-1 rounded-md px-2 text-xs font-medium text-destructive"
+                  aria-expanded={failureReasonOpen}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setFailureReasonOpen((open) => !open);
+                  }}
+                >
+                  <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                  {language === 'zh' ? '分析失败' : 'Failed'}
+                  <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                {failureReasonOpen && (
+                  <p className="mt-1 break-words text-xs leading-5 text-destructive">
+                    {repository.analysis_error || (language === 'zh' ? 'AI分析失败，请检查AI配置和网络连接' : 'AI analysis failed, please check AI configuration and network connection')}
+                  </p>
+                )}
+              </div>
+            ) : (
             <div className="flex items-center space-x-1 text-xs text-destructive dark:text-destructive" title={language === 'zh' ? 'AI分析失败，点击AI按钮重新分析' : 'AI analysis failed, click AI button to retry'}>
               <Bot className="w-3 h-3" />
               <span>{language === 'zh' ? '分析失败' : 'Failed'}</span>
@@ -1374,6 +1420,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 </div>
               </div>
             </div>
+            )
           ) : displayContent.isAnalyzed ? (
             <div
               className="flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary border border-primary/20 dark:border-primary/20"
