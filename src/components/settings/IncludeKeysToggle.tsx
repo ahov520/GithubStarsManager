@@ -17,16 +17,16 @@ export const IncludeKeysToggle: FC<IncludeKeysToggleProps> = ({ t }) => {
 
   return (
     <div className="rounded-md border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <Key className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <h4 className="text-sm font-medium text-foreground">{label}</h4>
-            <p className="text-sm text-muted-foreground">{t('包含 AI 配置、WebDAV、代理、远程下载和后端服务器的密钥', 'Includes keys for AI configs, WebDAV, proxy, remote download, and backend server')}</p>
-          </div>
-        </div>
-        <Switch checked={includeKeysInBackup} onCheckedChange={setIncludeKeysInBackup} aria-label={label} />
-      </div>
+      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+        <span className="flex min-w-0 items-center space-x-3">
+          <Key className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">{label}</span>
+            <span className="block text-sm text-muted-foreground">{t('包含 AI 配置、WebDAV、代理、远程下载和后端服务器的密钥', 'Includes keys for AI configs, WebDAV, proxy, remote download, and backend server')}</span>
+          </span>
+        </span>
+        <Switch checked={includeKeysInBackup} onCheckedChange={setIncludeKeysInBackup} aria-label={label} className="after:-inset-y-3" />
+      </label>
     </div>
   );
 };

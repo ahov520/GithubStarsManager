@@ -1698,9 +1698,13 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
               </div>
             </div>
 
-            <div className="space-y-2 mb-4">
+            <div className="mb-4 space-y-1">
               {exportItems.map((item) => (
-                <div key={item.key} className="flex items-center space-x-2 text-sm text-foreground dark:text-muted-foreground">
+                <label
+                  key={item.key}
+                  htmlFor={`export-type-${item.key}`}
+                  className="flex min-h-11 w-full cursor-pointer items-center gap-3 text-sm text-foreground dark:text-muted-foreground"
+                >
                   <Checkbox
                     id={`export-type-${item.key}`}
                     checked={selectedExportTypes.includes(item.key)}
@@ -1712,8 +1716,8 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                       ));
                     }}
                   />
-                  <label htmlFor={`export-type-${item.key}`}>{item.label}</label>
-                </div>
+                  <span>{item.label}</span>
+                </label>
               ))}
             </div>
             <Button
@@ -1884,7 +1888,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                 variant="destructive"
                 size="sm"
                 onClick={() => openConfirmation('all')}
-                className="mt-4"
+                className="mt-4 h-11 w-full sm:w-auto"
               >
                 <Trash2 />
                 <span>{t('删除所有数据', 'Delete All Data')}</span>
