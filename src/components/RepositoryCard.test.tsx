@@ -163,6 +163,7 @@ describe('RepositoryCard view modes', () => {
     await user.click(screen.getByRole('button', { name: '更多操作' }));
 
     expect(screen.getByText('仓库操作')).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: '移到分类' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'AI 分析' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: '问答此仓库' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: '查找同类仓库' })).toBeInTheDocument();

@@ -18,7 +18,7 @@ import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
 import { useShallow } from 'zustand/react/shallow';
 import { CategoryEditModal } from './CategoryEditModal';
 import { useCategorySyncActions } from '../features/repositories/hooks/useCategorySyncActions';
-import { getAICategory, getDefaultCategory, computeCustomCategory, matchesCategory } from '../utils/categoryUtils';
+import { buildRepositoryCategoryAssignment, matchesCategory } from '../utils/categoryUtils';
 import { useDialog } from '../hooks/useDialog';
 
 interface CategorySidebarProps {
@@ -303,51 +303,10 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
     if (!repository) return;
 
     const allCategoriesList = getAllCategories(customCategories, language, hiddenDefaultCategoryIds, defaultCategoryOverrides);
-
-    // 拖到「全部分类」= 取消分类：显式清空（''），与编辑弹窗清空分类的结果一致；
-    // resolveCategoryAssignment 会保留显式清空，后续 AI 重新分析不会重新归类
-    if (category.id === 'all') {
-      // 已显式清空过的仓库无需再写
-      if (repository.custom_category === '') return;
-      // 无锁定分类且 AI/默认分类均未命中时，仓库本就无归属：
-      // 写入 '' 会被 resolveCategoryAssignment 永久保留，阻止后续 AI 重新归类，故 no-op
-      const hasAssignedCategory = !!repository.custom_category ||
-        !!(getAICategory(repository, allCategoriesList) || getDefaultCategory(repository, allCategoriesList));
-      if (!hasAssignedCategory) return;
-
-      const originalRepo = { ...repository };
-      const nextRepo = {
-        ...repository,
-        custom_category: '',
-        category_locked: false,
-        last_edited: new Date().toISOString(),
-      };
-      updateRepository(nextRepo);
-
-      try {
-        await forceSyncToBackend();
-      } catch {
-        handleSyncError(originalRepo);
-      }
-      return;
-    }
+    const nextRepo = buildRepositoryCategoryAssignment(repository, category, allCategoriesList);
+    if (!nextRepo) return;
 
     const originalRepo = { ...repository };
-
-    const aiCat = getAICategory(repository, allCategoriesList);
-    const defaultCat = getDefaultCategory(repository, allCategoriesList);
-
-    // 使用通用函数计算应该保存的自定义分类值
-    // 如果拖拽的分类与AI/默认一致，则清除自定义标记
-    const customCategoryValue = computeCustomCategory(category.name, aiCat, defaultCat);
-
-    const nextRepo = {
-      ...repository,
-      custom_category: customCategoryValue,
-      category_locked: customCategoryValue !== undefined && customCategoryValue !== '',
-      last_edited: new Date().toISOString(),
-    };
-
     updateRepository(nextRepo);
 
     try {

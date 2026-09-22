@@ -5,7 +5,7 @@ import {
   getPlatformIcon,
 } from './platformMeta';
 import { useRepositoryPlatforms } from '../hooks/useRepositoryPlatforms';
-import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2 } from 'lucide-react';
+import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2, FolderTree } from 'lucide-react';
 import { Repository, Category } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -26,6 +26,7 @@ import { usePluginActions } from '../plugins/hooks/usePluginActions';
 import { applyPluginActionResult } from '../plugins/applyPluginActionResult';
 import { useDialog } from '../hooks/useDialog';
 import { pluginClient } from '../plugins/pluginClient';
+import { MoveToCategorySheet } from './MoveToCategorySheet';
 import type { RegisteredPluginAction } from '../plugins/types';
 
 type DialogContentPointerDownOutsideHandler = NonNullable<
@@ -219,6 +220,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const [showDragHint, setShowDragHint] = useState(false);
   const dragHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const menuDismissedByPointerDownRef = useRef(false);
   const releaseSheetOutsideDismissedAtRef = useRef<number | null>(null);
@@ -880,6 +882,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               }}
             >
               <DropdownMenuLabel>{language === 'zh' ? '仓库操作' : 'Repository actions'}</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => setMoveCategoryOpen(true)}>
+                <FolderTree className="mr-2 h-3.5 w-3.5" />
+                {language === 'zh' ? '移到分类' : 'Move to category'}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={isAnalyzing}
                 onSelect={() => void handleAIAnalyze()}
@@ -1111,6 +1117,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-52 [&_[role=menuitem]]:min-h-[44px] sm:[&_[role=menuitem]]:min-h-0" onClick={(event) => event.stopPropagation()}>
+                <DropdownMenuItem onSelect={() => setMoveCategoryOpen(true)}>
+                  <FolderTree className="mr-2 h-3.5 w-3.5" />
+                  {language === 'zh' ? '移到分类' : 'Move to category'}
+                </DropdownMenuItem>
                 {visibleGridActionCount < 1 && (
                   <DropdownMenuItem disabled={isAnalyzing} onSelect={() => void handleAIAnalyze()}>
                     {isAnalyzing ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Bot className="mr-2 h-3.5 w-3.5" />}
@@ -1439,6 +1449,15 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           </Suspense>
         </ErrorBoundary>,
         document.body
+      )}
+
+      {moveCategoryOpen && (
+        <MoveToCategorySheet
+          open={moveCategoryOpen}
+          onOpenChange={setMoveCategoryOpen}
+          repository={repository}
+          categories={allCategories}
+        />
       )}
     </div>
   );
