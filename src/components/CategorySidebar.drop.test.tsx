@@ -180,6 +180,7 @@ describe('CategorySidebar phone search', () => {
 
   it('filters the category drawer without hiding the shortcut chips', () => {
     renderSidebar([categorizedRepo]);
+    expect(screen.getByTestId('category-chip-fade').className).toContain('bg-gradient-to-l');
     fireEvent.click(screen.getByRole('button', { name: '打开分类抽屉' }));
     const dialog = screen.getByRole('dialog');
     const search = within(dialog).getByRole('textbox', { name: '搜索分类' });
