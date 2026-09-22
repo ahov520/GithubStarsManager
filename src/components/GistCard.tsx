@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { Bot, Clock, Copy, Edit3, ExternalLink, FileCode2, Loader2, Share2, StarOff, Trash2, User } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Bot, Clock, Copy, Edit3, ExternalLink, FileCode2, Loader2, MoreHorizontal, Share2, StarOff, Trash2, User } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import type { Gist } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useGistActions } from '../features/gists/hooks/useGistActions';
@@ -28,7 +29,9 @@ export const GistCard: React.FC<GistCardProps> = ({
   const language = useAppStore(state => state.language);
   const { analyzeOne, unstarGist, deleteGist, isAnalyzingGist, isMutating } = useGistActions();
   const { toast } = useDialog();
+  const [actionsOpen, setActionsOpen] = useState(false);
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
+  const closeActions = () => setActionsOpen(false);
   const title = getGistTitle(gist);
   const primaryLanguage = getGistPrimaryLanguage(gist);
   const fileCount = getGistFileCount(gist);
@@ -79,7 +82,7 @@ export const GistCard: React.FC<GistCardProps> = ({
   return (
     <article
       onClick={() => onOpen(gist)}
-      className="ui-card group cursor-pointer p-4 sm:p-5"
+      className="ui-card group min-w-0 max-w-full cursor-pointer overflow-hidden p-4 sm:p-5"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
@@ -102,7 +105,20 @@ export const GistCard: React.FC<GistCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide sm:shrink-0">
+        <Button
+          type="button"
+          variant="outline"
+          className="touch-target-44 h-11 w-full justify-start gap-2 md:hidden"
+          aria-label={t('Gist 操作', 'Gist actions')}
+          onClick={(event) => {
+            event.stopPropagation();
+            setActionsOpen(true);
+          }}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+          {t('操作', 'Actions')}
+        </Button>
+        <div className="hidden items-center gap-1 overflow-x-auto scrollbar-hide md:flex md:shrink-0">
           <Button
             type="button"
             variant="ghost"
@@ -191,7 +207,7 @@ export const GistCard: React.FC<GistCardProps> = ({
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground dark:text-muted-foreground">
+      <p className="mt-4 line-clamp-2 break-words text-sm leading-6 text-muted-foreground dark:text-muted-foreground">
         {gist.ai_summary || gist.description || fileNames || t('暂无描述', 'No description')}
       </p>
 
@@ -200,6 +216,65 @@ export const GistCard: React.FC<GistCardProps> = ({
           {gist.analysis_error || t('AI 分析失败', 'AI analysis failed')}
         </div>
       )}
+
+      <Sheet open={actionsOpen} onOpenChange={setActionsOpen}>
+        <SheetContent
+          side="bottom"
+          showClose={false}
+          className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <SheetHeader className="pr-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <SheetTitle className="text-base">{t('Gist 操作', 'Gist actions')}</SheetTitle>
+                <SheetDescription className="truncate">{title}</SheetDescription>
+              </div>
+              <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={closeActions}>
+                {t('完成', 'Done')}
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+            <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50" disabled={isAnalyzing} onClick={(event) => { closeActions(); handleAnalyze(event); }}>
+              {isAnalyzing ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> : <Bot className="h-4 w-4 shrink-0" aria-hidden="true" />}
+              {t('AI分析', 'AI analyze')}
+            </button>
+            <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={(event) => { closeActions(); void handleCopyLink(event); }}>
+              <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('复制链接', 'Copy link')}
+            </button>
+            <a href={gist.html_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-accent" onClick={closeActions}>
+              <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('打开链接', 'Open link')}
+            </a>
+            {canShare && (
+              <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={(event) => { closeActions(); void handleShare(event); }}>
+                <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('分享', 'Share')}
+              </button>
+            )}
+            {gist.starred && (
+              <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50" disabled={isMutating} onClick={(event) => { closeActions(); handleUnstar(event); }}>
+                <StarOff className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('取消收藏', 'Unstar')}
+              </button>
+            )}
+            {isMine && (
+              <>
+                <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { closeActions(); onEdit(gist); }}>
+                  <Edit3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {t('编辑', 'Edit')}
+                </button>
+                <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm text-destructive hover:bg-accent disabled:opacity-50" disabled={isMutating} onClick={(event) => { closeActions(); handleDelete(event); }}>
+                  <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {t('删除', 'Delete')}
+                </button>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </article>
   );
 };

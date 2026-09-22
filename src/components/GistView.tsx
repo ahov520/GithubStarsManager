@@ -104,7 +104,7 @@ export const GistView: React.FC = () => {
   };
 
   return (
-    <div className="flex w-full flex-col items-start gap-4 lg:flex-row lg:gap-6">
+    <div className="flex w-full min-w-0 flex-col items-stretch gap-4 lg:flex-row lg:items-start lg:gap-6">
       <aside className="w-full lg:w-64 lg:flex-shrink-0 lg:self-start">
         <div className="linear-sidebar z-10 p-3 lg:sticky lg:top-24">
           <div className="mb-2 flex items-center justify-between px-1 lg:mb-3 lg:px-2">
