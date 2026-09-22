@@ -289,6 +289,36 @@ describe('SearchBar', () => {
     }
   });
 
+  it('sets a star minimum from a preset and clears it', () => {
+    const setSearchFilters = vi.fn();
+    currentState = createStoreState({ setSearchFilters });
+    mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);
+
+    render(<SearchBar />);
+    fireEvent.click(screen.getByRole('button', { name: '过滤器' }));
+    fireEvent.click(screen.getByRole('button', { name: '≥1K' }));
+    fireEvent.click(screen.getByRole('button', { name: '不限' }));
+
+    expect(setSearchFilters).toHaveBeenCalledWith({ minStars: 1000 });
+    expect(setSearchFilters).toHaveBeenCalledWith({ minStars: undefined });
+  });
+
+  it('applies a recent search from the phone chip without opening the dropdown', () => {
+    const setSearchFilters = vi.fn();
+    const setSearchResults = vi.fn();
+    const repositories = [createRepository({ id: 1, name: 'react', full_name: 'facebook/react' })];
+    localStorage.setItem('github-stars-search-history', JSON.stringify(['react']));
+    currentState = createStoreState({ repositories, setSearchFilters, setSearchResults });
+    mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);
+
+    render(<SearchBar />);
+    fireEvent.click(screen.getByRole('button', { name: '最近搜索 react' }));
+
+    expect(screen.getByRole('textbox')).toHaveValue('react');
+    expect(setSearchFilters).toHaveBeenCalledWith({ query: 'react' });
+    expect(setSearchResults).toHaveBeenCalledWith(expect.any(Array));
+  });
+
   it('dispatches the global history open event from the 问答历史 button', () => {
     currentState = createStoreState({});
     mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);

@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Settings, Calendar, Search, Moon, Sun, LogOut, Compass, GitFork, FileCode2, Menu, X } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Settings, Calendar, Search, Moon, Sun, LogOut, Compass, GitFork, FileCode2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -44,8 +43,6 @@ export const Header: React.FC = () => {
 
   const { confirm } = useDialog();
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const visibleMenus = useMemo(() =>
     [...headerMenuConfig]
       .filter(item => item.visible)
@@ -54,6 +51,8 @@ export const Header: React.FC = () => {
   );
 
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
+  const currentPage = MENU_META[currentView as HeaderMenuId];
+  const mobileTitle = currentPage ? t(currentPage.labelZh, currentPage.labelEn) : 'GitHub Stars';
 
   return (
     <header className="linear-header sticky top-0 z-50 hd-drag lg:hd-drag relative pt-[env(safe-area-inset-top,0px)]">
@@ -77,8 +76,8 @@ export const Header: React.FC = () => {
               </p>
             </div>
             <div className="min-w-0 sm:hidden">
-              <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">
-                GitHub Stars
+              <h1 className="truncate text-base font-semibold tracking-tight text-foreground">
+                {mobileTitle}
               </h1>
             </div>
           </div>
@@ -108,42 +107,6 @@ export const Header: React.FC = () => {
               );
             })}
           </nav>
-
-          {/* Mobile Dropdown Menu (<768px) */}
-          <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="touch-target-44 md:hidden"
-                aria-label={t('菜单', 'Menu')}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 md:hidden">
-              {visibleMenus.map(menuItem => {
-                const meta = MENU_META[menuItem.id];
-                const Icon = meta.icon;
-                const isActive = currentView === menuItem.id;
-                return (
-                  <DropdownMenuItem
-                    key={menuItem.id}
-                    onSelect={() => {
-                      setCurrentView(menuItem.id as AppState['currentView']);
-                      setMobileMenuOpen(false);
-                    }}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={isActive ? 'bg-muted dark:bg-accent' : undefined}
-                  >
-                    <Icon className="mr-3 h-4 w-4" />
-                    {t(meta.labelZh, meta.labelEn)}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {/* User Actions */}
           <div className="flex items-center gap-2 sm:gap-3 hd-btns lg:hd-btns">

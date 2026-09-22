@@ -69,6 +69,39 @@ const enterBackendMode = async () => {
   };
 };
 
+describe('LoginScreen 手机粘贴', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.safeReadText.mockResolvedValue({ success: false, error: 'empty' });
+  });
+
+  it('粘贴按钮把剪贴板写入 GitHub Token', async () => {
+    mocks.safeReadText.mockResolvedValue({ success: true, text: '  ghp_phone  ' });
+    render(
+      <TooltipProvider>
+        <LoginScreen />
+      </TooltipProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '粘贴 GitHub Token' }));
+
+    await waitFor(() => expect(screen.getByLabelText('GitHub Personal Access Token')).toHaveValue('ghp_phone'));
+  });
+
+  it('剪贴板读失败时在页面上说明原因', async () => {
+    mocks.safeReadText.mockResolvedValue({ success: false, error: '需要剪贴板权限' });
+    render(
+      <TooltipProvider>
+        <LoginScreen />
+      </TooltipProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '粘贴 GitHub Token' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('需要剪贴板权限');
+  });
+});
+
 describe('LoginScreen 后端登录', () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -1725,7 +1725,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                 exportData(selectedExportTypes);
               }}
               disabled={isExporting}
-              className="w-full gap-2"
+              className="touch-target-44 h-11 w-full gap-2"
             >
               {isExporting ? (
                 <>
@@ -1757,10 +1757,10 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
               <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-2">
                 {t('点击选择文件或拖拽文件到此处', 'Click to select or drag file here')}
               </p>
-              <Input type="file" accept=".json" onChange={handleImportFile} className="peer sr-only" id="import-file-input" />
+              <input type="file" accept=".json" onChange={handleImportFile} className="peer sr-only" id="import-file-input" />
               <label
                 htmlFor="import-file-input"
-                className="cursor-pointer px-4 py-2 bg-muted dark:bg-muted/40 hover:bg-accent dark:hover:bg-accent text-foreground dark:text-muted-foreground rounded-lg transition-colors inline-block peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-muted px-4 text-foreground transition-colors hover:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
               >
                 {t('选择文件', 'Select File')}
               </label>
@@ -1785,7 +1785,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
             {cleanupSuggestions.map((suggestion) => (
               <div
                 key={suggestion.key}
-                className="bg-card dark:bg-card rounded-lg border border-border dark:border-border p-4 flex items-center justify-between hover:bg-background dark:hover:bg-accent transition-colors"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-background dark:border-border dark:bg-card dark:hover:bg-accent"
               >
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${suggestion.bgColor} ${suggestion.color}`}>
@@ -1806,7 +1806,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                   </span>
                   <Button
                     onClick={() => handleCleanup(suggestion.key)}
-                    className="px-3 py-1.5 text-sm font-medium text-muted-foreground dark:text-muted-foreground bg-muted dark:bg-muted/40 hover:bg-accent dark:hover:bg-accent rounded-lg transition-colors"
+                    className="touch-target-44 h-11 shrink-0 rounded-lg bg-muted px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
                   >
                     {t('清理', 'Clean')}
                   </Button>
@@ -1828,7 +1828,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
             {dataStats.map((stat) => (
               <div
                 key={stat.key}
-                className="flex items-center justify-between px-4 py-4 hover:bg-background dark:hover:bg-accent transition-colors"
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 transition-colors hover:bg-background dark:hover:bg-accent"
               >
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${stat.bgColor} ${stat.color}`}>
@@ -1848,7 +1848,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                   variant="ghost"
                   onClick={() => openConfirmation(stat.key as DeleteOperation)}
                   disabled={stat.key !== 'discoveryData' && stat.count === 0}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-accent dark:hover:bg-accent rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="touch-target-44 flex h-11 shrink-0 items-center space-x-2 rounded-lg px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>{t('删除', 'Delete')}</span>
@@ -1993,7 +1993,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                       }))
                     }
                     placeholder={t('输入GitHub用户名', 'Enter GitHub username')}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring dark:bg-muted/40 dark:text-foreground"
+                    className="h-11 w-full rounded-lg border border-border px-4 text-base focus:ring-2 focus:ring-ring dark:bg-muted/40 dark:text-foreground sm:h-10 sm:text-sm"
                   />
                 </div>
               )}
@@ -2002,7 +2002,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
               <AlertDialogCancel
                 onClick={closeConfirmation}
                 disabled={isDeleting}
-                className="flex-1 bg-muted text-foreground hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+                className="h-11 flex-1 bg-muted text-foreground hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
               >
                 {t('取消', 'Cancel')}
               </AlertDialogCancel>
@@ -2016,7 +2016,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                   (confirmation.type === 'all' &&
                     confirmation.githubUsernameInput !== user?.login)
                 }
-                className="flex-1 bg-destructive font-medium text-destructive-foreground hover:bg-destructive/90"
+                className="h-11 flex-1 bg-destructive font-medium text-destructive-foreground hover:bg-destructive/90"
               >
                 {isDeleting ? (
                   <>
@@ -2118,7 +2118,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                   variant="outline"
                   onClick={() => setImportPreview({ data: null, isOpen: false, fileName: '' })}
                   disabled={isImporting}
-                  className="flex-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                  className="h-11 flex-1 rounded-lg px-4 transition-colors disabled:opacity-50"
                 >
                   {t('取消', 'Cancel')}
                 </Button>
@@ -2127,7 +2127,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                     importData(resolveImportTypes(importPreview.data!.data), 'merge');
                   }}
                   disabled={isImporting}
-                  className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="flex h-11 flex-1 items-center justify-center space-x-2 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isImporting ? (
                     <>
@@ -2144,7 +2144,7 @@ export const DataManagementPanel: React.FC<DataManagementPanelProps> = ({ t }) =
                     importData(resolveImportTypes(importPreview.data!.data), 'replace');
                   }}
                   disabled={isImporting}
-                  className="flex-1 px-4 py-2 font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="flex h-11 flex-1 items-center justify-center space-x-2 rounded-lg px-4 font-medium transition-colors disabled:opacity-50"
                 >
                   {isImporting ? (
                     <>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, FileCode2, Loader2, RefreshCw, Search, Star, X } from 'lucide-react';
+import { ExternalLink, FileCode2, Loader2, RefreshCw, Search, Share2, Star, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/useAppStore';
 import { Button } from './ui/button';
@@ -54,7 +54,7 @@ const FacetGroup: React.FC<{
               onClick={() => onToggle(bucket.val)}
               aria-pressed={active}
               title={`${bucket.val} (${bucket.count})`}
-              className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+              className={`inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full border px-3 text-sm transition-colors sm:min-h-0 sm:px-2.5 sm:py-1 sm:text-xs ${
                 active
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border bg-muted/50 text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -70,7 +70,7 @@ const FacetGroup: React.FC<{
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-primary hover:underline"
+          className="inline-flex min-h-11 items-center text-sm text-primary hover:underline sm:min-h-0 sm:text-xs"
         >
           {expanded ? t('收起', 'Show less') : t(`展开全部 ${buckets.length} 项`, `Show all ${buckets.length}`)}
         </button>
@@ -95,6 +95,18 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
   const fileUrl =
     repo && hit.path ? `https://github.com/${repo}/blob/${branch}/${encodedPath}` : `https://github.com/${repo}`;
   const snippet = useMemo(() => sanitizeGrepSnippet(hit.snippetHtml), [hit.snippetHtml]);
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: `${repo} ${hit.path}`.trim(),
+        text: hit.path || repo,
+        url: fileUrl,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+    }
+  };
   if (!repo) return null;
   return (
     <article className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
@@ -126,7 +138,7 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
         href={fileUrl}
         target="_blank"
         rel="noreferrer"
-        className="mb-2 block truncate text-xs text-muted-foreground hover:text-primary hover:underline"
+        className="mb-2 flex min-h-11 items-center truncate text-sm text-muted-foreground hover:text-primary hover:underline sm:min-h-0 sm:text-xs"
         title={hit.path}
       >
         {hit.path}
@@ -139,15 +151,25 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
       ) : (
         <p className="text-xs text-muted-foreground">{t('无片段预览', 'No snippet preview')}</p>
       )}
-      <div className="mt-2 flex justify-end">
+      <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+        {canShare && (
+          <button
+            type="button"
+            onClick={() => void handleShare()}
+            className="inline-flex h-11 items-center gap-1 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground sm:h-8"
+          >
+            <Share2 className="h-4 w-4" aria-hidden="true" />
+            {t('分享', 'Share')}
+          </button>
+        )}
         <a
           href={fileUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          className="inline-flex h-11 items-center gap-1 rounded-md px-3 text-sm text-primary hover:bg-accent sm:h-8"
         >
           {t('在 GitHub 查看文件', 'View file on GitHub')}
-          <ExternalLink className="h-3 w-3" />
+          <ExternalLink className="h-3.5 w-3.5" />
         </a>
       </div>
     </article>
@@ -311,14 +333,14 @@ export const CodeSearchView: React.FC = () => {
                 if (e.key === 'Escape') setQuery('');
               }}
               placeholder={t('输入关键字实时搜索代码…（至少 2 个字符）', 'Type to search code live… (min 2 chars)')}
-              className="ui-field h-auto w-full py-2.5 pl-10 pr-9"
+              className="ui-field h-11 w-full pl-10 pr-12 text-base sm:h-9 sm:text-sm"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label={t('清空', 'Clear')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground sm:h-8 sm:w-8"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -330,7 +352,7 @@ export const CodeSearchView: React.FC = () => {
               void runSearch(1, false);
             }}
             disabled={query.trim().length < MIN_QUERY_LENGTH || loading}
-            className="shrink-0 gap-2"
+            className="h-11 shrink-0 gap-2 sm:h-9"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
             {t('搜索', 'Search')}
@@ -345,32 +367,32 @@ export const CodeSearchView: React.FC = () => {
             className="flex flex-wrap items-center gap-4"
             aria-label={t('匹配模式', 'Match mode')}
           >
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-h-11 items-center gap-1.5 sm:min-h-0">
               <RadioGroupItem value="fuzzy" id="grep-mode-fuzzy" />
               <Label htmlFor="grep-mode-fuzzy" className="cursor-pointer text-sm font-normal">
                 {t('模糊', 'Fuzzy')}
               </Label>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-h-11 items-center gap-1.5 sm:min-h-0">
               <RadioGroupItem value="words" id="grep-mode-words" />
               <Label htmlFor="grep-mode-words" className="cursor-pointer text-sm font-normal">
                 {t('全词精确', 'Whole word')}
               </Label>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-h-11 items-center gap-1.5 sm:min-h-0">
               <RadioGroupItem value="regexp" id="grep-mode-regexp" />
               <Label htmlFor="grep-mode-regexp" className="cursor-pointer text-sm font-normal">
                 {t('正则 (RE2)', 'Regexp (RE2)')}
               </Label>
             </div>
           </RadioGroup>
-          <div className="flex items-center gap-2">
+          <div className="flex min-h-11 items-center gap-2 sm:min-h-0">
             <Switch id="grep-case" checked={caseSensitive} onCheckedChange={setCaseSensitive} />
             <Label htmlFor="grep-case" className="cursor-pointer text-sm font-normal">
               {t('区分大小写', 'Match case')}
             </Label>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-h-11 items-center gap-2 sm:min-h-0">
             <Switch id="grep-starred" checked={starredOnly} onCheckedChange={setStarredOnly} />
             <Label htmlFor="grep-starred" className="flex cursor-pointer items-center gap-1 text-sm font-normal">
               <Star className="h-3.5 w-3.5" />
@@ -392,7 +414,7 @@ export const CodeSearchView: React.FC = () => {
                 )}
               </p>
               {hasActiveFilters && (
-                <button type="button" onClick={clearFilters} className="text-xs text-primary hover:underline">
+                <button type="button" onClick={clearFilters} className="inline-flex min-h-11 items-center text-sm text-primary hover:underline sm:min-h-0 sm:text-xs">
                   {t('清空筛选', 'Clear filters')}
                 </button>
               )}
@@ -432,7 +454,7 @@ export const CodeSearchView: React.FC = () => {
       {error && (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-8 text-center">
           <p className="max-w-md text-sm text-destructive">{error}</p>
-          <Button variant="outline" size="sm" onClick={() => void runSearch(1, false)} className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => void runSearch(1, false)} className="h-11 gap-2 sm:h-8">
             <RefreshCw className="h-3.5 w-3.5" />
             {t('重试', 'Retry')}
           </Button>
@@ -500,7 +522,7 @@ export const CodeSearchView: React.FC = () => {
                 variant="outline"
                 onClick={() => void runSearch(page + 1, true)}
                 disabled={loading}
-                className="gap-2"
+                className="h-11 gap-2 sm:h-9"
               >
                 {t(`加载更多（已加载 ${result.hits.length}/${result.total}）`, `Load more (${result.hits.length}/${result.total})`)}
               </Button>

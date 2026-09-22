@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReadmeModal } from './ReadmeModal';
 import { backend } from '../services/backendAdapter';
 import { GitHubApiService } from '../services/githubApi';
@@ -231,5 +231,86 @@ describe('ReadmeModal multilingual README switching', () => {
     } finally {
       consoleWarnSpy.mockRestore();
     }
+  });
+});
+
+describe('ReadmeModal mobile repository detail', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.localStorage.removeItem('gsm:readme-font-index');
+    window.sessionStorage.clear();
+    (backend as { isAvailable: boolean }).isAvailable = true;
+    setMockStore();
+    mockedGitHubApiService.mockImplementation(function () { return mockGitHubApi; });
+    (backend.getRepositoryReadme as ReturnType<typeof vi.fn>).mockResolvedValue('Default README content');
+    (backend.listRepositoryReadmeCandidates as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { path: 'README.md', type: 'blob' },
+    ]);
+  });
+
+  afterEach(() => {
+    window.localStorage.removeItem('gsm:readme-font-index');
+    Reflect.deleteProperty(navigator, 'share');
+  });
+
+  it('shows the repository summary and copies its GitHub link', async () => {
+    render(<ReadmeModal isOpen onClose={vi.fn()} repository={{ ...mockRepository, topics: ['cli', 'stars'], license: 'MIT' }} />);
+
+    expect(await screen.findByText('Default README content')).toBeInTheDocument();
+    expect(screen.getByText('Demo repository')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+    expect(screen.getByText('MIT')).toBeInTheDocument();
+    expect(screen.getByText('cli')).toBeInTheDocument();
+    expect(document.querySelector('.repo-detail-dialog')).not.toBeNull();
+    const translate = screen.getByRole('button', { name: '翻译文档' });
+    expect(translate.className).toContain('h-11');
+    expect(translate.parentElement?.className).toContain('flex-wrap');
+    expect(screen.getByRole('link', { name: '在 GitHub 上查看' }).parentElement?.className).toContain('flex-wrap');
+
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+    await user.click(screen.getByRole('button', { name: '复制链接' }));
+    expect(writeText).toHaveBeenCalledWith('https://github.com/owner/demo');
+    expect(await screen.findByRole('button', { name: '已复制' })).toBeInTheDocument();
+  });
+
+  it('prefers the AI summary and exposes ask, release, and share actions', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    const onAsk = vi.fn();
+    const onOpenReleases = vi.fn();
+    const onToggleSubscribe = vi.fn();
+
+    render(
+      <ReadmeModal
+        isOpen
+        onClose={vi.fn()}
+        repository={{ ...mockRepository, ai_summary: '这是 AI 摘要' }}
+        onAsk={onAsk}
+        onOpenReleases={onOpenReleases}
+        onToggleSubscribe={onToggleSubscribe}
+      />
+    );
+
+    expect(await screen.findByText('这是 AI 摘要')).toBeInTheDocument();
+    expect(screen.queryByText('Demo repository')).not.toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: '问答此仓库' }));
+    await user.click(screen.getByRole('button', { name: '查看 Release' }));
+    await user.click(screen.getByRole('button', { name: '订阅 Release' }));
+    await user.click(await screen.findByRole('button', { name: '分享' }));
+
+    expect(onAsk).toHaveBeenCalledOnce();
+    expect(onOpenReleases).toHaveBeenCalledOnce();
+    expect(onToggleSubscribe).toHaveBeenCalledOnce();
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://github.com/owner/demo' }));
+  });
+
+  it('remembers the README font size', async () => {
+    window.localStorage.setItem('gsm:readme-font-index', '2');
+    render(<ReadmeModal isOpen onClose={vi.fn()} repository={mockRepository} />);
+    expect(await screen.findByRole('button', { name: '字体大小: 大' })).toBeInTheDocument();
   });
 });

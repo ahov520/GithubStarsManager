@@ -14,6 +14,7 @@ import { buildFinalApiUrl } from '../../utils/apiUrlBuilder';
 import { SliderInput } from '../ui/SliderInput';
 import { useDialog } from '../../hooks/useDialog';
 import { isToolCallCapableApiType } from '../../constants/aiCapabilities';
+import { isReadSupported, safeReadText } from '../../utils/clipboardUtils';
 
 interface AIConfigPanelProps {
   t: (zh: string, en: string) => string;
@@ -117,6 +118,8 @@ export const AIConfigPanel: React.FC<AIConfigPanelProps> = ({ t }) => {
   const { testingId, testingForm, testConfig, testDraft } = useAIConfigActions({ t });
 
   const [showForm, setShowForm] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const canPaste = isReadSupported();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCustomPrompt, setShowCustomPrompt] = useState(false);
   const [showDefaultPrompt, setShowDefaultPrompt] = useState(false);
@@ -152,6 +155,15 @@ export const AIConfigPanel: React.FC<AIConfigPanelProps> = ({ t }) => {
     mimoPlan: 'api',
     supportsToolCalls: false,
   });
+
+  const pasteSecret = async () => {
+    const result = await safeReadText();
+    if (result.success && result.text.trim()) {
+      setForm((prev) => ({ ...prev, apiKey: result.text.trim() }));
+      return;
+    }
+    toast(result.error || t('无法读取剪贴板', 'Could not read the clipboard'), 'error');
+  };
 
   // Auto-fill baseUrl when API type changes
   const prevApiTypeRef = useRef<AIApiType>('openai');
@@ -410,7 +422,7 @@ Repository information:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center space-x-3">
           <Bot className="w-6 h-6 text-muted-foreground dark:text-muted-foreground " />
           <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
@@ -419,7 +431,7 @@ Repository information:
         </div>
         <Button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          className="touch-target-44 flex h-11 items-center space-x-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground"
         >
           <Plus className="w-4 h-4" />
           <span>{t('添加AI配置', 'Add AI Config')}</span>
@@ -442,7 +454,7 @@ Repository information:
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
                 placeholder={t('例如: OpenAI GPT-4', 'e.g., OpenAI GPT-4')}
               />
             </div>
@@ -452,7 +464,7 @@ Repository information:
                 {t('接口格式', 'API Format')} *
               </label>
               <Select value={form.apiType} onValueChange={(value) => setForm(prev => ({ ...prev, apiType: value as AIApiType }))}>
-                <SelectTrigger aria-labelledby="ai-api-type-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-labelledby="ai-api-type-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="openai">OpenAI (Chat Completions)</SelectItem><SelectItem value="openai-responses">OpenAI (Responses)</SelectItem><SelectItem value="claude">Claude</SelectItem><SelectItem value="gemini">Gemini</SelectItem><SelectItem value="deepseek">DeepSeek</SelectItem><SelectItem value="mimo">Xiaomi MiMo</SelectItem><SelectItem value="openai-compatible">OpenAI Compatible (Custom Endpoint)</SelectItem></SelectContent>
               </Select>
             </div>
@@ -463,7 +475,7 @@ Repository information:
                   {t('MiMo 渠道', 'MiMo Channel')} *
                 </label>
                 <Select value={form.mimoPlan} onValueChange={(value) => setForm(prev => ({ ...prev, mimoPlan: value as MiMoPlan }))}>
-                  <SelectTrigger aria-labelledby="ai-mimo-plan-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-labelledby="ai-mimo-plan-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
                   <SelectContent><SelectItem value="api">{t('API（按量付费）', 'API (Pay-as-you-go)')}</SelectItem><SelectItem value="token-plan">{t('Token Plan（订阅制）', 'Token Plan (Subscription)')}</SelectItem></SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
@@ -483,7 +495,7 @@ Repository information:
                 type="url"
                 value={form.baseUrl}
                 onChange={(e) => setForm(prev => ({ ...prev, baseUrl: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
                 placeholder={getEndpointPlaceholder(form.apiType, form.mimoPlan)}
               />
               <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
@@ -503,14 +515,38 @@ Repository information:
               <label htmlFor="ai-api-key" className="block text-sm font-medium text-foreground dark:text-muted-foreground mb-1">
                 {t('API密钥', 'API Key')} *
               </label>
-              <Input
-                id="ai-api-key"
-                type="password"
-                value={form.apiKey}
-                onChange={(e) => setForm(prev => ({ ...prev, apiKey: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
-                placeholder={t('输入API密钥', 'Enter API key')}
-              />
+              <div className="flex items-center gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <Input
+                    id="ai-api-key"
+                    type={showApiKey ? 'text' : 'password'}
+                    value={form.apiKey}
+                    onChange={(e) => setForm(prev => ({ ...prev, apiKey: e.target.value }))}
+                    className="h-11 w-full rounded-lg border border-border bg-card px-3 pr-12 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
+                    placeholder={t('输入API密钥', 'Enter API key')}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    aria-label={showApiKey ? t('隐藏 API 密钥', 'Hide API key') : t('显示 API 密钥', 'Show API key')}
+                    onClick={() => setShowApiKey((value) => !value)}
+                    className="touch-target-44 absolute right-0 top-0 h-11 w-11 p-0 text-muted-foreground sm:h-10 sm:w-10"
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {canPaste && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-label={t('粘贴 API 密钥', 'Paste API key')}
+                    onClick={() => void pasteSecret()}
+                    className="touch-target-44 h-11 shrink-0 px-3"
+                  >
+                    {t('粘贴', 'Paste')}
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div>
@@ -522,7 +558,7 @@ Repository information:
                 type="text"
                 value={form.model}
                 onChange={(e) => setForm(prev => ({ ...prev, model: e.target.value }))}
-                className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+                className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
                 placeholder="gpt-4"
               />
             </div>
@@ -549,7 +585,7 @@ Repository information:
                 {t('推理强度', 'Reasoning Effort')}
               </label>
               <Select value={form.reasoningEffort || 'default'} onValueChange={(value) => setForm(prev => ({ ...prev, reasoningEffort: value === 'default' ? '' : value as AIReasoningEffort }))}>
-                <SelectTrigger aria-labelledby="ai-reasoning-effort-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-labelledby="ai-reasoning-effort-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="default">{t('默认 / 不传', 'Default / Do not send')}</SelectItem><SelectItem value="none">{t('none — 不推理', 'none — No reasoning')}</SelectItem><SelectItem value="low">{t('low — 快速响应', 'low — Quick response')}</SelectItem><SelectItem value="medium">{t('medium — 均衡模式', 'medium — Balanced')}</SelectItem><SelectItem value="high">{t('high — 深度推理', 'high — Deep reasoning')}</SelectItem><SelectItem value="xhigh">{t('xhigh — 最深推理', 'xhigh — Deepest reasoning')}</SelectItem></SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
@@ -614,7 +650,7 @@ Repository information:
                   variant="ghost"
                   onClick={handleToggleDefaultPrompt}
                   disabled={showCustomPrompt}
-                  className={`flex items-center space-x-1 text-sm ${
+                  className={`touch-target-44 flex h-11 items-center space-x-1 text-sm ${
                     showCustomPrompt
                       ? 'text-muted-foreground cursor-not-allowed'
                       : 'text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground'
@@ -679,10 +715,10 @@ Repository information:
             )}
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleSave}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground"
             >
               <Save className="w-4 h-4" />
               <span>{t('保存', 'Save')}</span>
@@ -690,7 +726,7 @@ Repository information:
             <Button
               onClick={handleTestForm}
               disabled={testingForm}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 dark:bg-primary dark:text-primary-foreground"
             >
               {testingForm ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -701,7 +737,7 @@ Repository information:
             </Button>
             <Button
               onClick={resetForm}
-              className="flex items-center space-x-2 px-4 py-2 bg-muted hover:bg-accent dark:bg-muted/40 dark:hover:bg-accent text-foreground dark:text-foreground rounded-lg border border-border dark:border-border transition-colors"
+              className="touch-target-44 flex h-11 items-center gap-2 rounded-lg border border-border bg-muted px-4 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
             >
               <X className="w-4 h-4" />
               <span>{t('取消', 'Cancel')}</span>
@@ -723,15 +759,16 @@ Repository information:
                 : 'border-border dark:border-border hover:border-border dark:hover:border-border-strong'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
                 <RadioGroupItem
                   value={config.id}
                   id={`active-ai-${config.id}`}
                   aria-label={config.name || t('AI配置', 'AI configuration')}
+                  className="mt-1"
                 />
-                <div>
-                  <h4 className="font-medium text-foreground dark:text-foreground flex items-center">
+                <div className="min-w-0 flex-1">
+                  <h4 className="flex flex-wrap items-center font-medium text-foreground dark:text-foreground">
                     {config.name}
                     {config.useCustomPrompt && (
                       <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground">
@@ -740,7 +777,7 @@ Repository information:
                       </span>
                     )}
                   </h4>
-                  <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+                  <p className="break-all text-sm text-muted-foreground dark:text-muted-foreground">
                     {(config.apiType || 'openai').toUpperCase()} • {config.baseUrl} • {config.model} • {t('并发数', 'Concurrency')}: {config.concurrency || 1}
                     {config.reasoningEffort ? ` • reasoning: ${config.reasoningEffort}` : ''}
                   </p>
@@ -755,13 +792,14 @@ Repository information:
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 self-end sm:shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => handleTest(config)}
                   disabled={testingId === config.id}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors disabled:opacity-50"
+                  aria-label={t('测试连接', 'Test Connection')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent disabled:opacity-50 dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('测试连接', 'Test Connection')}
                 >
                   {testingId === config.id ? (
@@ -774,7 +812,8 @@ Repository information:
                   variant="ghost"
                   size="icon"
                   onClick={() => handleEdit(config)}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors"
+                  aria-label={t('编辑', 'Edit')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('编辑', 'Edit')}
                 >
                   <Edit3 className="w-4 h-4" />
@@ -797,7 +836,8 @@ Repository information:
                       }
                     }
                   }}
-                  className="h-9 w-9 rounded-lg bg-muted p-0 text-foreground dark:bg-accent dark:text-foreground hover:bg-accent dark:hover:bg-card/[0.12] border border-transparent dark:border-border transition-colors"
+                  aria-label={t('删除', 'Delete')}
+                  className="touch-target-44 h-11 w-11 rounded-lg border border-transparent bg-muted p-0 text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-accent dark:text-foreground dark:hover:bg-card/[0.12] sm:h-9 sm:w-9"
                   title={t('删除', 'Delete')}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -830,7 +870,7 @@ Repository information:
           <div>
             <label id="repository-chat-model-label" className="mb-1 block text-sm font-medium text-foreground">{t('问答模型', 'Chat model')}</label>
             <Select value={repositoryChatSettings.chatConfigId ?? '__active__'} onValueChange={(value) => setRepositoryChatSettings({ chatConfigId: value === '__active__' ? null : value })}>
-              <SelectTrigger aria-labelledby="repository-chat-model-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-labelledby="repository-chat-model-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__active__">{t('跟随当前 AI 配置', 'Use active AI configuration')}</SelectItem>
                 {aiConfigs.map((config) => <SelectItem key={config.id} value={config.id}>{config.name} · {config.model}</SelectItem>)}
@@ -840,7 +880,7 @@ Repository information:
           </div>
           <div>
             <label htmlFor="repository-chat-retention-days" className="mb-1 block text-sm font-medium text-foreground">{t('保留本机会话（天）', 'Retain local conversations (days)')}</label>
-            <Input id="repository-chat-retention-days" type="number" min={1} max={365} value={repositoryChatSettings.retainSessionDays} onChange={(event) => {
+            <Input id="repository-chat-retention-days" type="number" min={1} max={365} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.retainSessionDays} onChange={(event) => {
               const parsed = Number(event.target.value);
               setRepositoryChatSettings({ retainSessionDays: Number.isFinite(parsed) ? Math.min(365, Math.max(1, parsed)) : 90 });
             }} />
@@ -848,14 +888,14 @@ Repository information:
           </div>
         </div>
         <details className="mt-4 rounded-md border border-border px-3 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-foreground">{t('高级设置', 'Advanced settings')}<span className="ml-2 text-xs font-normal text-muted-foreground">{t('聊天窗口任务深度选“默认”时使用这些参数', 'Used by the chat window when task depth is “Default”')}</span></summary>
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-foreground">{t('高级设置', 'Advanced settings')}<span className="ml-2 text-xs font-normal text-muted-foreground">{t('聊天窗口任务深度选“默认”时使用这些参数', 'Used by the chat window when task depth is “Default”')}</span></summary>
           <div className="mt-3 grid gap-4 md:grid-cols-2">
             <label className="flex items-start gap-2 text-sm text-foreground"><Checkbox checked={repositoryChatSettings.enableWebTools} onCheckedChange={(checked) => setRepositoryChatSettings({ enableWebTools: checked === true })} /><span>{t('外部网页搜索与抓取', 'External web search and fetch')}<span className="mt-1 block text-xs text-muted-foreground">{t('默认关闭；当前版本不会将其暴露为工具。', 'Disabled by default; the current version does not expose it as a tool.')}</span></span></label>
             <label className="flex items-start gap-2 text-sm text-foreground"><Checkbox checked={repositoryChatSettings.enableAgentToolLoop} onCheckedChange={(checked) => setRepositoryChatSettings({ enableAgentToolLoop: checked === true })} /><span>{t('工具循环模式（实验性）', 'Tool-loop mode (experimental)')}<span className="mt-1 block text-xs text-muted-foreground">{t('取证改由模型原生 function calling 驱动；仅对勾选了“支持工具调用”的问答模型生效，不支持时自动回退。', 'Evidence gathering is driven by native function calling; applies only to chat models marked as supporting tool calling, with automatic fallback otherwise.')}</span></span></label>
             <div>
               <label id="repository-chat-streaming-label" className="mb-1 block text-sm font-medium text-foreground">{t('流式回答', 'Streaming answers')}</label>
               <Select value={repositoryChatSettings.streamingMode} onValueChange={(value) => setRepositoryChatSettings({ streamingMode: value === 'off' ? 'off' : 'auto' })}>
-                <SelectTrigger aria-labelledby="repository-chat-streaming-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-labelledby="repository-chat-streaming-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="auto">{t('自动（不支持时降级为整段返回）', 'Auto (falls back to full response when unsupported)')}</SelectItem>
                   <SelectItem value="off">{t('关闭', 'Off')}</SelectItem>
@@ -865,7 +905,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-tool-limit" className="mb-1 block text-sm font-medium text-foreground">{t('单轮工具调用上限', 'Maximum tool calls per turn')}</label>
-              <Input id="repository-chat-tool-limit" type="number" min={1} max={48} value={repositoryChatSettings.agentBudget.maxToolCalls} onChange={(event) => {
+              <Input id="repository-chat-tool-limit" type="number" min={1} max={48} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.agentBudget.maxToolCalls} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxToolCalls = Number.isFinite(parsed) ? Math.min(48, Math.max(1, Math.trunc(parsed))) : 20;
                 setRepositoryChatSettings({ maxToolsPerTurn: maxToolCalls, agentBudget: { ...repositoryChatSettings.agentBudget, maxToolCalls } });
@@ -874,7 +914,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-turn-limit" className="mb-1 block text-sm font-medium text-foreground">{t('最大取证轮数', 'Maximum evidence rounds')}</label>
-              <Input id="repository-chat-turn-limit" type="number" min={1} max={8} value={repositoryChatSettings.agentBudget.maxTurns} onChange={(event) => {
+              <Input id="repository-chat-turn-limit" type="number" min={1} max={8} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.agentBudget.maxTurns} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxTurns = Number.isFinite(parsed) ? Math.min(8, Math.max(1, Math.trunc(parsed))) : 4;
                 setRepositoryChatSettings({ agentBudget: { ...repositoryChatSettings.agentBudget, maxTurns } });
@@ -882,7 +922,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-no-progress-limit" className="mb-1 block text-sm font-medium text-foreground">{t('连续无进展轮次上限', 'Maximum consecutive no-progress rounds')}</label>
-              <Input id="repository-chat-no-progress-limit" type="number" min={1} max={4} value={repositoryChatSettings.agentBudget.maxNoProgressRounds} onChange={(event) => {
+              <Input id="repository-chat-no-progress-limit" type="number" min={1} max={4} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.agentBudget.maxNoProgressRounds} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxNoProgressRounds = Number.isFinite(parsed) ? Math.min(4, Math.max(1, Math.trunc(parsed))) : 2;
                 setRepositoryChatSettings({ agentBudget: { ...repositoryChatSettings.agentBudget, maxNoProgressRounds } });
@@ -891,7 +931,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-read-limit" className="mb-1 block text-sm font-medium text-foreground">{t('最大文件读取数', 'Maximum files read')}</label>
-              <Input id="repository-chat-read-limit" type="number" min={1} max={16} value={repositoryChatSettings.agentBudget.maxReadFiles} onChange={(event) => {
+              <Input id="repository-chat-read-limit" type="number" min={1} max={16} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.agentBudget.maxReadFiles} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxReadFiles = Number.isFinite(parsed) ? Math.min(16, Math.max(1, Math.trunc(parsed))) : 6;
                 setRepositoryChatSettings({ agentBudget: { ...repositoryChatSettings.agentBudget, maxReadFiles, maxCodeReads: Math.min(repositoryChatSettings.agentBudget.maxCodeReads, maxReadFiles) } });
@@ -899,7 +939,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-code-read-limit" className="mb-1 block text-sm font-medium text-foreground">{t('最大代码文件读取数', 'Maximum code files read')}</label>
-              <Input id="repository-chat-code-read-limit" type="number" min={0} max={12} value={repositoryChatSettings.agentBudget.maxCodeReads} onChange={(event) => {
+              <Input id="repository-chat-code-read-limit" type="number" min={0} max={12} className="h-11 text-base sm:h-10 sm:text-sm" value={repositoryChatSettings.agentBudget.maxCodeReads} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxCodeReads = Number.isFinite(parsed) ? Math.min(repositoryChatSettings.agentBudget.maxReadFiles, Math.min(12, Math.max(0, Math.trunc(parsed)))) : 3;
                 setRepositoryChatSettings({ agentBudget: { ...repositoryChatSettings.agentBudget, maxCodeReads } });
@@ -908,7 +948,7 @@ Repository information:
             </div>
             <div>
               <label htmlFor="repository-chat-duration-limit" className="mb-1 block text-sm font-medium text-foreground">{t('最长执行时间（秒）', 'Maximum execution time (seconds)')}</label>
-              <Input id="repository-chat-duration-limit" type="number" min={15} max={300} value={Math.round(repositoryChatSettings.agentBudget.maxDurationMs / 1000)} onChange={(event) => {
+              <Input id="repository-chat-duration-limit" type="number" min={15} max={300} className="h-11 text-base sm:h-10 sm:text-sm" value={Math.round(repositoryChatSettings.agentBudget.maxDurationMs / 1000)} onChange={(event) => {
                 const parsed = Number(event.target.value);
                 const maxDurationMs = (Number.isFinite(parsed) ? Math.min(300, Math.max(15, Math.trunc(parsed))) : 90) * 1000;
                 setRepositoryChatSettings({ agentBudget: { ...repositoryChatSettings.agentBudget, maxDurationMs } });
@@ -931,7 +971,7 @@ Repository information:
               {t('README 文档翻译使用的引擎', 'Engine used for README document translation')}
             </label>
             <Select value={translationEngine} onValueChange={(value) => setTranslationEngine(value as TranslationEngine)}>
-              <SelectTrigger aria-labelledby="translation-engine-label" className="h-10 w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-labelledby="translation-engine-label" className="h-11 w-full sm:h-10"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="microsoft">{t('微软翻译（免费）', 'Microsoft Translate (Free)')}</SelectItem>
                 <SelectItem value="google">{t('Google 翻译（免费）', 'Google Translate (Free)')}</SelectItem>

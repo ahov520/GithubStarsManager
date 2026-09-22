@@ -121,7 +121,7 @@ const mockUseAppStore = vi.mocked(useAppStore);
 
 const renderRepositoryCard = (
   viewMode: 'list' | 'grid',
-  options: { onAskRepository?: (repository: Repository) => void; selectionMode?: boolean } = {},
+  options: { onAskRepository?: (repository: Repository) => void; onSelect?: (id: number) => void; selectionMode?: boolean } = {},
 ) => render(
   <TooltipProvider>
     <RepositoryCard repository={repository} allCategories={[]} viewMode={viewMode} {...options} />
@@ -171,6 +171,24 @@ describe('RepositoryCard view modes', () => {
     expect(screen.getByRole('menuitem', { name: '在 GitHub 中查看' })).toHaveAttribute('href', repository.html_url);
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
+  });
+
+  it('shares the repository from the list menu when the browser can share', async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    try {
+      renderRepositoryCard('list');
+      await user.click(screen.getByRole('button', { name: '更多操作' }));
+      await user.click(screen.getByRole('menuitem', { name: '分享' }));
+      expect(share).toHaveBeenCalledWith({
+        title: 'owner/example-repository',
+        text: 'Repository description',
+        url: 'https://github.com/owner/example-repository',
+      });
+    } finally {
+      Reflect.deleteProperty(navigator, 'share');
+    }
   });
 
   it('only exposes similar-repository search in the menu when vector search is available', async () => {
@@ -483,6 +501,30 @@ describe('RepositoryCard rapid touch drags (CodeRabbit round 2)', () => {
       vi.advanceTimersByTime(200);
       expect(fireEvent.click(card)).toBe(true);
     } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('RepositoryCard long press selection', () => {
+  it('selects the repository after a hold on a phone-width viewport and does not open the README', () => {
+    vi.useFakeTimers();
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    const onSelect = vi.fn();
+    try {
+      renderRepositoryCard('grid', { onSelect });
+      const card = screen.getByRole('button', { name: /owner\/example-repository/ });
+      fireEvent.pointerDown(card, { button: 0, clientX: 12, clientY: 20 });
+      act(() => {
+        vi.advanceTimersByTime(480);
+      });
+      expect(onSelect).toHaveBeenCalledWith(repository.id);
+      fireEvent.pointerUp(card);
+      fireEvent.click(card);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
       vi.useRealTimers();
     }
   });

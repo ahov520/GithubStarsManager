@@ -67,11 +67,11 @@ export const RepositoryChatHistoryPanel: React.FC<RepositoryChatHistoryPanelProp
   return (
     <section aria-label={t('当前仓库的历史会话', 'History for this repository')} className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="h-8 pl-8 text-xs"
+          className="h-11 pl-10 text-base sm:h-8 sm:text-xs"
           placeholder={t('搜索当前仓库的对话', 'Search this repository')}
           aria-label={t('搜索当前仓库的历史会话', 'Search repository chat history')}
         />
@@ -94,7 +94,7 @@ export const RepositoryChatHistoryPanel: React.FC<RepositoryChatHistoryPanelProp
                     <Button
                       type="button"
                       variant={session.id === activeSessionId ? 'secondary' : 'ghost'}
-                      className="h-auto min-w-0 flex-1 justify-start px-2 py-2 text-left text-xs"
+                      className="h-auto min-h-11 min-w-0 flex-1 justify-start px-2 py-2 text-left text-sm sm:text-xs"
                       onClick={() => onSelect(session.id)}
                       disabled={disabled}
                       aria-current={session.id === activeSessionId ? 'true' : undefined}
@@ -105,7 +105,7 @@ export const RepositoryChatHistoryPanel: React.FC<RepositoryChatHistoryPanelProp
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                      className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground hover:text-destructive sm:h-7 sm:w-7"
                       onClick={() => setPendingDeletion(session)}
                       disabled={disabled}
                       aria-label={t(`删除会话：${session.title}`, `Delete conversation: ${session.title}`)}
@@ -131,9 +131,9 @@ export const RepositoryChatHistoryPanel: React.FC<RepositoryChatHistoryPanelProp
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('取消', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel className="h-11">{t('取消', 'Cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 if (pendingDeletion) onDelete(pendingDeletion.id);
                 setPendingDeletion(null);

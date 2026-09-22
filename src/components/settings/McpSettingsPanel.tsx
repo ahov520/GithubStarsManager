@@ -100,6 +100,16 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
     }
   };
 
+  const canShare = typeof navigator.share === 'function';
+  const shareText = async (title: string, text: string) => {
+    try {
+      await navigator.share({ title, text });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast(t('分享失败', 'Share failed'), 'error');
+    }
+  };
+
   const statusLabel = mcpConfig.enabled
     ? t('运行中', 'Running')
     : t('已停止', 'Stopped');
@@ -167,7 +177,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
               variant="ghost"
               size="icon"
               onClick={() => void refreshFromBackend()}
-              className="ml-auto h-8 w-8 p-1.5 rounded-lg hover:bg-accent dark:hover:bg-accent"
+              className="ml-auto touch-target-44 h-11 w-11 rounded-lg p-0 hover:bg-accent dark:hover:bg-accent"
               aria-label={t('刷新', 'Refresh')}
             >
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
@@ -203,7 +213,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
                 type="text"
                 value={mcpConfig.host}
                 onChange={(e) => setMcpConfig({ host: e.target.value })}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-border dark:border-border bg-muted dark:bg-muted/40 text-foreground dark:text-foreground text-sm"
+                className="mt-1 h-11 w-full rounded-lg border border-border bg-muted px-3 text-base text-foreground dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
               />
             </label>
             <label className="text-sm text-muted-foreground dark:text-muted-foreground">
@@ -224,7 +234,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
                   setPortInput(String(port));
                   setMcpConfig({ port });
                 }}
-                className="mt-1 w-full"
+                className="mt-1 h-11 w-full text-base sm:h-9 sm:text-sm"
               />
             </label>
           </div>
@@ -236,7 +246,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
 
       {/* Token */}
       <div className="p-6 bg-card dark:bg-card rounded-xl border border-border dark:border-border space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="font-medium text-foreground dark:text-foreground">
             {t('访问 Token', 'Access Token')}
           </h4>
@@ -250,7 +260,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
                 ? t('请先开启 MCP 服务', 'Enable MCP first')
                 : undefined
             }
-            className="text-sm px-3 py-1.5 rounded-lg border border-border dark:border-border hover:bg-accent dark:hover:bg-accent text-muted-foreground dark:text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+            className="touch-target-44 h-11 rounded-lg border border-border px-3 text-sm text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-border dark:text-muted-foreground dark:hover:bg-accent"
           >
             {t('重置 Token', 'Reset Token')}
           </Button>
@@ -261,21 +271,21 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
             'Token is stored permanently and stays the same across restarts. It only changes when you click Reset Token (old agent configs then stop working). Do not share it.'
           )}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Input
             aria-label={t('访问 Token', 'Access Token')}
             type={showToken ? 'text' : 'password'}
             readOnly
             value={mcpConfig.token || ''}
             placeholder={t('开启服务后自动生成', 'Generated when enabled')}
-            className="flex-1 px-3 py-2 rounded-lg border border-border dark:border-border bg-muted dark:bg-muted/40 text-foreground dark:text-foreground text-sm font-mono"
+            className="h-11 min-w-0 flex-1 basis-full rounded-lg border border-border bg-muted px-3 font-mono text-base text-foreground dark:border-border dark:bg-muted/40 dark:text-foreground sm:basis-auto sm:text-sm"
           />
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => setShowToken((v) => !v)}
-            className="h-8 w-8 p-2 rounded-lg hover:bg-accent dark:hover:bg-accent"
+            className="touch-target-44 h-11 w-11 rounded-lg p-0 hover:bg-accent dark:hover:bg-accent"
             aria-label={showToken ? t('隐藏', 'Hide') : t('显示', 'Show')}
           >
             {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -286,7 +296,7 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
             size="icon"
             onClick={() => void copyText('token', mcpConfig.token)}
             disabled={!mcpConfig.token}
-            className="h-8 w-8 p-2 rounded-lg hover:bg-accent dark:hover:bg-accent disabled:opacity-40"
+            className="touch-target-44 h-11 w-11 rounded-lg p-0 hover:bg-accent disabled:opacity-40 dark:hover:bg-accent"
             aria-label={t('复制 Token', 'Copy token')}
           >
             {copiedKey === 'token' ? (
@@ -303,59 +313,74 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
         <h4 className="font-medium text-foreground dark:text-foreground">
           {t('连接信息', 'Connection')}
         </h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground dark:text-muted-foreground w-36 flex-shrink-0">
-              Streamable HTTP
-            </span>
-            <code className="flex-1 truncate text-xs font-mono text-foreground dark:text-foreground">
+        <div className="space-y-3 text-sm">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground dark:text-muted-foreground">Streamable HTTP</span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void copyText('http', mcpHttpUrl)}
+                className="touch-target-44 h-11 gap-1.5 rounded-lg px-3 text-sm"
+                aria-label={t('复制 Streamable HTTP 地址', 'Copy Streamable HTTP URL')}
+              >
+                <Copy className="h-4 w-4" />
+                {t('复制', 'Copy')}
+              </Button>
+            </div>
+            <code className="block break-all font-mono text-xs text-foreground dark:text-foreground">
               {mcpHttpUrl}
             </code>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => void copyText('http', mcpHttpUrl)}
-              className="h-8 w-8 p-1.5 rounded-lg hover:bg-accent dark:hover:bg-accent"
-              aria-label={t('复制 Streamable HTTP 地址', 'Copy Streamable HTTP URL')}
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground dark:text-muted-foreground w-36 flex-shrink-0">
-              SSE ({t('兼容', 'legacy')})
-            </span>
-            <code className="flex-1 truncate text-xs font-mono text-foreground dark:text-foreground">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground dark:text-muted-foreground">
+                SSE ({t('兼容', 'legacy')})
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void copyText('sse', mcpSseUrl)}
+                className="touch-target-44 h-11 gap-1.5 rounded-lg px-3 text-sm"
+                aria-label={t('复制 SSE 地址', 'Copy SSE URL')}
+              >
+                <Copy className="h-4 w-4" />
+                {t('复制', 'Copy')}
+              </Button>
+            </div>
+            <code className="block break-all font-mono text-xs text-foreground dark:text-foreground">
               {mcpSseUrl}
             </code>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => void copyText('sse', mcpSseUrl)}
-              className="h-8 w-8 p-1.5 rounded-lg hover:bg-accent dark:hover:bg-accent"
-              aria-label={t('复制 SSE 地址', 'Copy SSE URL')}
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </Button>
           </div>
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0 text-sm text-muted-foreground dark:text-muted-foreground">
               {t('一键复制 Agent 配置 (JSON)', 'Copy agent config (JSON)')}
             </span>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => void copyText('json', agentConfigJson)}
-              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              {copiedKey === 'json' ? t('已复制', 'Copied') : t('复制 JSON', 'Copy JSON')}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {canShare && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void shareText(t('MCP 配置', 'MCP config'), agentConfigJson)}
+                  className="touch-target-44 h-11 gap-1.5 rounded-lg px-3 text-sm"
+                  aria-label={t('分享 JSON', 'Share JSON')}
+                >
+                  {t('分享', 'Share')}
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => void copyText('json', agentConfigJson)}
+                className="touch-target-44 inline-flex h-11 items-center gap-1.5 rounded-lg px-3 text-sm"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copiedKey === 'json' ? t('已复制', 'Copied') : t('复制 JSON', 'Copy JSON')}
+              </Button>
+            </div>
           </div>
           <pre className="text-xs font-mono p-3 rounded-lg bg-background dark:bg-muted/40 overflow-x-auto text-foreground dark:text-muted-foreground border border-border/60 dark:border-border">
             {maskToken(agentConfigJson)}
@@ -365,15 +390,15 @@ export const McpSettingsPanel: React.FC<McpSettingsPanelProps> = ({ t }) => {
               ? '优先使用 Streamable HTTP（上面 JSON）。若客户端只支持旧版 SSE，用下方 SSE URL：GET 打开流后 POST 到 messages。'
               : 'Prefer Streamable HTTP (JSON above). If the client only supports legacy SSE, use the SSE URL below: GET opens the stream, then POST to messages.'}
           </p>
-          <div className="flex items-center justify-between mb-2 mt-4">
-            <span className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <div className="mb-2 mt-4 flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0 text-sm text-muted-foreground dark:text-muted-foreground">
               {t('SSE 兼容配置 (JSON)', 'SSE-compatible config (JSON)')}
             </span>
             <Button
               type="button"
               variant="outline"
               onClick={() => void copyText('sse-json', agentSseConfigJson)}
-              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border dark:border-border hover:bg-accent dark:hover:bg-accent text-muted-foreground dark:text-muted-foreground"
+              className="touch-target-44 inline-flex h-11 items-center gap-1.5 rounded-lg border border-border px-3 text-sm text-muted-foreground hover:bg-accent dark:border-border dark:text-muted-foreground dark:hover:bg-accent"
             >
               <Copy className="w-3.5 h-3.5" />
               {copiedKey === 'sse-json' ? t('已复制', 'Copied') : t('复制 SSE JSON', 'Copy SSE JSON')}

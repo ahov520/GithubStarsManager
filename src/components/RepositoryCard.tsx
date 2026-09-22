@@ -5,7 +5,7 @@ import {
   getPlatformIcon,
 } from './platformMeta';
 import { useRepositoryPlatforms } from '../hooks/useRepositoryPlatforms';
-import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug } from 'lucide-react';
+import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2 } from 'lucide-react';
 import { Repository, Category } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -17,6 +17,8 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
+import { rememberRepository } from '../utils/recentRepositories';
+import { useCompactLongPress } from '../hooks/useCompactLongPress';
 import { useRepositoryCardActions } from '../features/repositories/hooks/useRepositoryCardActions';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -45,14 +47,14 @@ const ReadmeModalLoadingFallback: React.FC<{
   <Dialog open onOpenChange={(open) => !open && onClose()}>
     <DialogContent
       aria-describedby={undefined}
-      className="w-[calc(100%_-_2rem)] max-w-[1130px] p-6"
+      className="repo-detail-dialog"
       onCloseAutoFocus={(event) => {
         event.preventDefault();
         onCloseAutoFocus();
       }}
     >
       <DialogTitle className="sr-only">Loading README</DialogTitle>
-      <div className="flex min-h-40 flex-col items-center justify-center gap-4" role="status" aria-live="polite">
+      <div className="flex h-full min-h-40 flex-1 flex-col items-center justify-center gap-4 p-6" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
         <p className="text-muted-foreground">Loading README…</p>
       </div>
@@ -141,6 +143,7 @@ interface RepositoryCardProps {
   allCategories: Category[];
   viewMode?: 'grid' | 'list';
   onAskRepository?: (repository: Repository) => void;
+  readmeOpenToken?: number;
 }
 
 const PluginRepositoryActionItems: React.FC<{
@@ -194,6 +197,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   allCategories,
   viewMode = 'grid',
   onAskRepository,
+  readmeOpenToken = 0,
 }) => {
   const language = useAppStore((state) => state.language);
   const pluginActions = usePluginActions('repository-card');
@@ -225,6 +229,21 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const restoreReadmeTriggerFocus = useCallback(() => {
     cardRef.current?.focus();
   }, []);
+
+  const openReadme = useCallback(() => {
+    rememberRepository(repository.id);
+    setReadmeModalOpen(true);
+  }, [repository.id]);
+
+  const selectFromLongPress = useCallback(() => {
+    onSelect?.(repository.id);
+  }, [onSelect, repository.id]);
+  const { consumeFollowUpClick, ...longPressHandlers } = useCompactLongPress(selectFromLongPress);
+
+  useEffect(() => {
+    if (!readmeOpenToken) return;
+    openReadme();
+  }, [readmeOpenToken, openReadme]);
 
   useEffect(() => {
     if (viewMode !== 'list' || selectionMode) {
@@ -621,6 +640,20 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     editModalOutsideDismissedAtRef.current = Date.now();
   }, []);
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const handleShare = useCallback(async () => {
+    if (!canShare) return;
+    try {
+      await navigator.share({
+        title: repository.full_name,
+        text: repository.description || repository.full_name,
+        url: repository.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+    }
+  }, [canShare, repository.description, repository.full_name, repository.html_url]);
+
   // 使用 useCallback 优化事件处理函数
   const handleCardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // 点击目标是链接/按钮等交互元素时永不拦截：链接导航与按钮动作必须保留
@@ -630,6 +663,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     const target = event.target as HTMLElement;
     // 排除卡片本身的 role="button"，只检查子元素的交互元素
     if (target.closest('button, a, input, textarea, select, [draggable="true"]')) return;
+
+    if (consumeFollowUpClick()) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     const releaseSheetDismissedAt = releaseSheetOutsideDismissedAtRef.current;
     if (releaseSheetDismissedAt !== null) {
@@ -691,8 +730,8 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       return;
     }
 
-    setReadmeModalOpen(true);
-  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen]);
+    openReadme();
+  }, [selectionMode, onSelect, repository.id, isActionsMenuOpen, openReadme, consumeFollowUpClick]);
 
   // 处理鼠标按下事件，阻止焦点变化导致页面滚动
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -718,16 +757,16 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       if (selectionMode && onSelect) {
         onSelect(repository.id);
       } else {
-        setReadmeModalOpen(true);
+        openReadme();
       }
     }
-  }, [selectionMode, onSelect, repository.id, isModalOpen]);
+  }, [selectionMode, onSelect, repository.id, isModalOpen, openReadme]);
 
   // 使用 useMemo 缓存卡片类名，避免重复计算
   const cardClassName = useMemo(() => {
     const baseClasses = viewMode === 'list'
-      ? 'repository-card repository-card--list ui-card group relative px-6 pt-5 pb-0 transition-[color,background-color,border-color,box-shadow] duration-200 cursor-pointer'
-      : 'repository-card ui-card group p-5 transition-[color,background-color,border-color,box-shadow] duration-200 flex flex-col h-full cursor-pointer';
+      ? 'repository-card repository-card--list ui-card group relative px-4 pt-4 sm:px-6 sm:pt-5 pb-0 transition-[color,background-color,border-color,box-shadow] duration-200 cursor-pointer'
+      : 'repository-card ui-card group p-4 sm:p-5 transition-[color,background-color,border-color,box-shadow] duration-200 flex flex-col h-full cursor-pointer';
     const selectedClasses = isSelected
       ? 'linear-card-selected'
       : '';
@@ -740,11 +779,15 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       ref={cardRef}
       className={cardClassName}
       onClick={handleCardClick}
-      onPointerDown={() => {
+      onPointerDown={(event) => {
         if (!isActionsMenuOpen) {
           menuDismissedByPointerDownRef.current = false;
         }
+        longPressHandlers.onPointerDown(event);
       }}
+      onPointerMove={longPressHandlers.onPointerMove}
+      onPointerUp={longPressHandlers.onPointerUp}
+      onPointerCancel={longPressHandlers.onPointerCancel}
       onMouseDown={handleMouseDown}
       onKeyDown={handleCardKeyDown}
       tabIndex={isModalOpen ? -1 : 0}
@@ -767,27 +810,31 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate">
             {repository.owner.login}
           </p>
+          {viewMode === 'list' && (
+            <div className="mt-1">
+              {displayContent.isAnalysisFailed ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                  <Bot className="w-3 h-3" />
+                  {language === 'zh' ? '分析失败' : 'Analysis failed'}
+                </span>
+              ) : displayContent.isAnalyzed ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary dark:border-primary/20 dark:bg-primary/20">
+                  <Sparkles className="w-3 h-3" />
+                  {language === 'zh' ? '已分析' : 'Analyzed'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border/40 bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground">
+                  <Bot className="w-3 h-3" />
+                  {language === 'zh' ? '待分析' : 'Not analyzed'}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         
         {/* 拖拽按钮 - 右上角 - 手机和平板端隐藏 */}
         {viewMode === 'list' && (
           <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-            {displayContent.isAnalysisFailed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20">
-                  <Bot className="w-3 h-3" />
-                  {language === 'zh' ? '分析失败' : 'Analysis failed'}
-                </span>
-            ) : displayContent.isAnalyzed ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary border border-primary/20 dark:border-primary/20">
-                <Sparkles className="w-3 h-3" />
-                {language === 'zh' ? '已分析' : 'Analyzed'}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground border border-border/40">
-                <Bot className="w-3 h-3" />
-                {language === 'zh' ? '待分析' : 'Not analyzed'}
-              </span>
-            )}
             {!selectionMode && (
               <Button
                 type="button"
@@ -824,7 +871,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-52"
+              className="w-52 [&_[role=menuitem]]:min-h-[44px] sm:[&_[role=menuitem]]:min-h-0"
               onClick={(event) => event.stopPropagation()}
               onPointerDownOutside={(event) => {
                 if (cardRef.current?.contains(event.target as Node)) {
@@ -884,6 +931,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   {language === 'zh' ? '在 GitHub 中查看' : 'View on GitHub'}
                 </a>
               </DropdownMenuItem>
+              {canShare && (
+                <DropdownMenuItem onSelect={() => { void handleShare(); }}>
+                  <Share2 className="mr-2 h-3.5 w-3.5" />
+                  {language === 'zh' ? '分享' : 'Share'}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={unstarring} onSelect={() => void handleUnstar()}>
                 <StarOff className={`mr-2 h-3.5 w-3.5 ${unstarring ? 'animate-pulse' : ''}`} />
@@ -1057,7 +1110,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52" onClick={(event) => event.stopPropagation()}>
+              <DropdownMenuContent align="start" className="w-52 [&_[role=menuitem]]:min-h-[44px] sm:[&_[role=menuitem]]:min-h-0" onClick={(event) => event.stopPropagation()}>
                 {visibleGridActionCount < 1 && (
                   <DropdownMenuItem disabled={isAnalyzing} onSelect={() => void handleAIAnalyze()}>
                     {isAnalyzing ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Bot className="mr-2 h-3.5 w-3.5" />}
@@ -1102,6 +1155,12 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                       <ExternalLink className="mr-2 h-3.5 w-3.5" />
                       {language === 'zh' ? '在 GitHub 中查看' : 'View on GitHub'}
                     </a>
+                  </DropdownMenuItem>
+                )}
+                {canShare && (
+                  <DropdownMenuItem onSelect={() => { void handleShare(); }}>
+                    <Share2 className="mr-2 h-3.5 w-3.5" />
+                    {language === 'zh' ? '分享' : 'Share'}
                   </DropdownMenuItem>
                 )}
                 {visibleGridActionCount < 8 && (
@@ -1342,6 +1401,18 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               onClose={() => setReadmeModalOpen(false)}
               onCloseAutoFocus={restoreReadmeTriggerFocus}
               repository={repository}
+              isSubscribed={isSubscribed}
+              onAsk={onAskRepository ? () => {
+                setReadmeModalOpen(false);
+                onAskRepository(repository);
+              } : undefined}
+              onOpenReleases={() => {
+                setReadmeModalOpen(false);
+                setReleaseSheetOpen(true);
+              }}
+              onToggleSubscribe={() => {
+                void toggleReleaseSubscription();
+              }}
             />
           </Suspense>
         </ErrorBoundary>,
@@ -1411,6 +1482,7 @@ export const RepositoryCard = React.memo(RepositoryCardComponent, (prevProps, ne
     prevProps.isExitingSelection === nextProps.isExitingSelection &&
     prevProps.viewMode === nextProps.viewMode &&
     prevProps.onAskRepository === nextProps.onAskRepository &&
+    prevProps.readmeOpenToken === nextProps.readmeOpenToken &&
     allCategoriesEqual
   );
 });

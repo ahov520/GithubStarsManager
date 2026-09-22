@@ -143,7 +143,7 @@ export const ForkTimeline: React.FC = () => {
             <div className="flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap">
               <span id="fork-owner-label" className="shrink-0 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{t('拥有者:', 'Owner:')}</span>
               <Select value={activeForkOwner} onValueChange={handleForkOwnerSelection} disabled={!personalOwnerLogin || isLoadingOrganizations || forkIsRefreshing}>
-                <SelectTrigger className="ui-field h-9 w-48 max-w-[calc(100vw-8rem)] shrink px-3 py-2 text-sm" aria-labelledby="fork-owner-label"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="ui-field touch-target-44 h-11 w-48 max-w-[calc(100vw-8rem)] shrink px-3 py-2 text-sm sm:h-9" aria-labelledby="fork-owner-label"><SelectValue /></SelectTrigger>
                 <SelectContent>{forkOwnerOptions.map(owner => <SelectItem key={owner.id} value={owner.login}>{owner.isPersonal ? t(`${owner.login}（个人）`, `${owner.login} (Personal)`) : owner.login}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -166,7 +166,7 @@ export const ForkTimeline: React.FC = () => {
             <Button
               onClick={handleRefresh}
               disabled={forkIsRefreshing}
-              className="ui-button-primary flex h-auto shrink-0 items-center space-x-2 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="ui-button-primary touch-target-44 flex h-11 shrink-0 items-center space-x-2 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto"
             >
               <RefreshCw className={`w-4 h-4 ${forkIsRefreshing ? 'animate-spin' : ''}`} />
               <span>{forkIsRefreshing ? t('刷新中…', 'Refreshing…') : t('刷新', 'Refresh')}</span>
@@ -187,7 +187,7 @@ export const ForkTimeline: React.FC = () => {
                 setForkSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="ui-field w-full pl-10 pr-10 py-2 text-foreground dark:text-foreground"
+              className="ui-field w-full py-2 pl-10 pr-12 text-foreground dark:text-foreground"
             />
             {searchQuery && (
               <Button
@@ -199,7 +199,7 @@ export const ForkTimeline: React.FC = () => {
                   setCurrentPage(1);
                 }}
                 aria-label={t('清除搜索', 'Clear search')}
-                className="absolute right-3 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="touch-target-44 absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -228,7 +228,7 @@ export const ForkTimeline: React.FC = () => {
             <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
               <span id="fork-page-size-label" className="whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{t('每页:', 'Per page:')}</span>
               <Select value={String(itemsPerPage)} onValueChange={(value) => { setItemsPerPage(Number(value)); setCurrentPage(1); }}>
-                <SelectTrigger aria-labelledby="fork-page-size-label" className="ui-field h-9 w-20 max-w-20 min-w-20 shrink-0 px-3 py-1 text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-labelledby="fork-page-size-label" className="ui-field touch-target-44 h-11 w-20 max-w-20 min-w-20 shrink-0 px-3 py-1 text-sm sm:h-9"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="20">20</SelectItem><SelectItem value="50">50</SelectItem><SelectItem value="100">100</SelectItem><SelectItem value="200">200</SelectItem></SelectContent>
               </Select>
             </div>
@@ -242,7 +242,7 @@ export const ForkTimeline: React.FC = () => {
                   onClick={() => handlePageChange(1)}
                   disabled={clampedPage === 1}
                   aria-label={t('第一页', 'First page')}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                 >
                   <ChevronsLeft className="w-4 h-4" />
                 </Button>
@@ -252,7 +252,7 @@ export const ForkTimeline: React.FC = () => {
                   onClick={() => handlePageChange(clampedPage - 1)}
                   disabled={clampedPage === 1}
                   aria-label={t('上一页', 'Previous page')}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -265,7 +265,7 @@ export const ForkTimeline: React.FC = () => {
                       variant="ghost"
                       aria-current={page === clampedPage ? 'page' : undefined}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg text-sm ${
+                      className={`touch-target-44 h-11 min-w-11 shrink-0 rounded-lg px-3 py-2 text-sm sm:h-8 ${
                         page === clampedPage
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
@@ -286,7 +286,7 @@ export const ForkTimeline: React.FC = () => {
                   onClick={() => handlePageChange(clampedPage + 1)}
                   disabled={clampedPage === totalPages}
                   aria-label={t('下一页', 'Next page')}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -296,7 +296,7 @@ export const ForkTimeline: React.FC = () => {
                   onClick={() => handlePageChange(totalPages)}
                   disabled={clampedPage === totalPages}
                   aria-label={t('最后一页', 'Last page')}
-                  className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
                 >
                   <ChevronsRight className="w-4 h-4" />
                 </Button>

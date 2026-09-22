@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar } from 'lucide-react';
+import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2 } from 'lucide-react';
 import { getPlatformIcon as getSharedPlatformIcon } from './platformMeta';
 import type { DiscoveryRepo } from '../types';
 import { useAppStore } from '../store/useAppStore';
@@ -136,12 +136,26 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
     : '';
 
   const cardTitle = repo.full_name || `${repo.owner?.login || ''}/${repo.name || ''}`;
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const handleShare = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    try {
+      await navigator.share({
+        title: cardTitle,
+        text: repo.description || cardTitle,
+        url: repo.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+    }
+  };
 
   return (
     <>
     <div 
       onClick={handleCardClick}
-      className="ui-card p-5 transition-all duration-200 cursor-pointer"
+      className="ui-card cursor-pointer p-4 transition-all duration-200 sm:p-5"
       style={{ userSelect: 'none' }}
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
@@ -156,7 +170,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
             <div className="flex items-center gap-2 min-w-0">
               {!desktopSafeMode && repo.owner?.avatar_url && (
                 <img
@@ -171,13 +185,14 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
             </div>
 
             {/* Action buttons */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide sm:shrink-0">
               {/* AI Analyze button */}
               <Button
                 size="icon"
                 onClick={handleAnalyze}
                 disabled={!githubToken || isAnalyzing}
-                className="touch-target-44 flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={isAnalyzed || isFailed ? t('重新分析', 'Re-analyze') : t('AI分析', 'AI Analyze')}
+                className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8"
                 title={
                   isAnalyzed 
                     ? t('重新分析', 'Re-analyze') 
@@ -199,7 +214,8 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
               <Button
                 size="icon"
                 onClick={handleOpenInZRead}
-                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                aria-label={t('在ZRead打开', 'Open in ZRead')}
+                className="hidden h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:flex"
                 title={t('在ZRead打开', 'Open in ZRead')}
               >
                 <BookOpen className="w-4 h-4" />
@@ -211,7 +227,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                   <Button
                     size="icon"
                     onClick={handleOpenTelegramMessage}
-                    className="touch-target-44 flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                     title={t('查看频道消息原文', 'View original channel message')}
                   >
                     <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -220,7 +236,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                   <Button
                     size="icon"
                     onClick={handleOpenTweet}
-                    className="touch-target-44 flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                     title={t('查看原贴', 'View original post')}
                   >
                     <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -229,7 +245,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                   <Button
                     size="icon"
                     onClick={handleOpenIssue}
-                    className="touch-target-44 flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                     title={t('查看原贴', 'View original post')}
                   >
                     <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -243,18 +259,32 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(event) => event.stopPropagation()}
-                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                aria-label={t('在GitHub打开', 'Open on GitHub')}
+                className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                 title={t('在GitHub打开', 'Open on GitHub')}
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
+              {canShare && (
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={handleShare}
+                  aria-label={t('分享', 'Share')}
+                  title={t('分享', 'Share')}
+                  className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              )}
 
               {/* Star button */}
               <Button
                 size="icon"
                 onClick={handleStar}
                 disabled={!githubToken || isStarring}
-                className={`touch-target-44 flex items-center justify-center w-8 h-8 sm:w-8 sm:h-8 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                aria-label={isStarred ? t('取消Star', 'Unstar') : t('添加Star', 'Add Star')}
+                className={`touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8 ${
                   isStarred
                     ? 'bg-primary text-primary-foreground shadow-sm dark:bg-primary/80 dark:text-primary-foreground'
                     : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'

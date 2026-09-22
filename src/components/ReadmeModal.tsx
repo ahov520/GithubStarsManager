@@ -1,10 +1,13 @@
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye } from 'lucide-react';
+import { X, Loader2, AlertCircle, FileText, ExternalLink, List, Type, ArrowUp, Languages, Eye, Star, GitFork, Copy, Check, Share2, Bell, BellOff, MessageSquareText, PackageOpen } from 'lucide-react';
 import BilingualMarkdownRenderer, { DisplayMode, BilingualMarkdownRendererHandle, TranslationStatus } from './BilingualMarkdownRenderer';
 import { stripMarkdownFormatting } from '../utils/markdownUtils';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { Repository } from '../types';
+import { NO_LICENSE_SENTINEL, normalizeLicense } from '../utils/licenseFilter';
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useReadmeFetch, pickReadmeCandidate } from '../hooks/useReadmeFetch';
@@ -22,7 +25,96 @@ interface ReadmeModalProps {
   onClose: () => void;
   onCloseAutoFocus?: () => void;
   repository: Repository | null;
+  onAsk?: () => void;
+  onOpenReleases?: () => void;
+  onToggleSubscribe?: () => void;
+  isSubscribed?: boolean;
 }
+
+const README_FONT_STORAGE_KEY = 'gsm:readme-font-index';
+
+const readStoredFontIndex = (): number => {
+  try {
+    const parsed = Number(window.localStorage.getItem(README_FONT_STORAGE_KEY));
+    if (parsed === 0 || parsed === 1 || parsed === 2) return parsed;
+  } catch {
+    // 隐私模式或禁用存储时保持默认字号。
+  }
+  return 1;
+};
+
+const formatCompactCount = (num: number): string => {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toString();
+};
+
+const repoBlurb = (repository: Repository): { text: string; source: 'custom' | 'ai' | 'github' } | null => {
+  if (repository.custom_description !== undefined) {
+    const text = repository.custom_description.trim();
+    return text ? { text, source: 'custom' } : null;
+  }
+  const ai = repository.ai_summary?.trim();
+  if (ai) return { text: ai, source: 'ai' };
+  const github = repository.description?.trim();
+  return github ? { text: github, source: 'github' } : null;
+};
+
+const viewportIsCompact = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  if (typeof window.matchMedia === 'function') return window.matchMedia('(max-width: 767px)').matches;
+  return window.innerWidth < 768;
+};
+
+const RepositoryDetailSummary: React.FC<{ repository: Repository; language: 'zh' | 'en' }> = ({ repository, language }) => {
+  const t = (zh: string, en: string) => (language === 'zh' ? zh : en);
+  const blurb = repoBlurb(repository);
+  const licenseLabel = normalizeLicense(repository.license);
+  const pushedTime = Date.parse(repository.pushed_at);
+  const pushedLabel = Number.isNaN(pushedTime)
+    ? null
+    : formatDistanceToNow(pushedTime, { addSuffix: true, locale: language === 'zh' ? zhCN : undefined });
+  const topics = (repository.topics ?? []).slice(0, 8);
+
+  return (
+    <div className="space-y-2 px-3 pb-2 md:px-4">
+      {blurb && (
+        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+          {blurb.source === 'ai' && (
+            <span className="mr-1.5 inline-flex rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+              AI
+            </span>
+          )}
+          {blurb.text}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1" title={t('星标', 'Stars')}>
+          <Star className="h-3.5 w-3.5" aria-hidden="true" />
+          {formatCompactCount(repository.stargazers_count)}
+          <span className="sr-only">{t('星标', 'Stars')}</span>
+        </span>
+        <span className="inline-flex items-center gap-1" title={t('复刻', 'Forks')}>
+          <GitFork className="h-3.5 w-3.5" aria-hidden="true" />
+          {formatCompactCount(repository.forks_count)}
+          <span className="sr-only">{t('复刻', 'Forks')}</span>
+        </span>
+        {repository.language && <span>{repository.language}</span>}
+        {licenseLabel !== NO_LICENSE_SENTINEL && <span>{licenseLabel}</span>}
+        {pushedLabel && <span>{t(`更新于 ${pushedLabel}`, `Updated ${pushedLabel}`)}</span>}
+      </div>
+      {topics.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+          {topics.map((topic) => (
+            <span key={topic} className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              {topic}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const FONT_SIZES = [
   { label: '小', labelEn: 'Small', value: 'text-sm' },
@@ -45,7 +137,11 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   isOpen,
   onClose,
   onCloseAutoFocus,
-  repository
+  repository,
+  onAsk,
+  onOpenReleases,
+  onToggleSubscribe,
+  isSubscribed = false,
 }) => {
   const { language, setReadmeModalOpen } = useAppStore(useShallow((state) => ({
     language: state.language,
@@ -55,7 +151,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showToc, setShowToc] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
-  const [fontSizeIndex, setFontSizeIndex] = useState(1);
+  const [fontSizeIndex, setFontSizeIndex] = useState(readStoredFontIndex);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [headingIdMap, setHeadingIdMap] = useState<Map<string, string>>(new Map());
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -69,6 +165,10 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   const [selectedReadmeKey, setSelectedReadmeKey] = useState('default');
   const [variantsLoading, setVariantsLoading] = useState(false);
   const [readmeCache, setReadmeCache] = useState<Record<string, string>>({});
+  const [isCompact, setIsCompact] = useState(viewportIsCompact);
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyResetRef = useRef<number | null>(null);
 
   const defaultReadmeVariant = useMemo(() => getDefaultReadmeVariant(language), [language]);
 
@@ -197,7 +297,13 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
     const progress = scrollHeight <= clientHeight ? 0 : (scrollTop / (scrollHeight - clientHeight)) * 100;
     setScrollProgress(Math.min(100, Math.max(0, progress)));
     setShowBackToTop(scrollTop > 300);
-  }, []);
+    if (!repository) return;
+    try {
+      sessionStorage.setItem(`gsm:readme-scroll:${repository.id}:${selectedReadmeKey}`, String(Math.round(scrollTop)));
+    } catch {
+      // 存储不可用时仍允许阅读，只是不记住位置。
+    }
+  }, [repository, selectedReadmeKey]);
 
   useEffect(() => {
     if (!contentRef.current || !tocItems.length || !readmeContent) return;
@@ -465,9 +571,71 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     } else {
-      setShowToc(true);
+      setShowToc(!viewportIsCompact());
     }
   }, [isOpen, language, cancelFetches]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(README_FONT_STORAGE_KEY, String(fontSizeIndex));
+    } catch {
+      // 字号记忆失败不影响阅读。
+    }
+  }, [fontSizeIndex]);
+
+  useEffect(() => {
+    setCanNativeShare(typeof navigator.share === 'function');
+    const media = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767px)') : null;
+    if (!media || typeof media.addEventListener !== 'function') return undefined;
+    const onChange = () => setIsCompact(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => () => {
+    if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !repository || loading || !readmeContent || !contentRef.current) return;
+    let saved = 0;
+    try {
+      saved = Number(sessionStorage.getItem(`gsm:readme-scroll:${repository.id}:${selectedReadmeKey}`) || '0');
+    } catch {
+      saved = 0;
+    }
+    if (saved > 0) contentRef.current.scrollTop = saved;
+  }, [isOpen, repository, loading, readmeContent, selectedReadmeKey]);
+
+  const copyLink = useCallback(async () => {
+    if (!repository) return;
+    try {
+      await navigator.clipboard.writeText(repository.html_url);
+      setLinkCopied(true);
+      if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+      copyResetRef.current = window.setTimeout(() => setLinkCopied(false), 1600);
+    } catch {
+      setLinkCopied(false);
+    }
+  }, [repository]);
+
+  const shareRepository = useCallback(async () => {
+    if (!repository) return;
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: repository.full_name,
+          text: repository.description || repository.full_name,
+          url: repository.html_url,
+        });
+        return;
+      } catch (error) {
+        if ((error as { name?: string }).name === 'AbortError') return;
+      }
+    }
+    await copyLink();
+  }, [copyLink, repository]);
 
   if (!repository) return null;
 
@@ -499,14 +667,14 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       <DialogContent
         showClose={false}
         aria-describedby={undefined}
-        className="w-[calc(100%_-_2rem)] max-w-[1130px] min-w-0 overflow-hidden p-0"
+        className="repo-detail-dialog min-w-0"
         onCloseAutoFocus={(event) => {
           if (!onCloseAutoFocus) return;
           event.preventDefault();
           onCloseAutoFocus();
         }}
       >
-        <div className="relative flex max-h-[90vh] min-w-0 max-w-full w-full flex-col overflow-hidden bg-card dark:bg-card">
+        <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card dark:bg-card">
           {readmeContent && !loading && (
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-accent dark:bg-muted z-20 rounded-t-xl overflow-hidden">
               <div
@@ -516,26 +684,36 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 border-b border-border p-4 dark:border-border">
-            <div className="flex min-w-0 flex-1 items-center space-x-3">
+          <header className="shrink-0 border-b border-border pt-safe dark:border-border">
+            <div className="flex items-center gap-2 px-3 py-2 md:px-4">
               <img
                 src={repository.owner.avatar_url}
                 alt={repository.owner.login}
-                className="w-8 h-8 rounded-full"
+                className="h-8 w-8 shrink-0 rounded-full"
               />
-              <div>
-                <DialogTitle className="text-lg font-semibold text-foreground dark:text-foreground">
+              <div className="min-w-0 flex-1">
+                <DialogTitle className="truncate text-base font-semibold text-foreground md:text-lg dark:text-foreground">
                   {repository.full_name}
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate max-w-[260px]" title={currentReadmeVariant.path || 'README'}>
+                <p className="truncate text-xs text-muted-foreground dark:text-muted-foreground" title={currentReadmeVariant.path || 'README'}>
                   {currentReadmeVariant.isDefault ? 'README' : currentReadmeVariant.path}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="touch-target-44 h-9 w-9 shrink-0 rounded-lg p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label={t('关闭', 'Close')}
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-            <div className="flex max-w-full flex-wrap items-center justify-end gap-1">
+            <RepositoryDetailSummary repository={repository} language={language} />
+            <div className="flex max-w-full flex-wrap items-center gap-1 px-2 pb-2 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
               {readmeVariants.length > 1 && (
                 <Select value={selectedReadmeKey} onValueChange={handleReadmeVariantChange} disabled={loading || variantsLoading}>
-                  <SelectTrigger className="h-9 w-auto min-w-[7rem] max-w-[220px] px-2 py-2 text-sm" title={t('切换 README 语言', 'Switch README language')} aria-label={t('切换 README 语言', 'Switch README language')}><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-auto min-w-[7rem] max-w-[220px] shrink-0 px-2 py-2 text-sm" title={t('切换 README 语言', 'Switch README language')} aria-label={t('切换 README 语言', 'Switch README language')}><SelectValue /></SelectTrigger>
                   <SelectContent>{readmeVariants.map((variant) => <SelectItem key={variant.key} value={variant.key}>{variant.label}</SelectItem>)}</SelectContent>
                 </Select>
               )}
@@ -545,7 +723,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleRevertTranslation}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors bg-primary/20 text-primary dark:bg-primary/10 dark:text-primary"
+                      aria-label={t('关闭翻译', 'Close Translation')}
+                      className="touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg bg-primary/20 px-2.5 text-sm text-primary transition-colors sm:h-8 dark:bg-primary/10 dark:text-primary"
                       title={t('关闭翻译', 'Close Translation')}
                     >
                       <Languages className="w-4 h-4" />
@@ -560,7 +739,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                         key={mode}
                         variant="ghost"
                         onClick={() => setDisplayMode(mode)}
-                        className={`flex items-center space-x-1 px-2 py-2 text-sm rounded-lg transition-colors ${
+                        aria-label={label}
+                        className={`touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm transition-colors sm:h-8 ${
                           displayMode === mode
                             ? 'bg-primary/20 text-primary dark:bg-primary/10 dark:text-primary'
                             : 'text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-card'
@@ -577,7 +757,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleTranslate}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors text-warning hover:bg-warning/10"
+                      aria-label={t('重试翻译', 'Retry Translation')}
+                      className="touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm text-warning transition-colors hover:bg-warning/10 sm:h-8"
                       title={t('重试翻译', 'Retry Translation')}
                     >
                       <Languages className="w-4 h-4" />
@@ -586,7 +767,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     <Button
                       variant="ghost"
                       onClick={handleRevertTranslation}
-                      className="flex items-center space-x-1 px-2 py-2 text-sm rounded-lg transition-colors text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-card"
+                      aria-label={t('关闭翻译', 'Close Translation')}
+                      className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-0 text-muted-foreground transition-colors hover:bg-muted sm:h-8 sm:w-8 dark:hover:bg-card"
                       title={t('关闭翻译', 'Close Translation')}
                     >
                       <X className="w-4 h-4" />
@@ -597,7 +779,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     variant="ghost"
                     onClick={handleTranslate}
                     disabled={isTranslating}
-                    className={`flex items-center space-x-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    aria-label={t('翻译文档', 'Translate Document')}
+                    className={`touch-target-44 flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm transition-colors sm:h-8 ${
                       isTranslating
                         ? 'text-muted-foreground dark:text-muted-foreground/70 cursor-not-allowed'
                         : 'text-muted-foreground dark:text-foreground hover:text-foreground hover:bg-muted dark:hover:bg-accent'
@@ -616,20 +799,12 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                     ) : (
                       <>
                         <Languages className="w-4 h-4" />
+                        <span className="sm:hidden">{t('翻译', 'Translate')}</span>
                         <span className="hidden sm:inline">{language === 'zh' ? t('翻译为中文', 'Translate to Chinese') : t('翻译为英文', 'Translate to English')}</span>
                       </>
                     )}
                   </Button>
                 )
-              )}
-              {translateError && (
-                <div
-                  className={`px-3 py-1 text-xs text-destructive bg-destructive/10 rounded-lg cursor-pointer ${errorExpanded ? 'max-w-[400px] whitespace-normal break-all' : 'max-w-[200px] truncate'}`}
-                  onClick={() => setErrorExpanded(!errorExpanded)}
-                  title={!errorExpanded ? translateError : undefined}
-                >
-                  {translateError}
-                </div>
               )}
               {tocItems.length > 0 && (
                 <Button
@@ -657,33 +832,73 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
               >
                 <Type className="w-4 h-4" />
               </Button>
+              {onAsk && (
+                <Button type="button" variant="ghost" onClick={onAsk} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={t('问答此仓库', 'Ask this repository')} title={t('问答此仓库', 'Ask this repository')}>
+                  <MessageSquareText className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('问答', 'Ask')}</span>
+                </Button>
+              )}
+              {onOpenReleases && (
+                <Button type="button" variant="ghost" onClick={onOpenReleases} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={t('查看 Release', 'View releases')} title={t('查看 Release', 'View releases')}>
+                  <PackageOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Release</span>
+                </Button>
+              )}
+              {onToggleSubscribe && (
+                <Button type="button" variant="ghost" onClick={onToggleSubscribe} aria-pressed={isSubscribed} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={isSubscribed ? t('取消订阅 Release', 'Unsubscribe from releases') : t('订阅 Release', 'Subscribe to releases')} title={isSubscribed ? t('取消订阅 Release', 'Unsubscribe from releases') : t('订阅 Release', 'Subscribe to releases')}>
+                  {isSubscribed ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                  <span className="hidden sm:inline">{isSubscribed ? t('已订阅', 'Subscribed') : t('订阅', 'Subscribe')}</span>
+                </Button>
+              )}
+              <Button type="button" variant="ghost" onClick={() => void copyLink()} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')} title={linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}>
+                {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <span className="hidden sm:inline">{linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}</span>
+              </Button>
+              {canNativeShare && (
+                <Button type="button" variant="ghost" onClick={() => void shareRepository()} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={t('分享', 'Share')} title={t('分享', 'Share')}>
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('分享', 'Share')}</span>
+                </Button>
+              )}
               <a
                 href={repository.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="touch-target-44 flex items-center space-x-1 px-3 py-2 text-sm text-muted-foreground dark:text-foreground hover:text-foreground hover:bg-muted dark:hover:bg-accent rounded-lg transition-colors"
+                className="touch-target-44 inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground sm:h-8"
                 title={t('在 GitHub 上查看', 'View on GitHub')}
+                aria-label={t('在 GitHub 上查看', 'View on GitHub')}
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('在 GitHub 上查看', 'View on GitHub')}</span>
               </a>
-              <Button
-                variant="ghost"
-                onClick={onClose}
-                className="touch-target-44 p-2 rounded-lg text-muted-foreground dark:text-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-accent transition-colors"
-                aria-label={t('关闭', 'Close')}
-              >
-                <X className="w-5 h-5" />
-              </Button>
             </div>
-          </div>
+            {translateError && (
+              <button
+                type="button"
+                className={`mx-3 mb-2 block max-w-full rounded-lg bg-destructive/10 px-3 py-1 text-left text-xs text-destructive ${errorExpanded ? 'whitespace-normal break-all' : 'truncate'}`}
+                onClick={() => setErrorExpanded(!errorExpanded)}
+                title={!errorExpanded ? translateError : undefined}
+              >
+                {translateError}
+              </button>
+            )}
+          </header>
 
           <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
             {showToc && tocItems.length > 0 && (
               <>
+                {isCompact && (
+                  <button
+                    type="button"
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="absolute inset-0 z-20 bg-overlay/50"
+                    onClick={() => setShowToc(false)}
+                  />
+                )}
                 <div
-                  className="border-r border-border dark:border-border overflow-y-auto p-4 flex-shrink-0 readme-scrollbar absolute md:relative z-20 md:z-0 inset-y-0 left-0 bg-card/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none max-w-[85%] md:max-w-none shadow-lg md:shadow-none"
-                  style={{ width: tocWidth }}
+                  className="readme-scrollbar absolute inset-y-0 left-0 z-30 w-[min(18rem,85vw)] max-w-[85%] flex-shrink-0 overflow-y-auto border-r border-border bg-card p-4 shadow-lg md:relative md:z-0 md:max-w-none md:bg-transparent md:shadow-none dark:border-border"
+                  style={isCompact ? undefined : { width: tocWidth }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-semibold text-foreground dark:text-foreground">
@@ -736,7 +951,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
 
             <div
               ref={contentRef}
-              className={`min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-auto p-6 ${currentFontSize} select-text readme-scrollbar relative`}
+              className={`repo-detail-markdown relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-auto overscroll-contain px-4 py-4 select-text readme-scrollbar md:p-6 ${currentFontSize}`}
               onScroll={handleScroll}
             >
             {loading ? (
@@ -787,7 +1002,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
               <Button
                 onClick={scrollToTop}
                 aria-label={t('回到顶部', 'Back to top')}
-                className="absolute bottom-4 right-4 h-8 w-8 p-0 bg-card dark:bg-muted rounded-full shadow-lg border border-border dark:border-border text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent hover:text-foreground transition-all z-10"
+                className="absolute bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-4 z-10 h-11 w-11 rounded-full border border-border bg-card p-0 text-muted-foreground shadow-lg hover:bg-accent hover:text-foreground dark:border-border dark:bg-muted"
                 title={t('回到顶部', 'Back to top')}
               >
                 <ArrowUp className="w-4 h-4" />

@@ -127,6 +127,24 @@ describe('CodeSearchView', () => {
     );
   });
 
+  it('shares a code hit when the browser can share', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    try {
+      render(<CodeSearchView />);
+      fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
+      await screen.findByRole('link', { name: 'facebook/react' });
+      fireEvent.click(screen.getAllByRole('button', { name: '分享' })[0]);
+      expect(share).toHaveBeenCalledWith({
+        title: 'facebook/react src/index.ts',
+        text: 'src/index.ts',
+        url: 'https://github.com/facebook/react/blob/main/src/index.ts',
+      });
+    } finally {
+      Reflect.deleteProperty(navigator, 'share');
+    }
+  });
+
   it('shows retryable error on rate limit but keeps previous results', async () => {
     render(<CodeSearchView />);
     fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });

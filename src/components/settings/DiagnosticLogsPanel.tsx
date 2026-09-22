@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
+  Share2,
   X,
 } from 'lucide-react';
 import { logger, LogLevel, LogEntry } from '../../services/logger';
@@ -183,7 +184,7 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({ entry, language, t, onC
       <DialogContent
         aria-describedby={undefined}
         showClose={false}
-        className="grid-rows-[auto_auto_minmax(0,1fr)] max-w-3xl max-h-[80vh] overflow-hidden p-0"
+        className="mobile-fullscreen-dialog grid-rows-[auto_auto_minmax(0,1fr)] max-w-3xl overflow-hidden p-0 sm:max-h-[80vh]"
       >
         {/* Header */}
         <DialogHeader className="flex-row items-center justify-between space-y-0 border-b border-border px-5 py-4">
@@ -191,15 +192,37 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({ entry, language, t, onC
             <Badge variant={LEVEL_BADGE_VARIANTS[entry.level]} className="shrink-0">{entry.level}</Badge>
             <DialogTitle className="truncate text-sm font-medium leading-normal tracking-normal">{entry.message}</DialogTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label={t('关闭日志详情', 'Close log details')}
-            className="ml-2 h-8 w-8 shrink-0"
-          >
+          <div className="ml-2 flex shrink-0 items-center gap-1">
+            {typeof navigator.share === 'function' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  try {
+                    await navigator.share({
+                      title: entry.message,
+                      text: `${entry.level} · ${entry.module}\n${entry.message}\n${entry.timestamp}`,
+                    });
+                  } catch (error) {
+                    if (error instanceof DOMException && error.name === 'AbortError') return;
+                  }
+                }}
+                aria-label={t('分享日志', 'Share log')}
+                className="touch-target-44 h-11 w-11"
+              >
+                <Share2 className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label={t('关闭日志详情', 'Close log details')}
+              className="touch-target-44 h-11 w-11 shrink-0"
+            >
             <X className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
-          </Button>
+            </Button>
+          </div>
         </DialogHeader>
 
         {/* Tabs */}
@@ -210,7 +233,7 @@ const LogDetailModal: React.FC<LogDetailModalProps> = ({ entry, language, t, onC
               variant="ghost"
               onClick={() => setActiveTab(tab.id)}
               aria-pressed={activeTab === tab.id}
-              className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              className={`touch-target-44 min-h-11 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-primary text-primary dark:text-primary'
                   : 'border-transparent text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground'
@@ -494,11 +517,11 @@ export const DiagnosticLogsPanel: React.FC<DiagnosticLogsPanelProps> = ({ t }) =
             <Input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               aria-label={t('搜索日志模块或消息', 'Search log modules or messages')}
               placeholder={t('搜索模块或消息…', 'Search module or message…')}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border dark:border-border bg-muted dark:bg-muted/40 text-foreground dark:text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              className="h-11 w-full rounded-lg border border-border bg-muted pl-10 pr-4 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm" />
           </div>
 
           {/* Level pills — debug pill always clickable */}
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-foreground dark:text-foreground">{t('级别', 'Level')}:</span>
             {(['debug', 'info', 'warn', 'error'] as LogLevel[]).map(level => (
               <Button
@@ -508,7 +531,7 @@ export const DiagnosticLogsPanel: React.FC<DiagnosticLogsPanelProps> = ({ t }) =
                 size="sm"
                 onClick={() => toggleLevel(level)}
                 aria-pressed={selectedLevels.has(level)}
-                className="h-8 gap-1 rounded-md px-3 text-sm"
+                className="touch-target-44 h-11 gap-1 rounded-md px-3 text-sm"
               >
                 {selectedLevels.has(level) && <Check className="h-3 w-3" />}
                 <span>{level}</span>
@@ -524,14 +547,14 @@ export const DiagnosticLogsPanel: React.FC<DiagnosticLogsPanelProps> = ({ t }) =
                   aria-pressed={selectedScope === scope}
                   variant={selectedScope === scope ? 'default' : 'outline'}
                   size="sm"
-                  className={`h-8 rounded-none border-0 px-3 text-sm first:rounded-l-md last:rounded-r-md ${scope === 'backend' && !backendAvailable ? 'opacity-40 cursor-not-allowed' : ''}`}>
+                  className={`touch-target-44 h-11 rounded-none border-0 px-3 text-sm first:rounded-l-md last:rounded-r-md ${scope === 'backend' && !backendAvailable ? 'opacity-40 cursor-not-allowed' : ''}`}>
                   {scope === 'all' ? t('全部', 'All') : scope === 'frontend' ? t('前端', 'Frontend') : t('后端', 'Backend')}
                 </Button>
               ))}
             </div>
             <DropdownMenu open={showEventTypeDropdown} onOpenChange={setShowEventTypeDropdown}>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" type="button" className="h-8 gap-1 px-3 text-sm">
+                <Button variant="outline" type="button" className="touch-target-44 h-11 gap-1 px-3 text-sm">
                   <span>{selectedEventTypes.size > 0 ? `${selectedEventTypes.size} ${t('类型', 'types')}` : t('事件类型', 'Event Type')}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -551,16 +574,16 @@ export const DiagnosticLogsPanel: React.FC<DiagnosticLogsPanelProps> = ({ t }) =
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="flex items-center space-x-2 ml-auto">
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                 <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing || !backendAvailable}
-                aria-label={t('刷新', 'Refresh')} className="size-9" title={t('刷新', 'Refresh')}>
+                aria-label={t('刷新', 'Refresh')} className="touch-target-44 size-11 sm:size-9" title={t('刷新', 'Refresh')}>
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="secondary" onClick={handleClear} className="h-9 gap-1 px-3 text-sm font-medium">
+              <Button variant="secondary" onClick={handleClear} className="touch-target-44 h-11 gap-1 px-3 text-sm font-medium">
                 <Trash2 className="w-4 h-4" /><span>{t('清空', 'Clear')}</span>
               </Button>
               <Button onClick={handleExport} disabled={isExporting}
-                className="h-9 gap-1 px-3 text-sm font-medium">
+                className="touch-target-44 h-11 gap-1 px-3 text-sm font-medium">
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 <span>{isExporting ? t('导出中…', 'Exporting…') : t('导出', 'Export')}</span>
               </Button>
@@ -645,7 +668,7 @@ export const DiagnosticLogsPanel: React.FC<DiagnosticLogsPanelProps> = ({ t }) =
               {visibleCount < filteredEntries.length && (
                 <div className="border-t border-border p-3 text-center">
                   <Button variant="ghost" onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                    className="text-sm text-primary hover:text-primary/90 transition-colors">
+                    className="touch-target-44 h-11 text-sm text-primary hover:text-primary/90">
                     {t(`加载更多（还有 ${filteredEntries.length - visibleCount} 条）`, `Load more (${filteredEntries.length - visibleCount} remaining)`)}
                   </Button>
                 </div>

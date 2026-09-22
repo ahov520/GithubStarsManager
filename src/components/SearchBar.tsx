@@ -46,8 +46,8 @@ const SortByDropdown: React.FC<SortByDropdownProps> = ({ value, onChange, t }) =
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="outline" size="sm" className="gap-2 touch-target-44 sm:min-h-0 sm:min-w-0">
-          <span>{t(selected?.labelZh ?? '', selected?.labelEn ?? '')}</span>
-          <ChevronDown className="h-4 w-4" />
+          <span className="max-w-[9rem] truncate sm:max-w-none">{t(selected?.labelZh ?? '', selected?.labelEn ?? '')}</span>
+          <ChevronDown className="h-4 w-4 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
@@ -715,7 +715,7 @@ export const SearchBar: React.FC = () => {
                 type="button"
                 variant="ghost"
                 onClick={clearSearchHistory}
-                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                className="touch-target-44 min-h-[44px] text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t('清除', 'Clear')}
               </Button>
@@ -728,7 +728,7 @@ export const SearchBar: React.FC = () => {
                 data-search-option
                 onClick={() => handleHistoryItemClick(historyQuery)}
                 onKeyDown={(e) => handleSearchOptionKeyDown(e, index)}
-                className="flex w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
+                className="flex min-h-[44px] w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
               >
                 <Search className="w-4 h-4 text-muted-foreground dark:text-muted-foreground/70" />
                 <span className="truncate">{historyQuery}</span>
@@ -763,7 +763,7 @@ export const SearchBar: React.FC = () => {
                   data-search-option
                   onClick={() => handleSuggestionClick(suggestion)}
                   onKeyDown={(e) => handleSearchOptionKeyDown(e, index)}
-                  className="flex w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
+                  className="flex min-h-[44px] w-full items-center justify-start space-x-2 px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-accent"
                 >
                   <div className="w-4 h-4 flex items-center justify-center">
                     <div className="w-2 h-2 bg-muted dark:bg-muted/40 rounded-full"></div>
@@ -833,16 +833,33 @@ export const SearchBar: React.FC = () => {
           </Tooltip>
           </div>
         </div>
+        {searchHistory.length > 0 && (
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 md:hidden" aria-label={t('最近搜索', 'Recent searches')}>
+            {searchHistory.slice(0, 8).map((historyQuery) => (
+              <Button
+                key={historyQuery}
+                type="button"
+                variant="outline"
+                onClick={() => handleHistoryItemClick(historyQuery)}
+                className="touch-target-44 h-11 shrink-0 gap-1.5 rounded-full px-3"
+                aria-label={t(`最近搜索 ${historyQuery}`, `Recent search ${historyQuery}`)}
+              >
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                <span className="max-w-[10rem] truncate">{historyQuery}</span>
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Search Status Indicator */}
       {searchQuery && (
-        <div className="mb-4 flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
+        <div className="mb-3 flex min-w-0 flex-col gap-1 text-sm sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center space-x-2">
             {isRealTimeSearch ? (
               <div className="flex items-center space-x-2 text-primary dark:text-primary">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <span>{t('实时搜索模式 - 匹配仓库名称', 'Real-time search mode - matching repository names')}</span>
+                <span className="truncate">{t('实时搜索模式 - 匹配仓库名称', 'Real-time search mode - matching repository names')}</span>
               </div>
             ) : searchFilters.query ? (
               <div className="flex items-center space-x-2 text-muted-foreground dark:text-muted-foreground ">
@@ -852,7 +869,7 @@ export const SearchBar: React.FC = () => {
             ) : null}
           </div>
           {isRealTimeSearch && (
-            <div className="text-muted-foreground dark:text-muted-foreground">
+            <div className="hidden text-muted-foreground dark:text-muted-foreground sm:block">
               {t('按回车键或点击AI搜索进行深度搜索', 'Press Enter or click AI Search for deep search')}
             </div>
           )}
@@ -860,8 +877,8 @@ export const SearchBar: React.FC = () => {
       )}
 
       {/* Filter Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap sm:overflow-visible sm:pb-0 sm:gap-3">
           <Button
             variant="ghost"
             aria-expanded={showFilters}
@@ -911,7 +928,7 @@ export const SearchBar: React.FC = () => {
         </div>
 
         {/* Sort Controls + Sync Button */}
-        <div className="flex items-center gap-2 relative z-30">
+        <div className="relative z-30 flex shrink-0 items-center gap-2">
           <SortByDropdown
             value={searchFilters.sortBy}
             onChange={(value) => setSearchFilters({ sortBy: value as 'stars' | 'updated' | 'name' | 'starred' })}
@@ -937,7 +954,7 @@ export const SearchBar: React.FC = () => {
                     type="button"
                     onClick={() => { void syncStars(); }}
                     disabled={isSyncingStars}
-                    className="inline-flex items-center gap-1.5 rounded-none border-0 bg-transparent px-3 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50"
+                    className="touch-target-44 inline-flex items-center gap-1.5 rounded-none border-0 bg-transparent px-3 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0"
                     title={t('同步星标仓库列表', 'Sync starred repositories')}
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isSyncingStars ? 'animate-spin' : ''}`} />
@@ -948,7 +965,7 @@ export const SearchBar: React.FC = () => {
                       type="button"
                       disabled={isSyncingStars}
                       aria-label={t('更多同步选项', 'More sync options')}
-                      className="group inline-flex items-center rounded-none border-0 bg-transparent px-1.5 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50"
+                      className="touch-target-44 group inline-flex items-center rounded-none border-0 bg-transparent px-2.5 py-2 text-inherit shadow-none hover:bg-primary/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0 sm:px-1.5"
                       title={t('更多同步选项', 'More sync options')}
                     >
                       <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
@@ -980,7 +997,7 @@ export const SearchBar: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   aria-label={t('最近更新时间', 'Last synced')}
-                  className="h-8 w-8 shrink-0 text-muted-foreground"
+                  className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground sm:h-8 sm:w-8"
                 >
                   <Clock className="h-4 w-4" aria-hidden="true" />
                 </Button>
@@ -1292,7 +1309,7 @@ export const SearchBar: React.FC = () => {
                   step={1}
                   placeholder="0"
                   allowUndefined
-                  className="w-24 text-sm py-1.5 dark:bg-muted/40"
+                  className="h-11 w-28 text-base sm:h-9 sm:text-sm dark:bg-muted/40"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -1307,7 +1324,7 @@ export const SearchBar: React.FC = () => {
                   step={1}
                   placeholder="∞"
                   allowUndefined
-                  className="w-24 text-sm py-1.5 dark:bg-muted/40"
+                  className="h-11 w-28 text-base sm:h-9 sm:text-sm dark:bg-muted/40"
                 />
               </div>
             </div>
@@ -1317,7 +1334,17 @@ export const SearchBar: React.FC = () => {
                 {t('最小值不能大于最大值', 'Min cannot be greater than max')}
               </p>
             )}
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={searchFilters.minStars === undefined ? 'secondary' : 'outline'}
+                size="sm"
+                aria-pressed={searchFilters.minStars === undefined}
+                onClick={() => setSearchFilters({ minStars: undefined })}
+                className="touch-target-44 h-11 rounded-full px-3 text-sm sm:h-7 sm:px-2 sm:text-xs"
+              >
+                {t('不限', 'Any')}
+              </Button>
               {[
                 { label: '1K', value: 1000 },
                 { label: '5K', value: 5000 },
@@ -1328,10 +1355,11 @@ export const SearchBar: React.FC = () => {
                 <Button
                   key={preset.label}
                   type="button"
-                  variant="outline"
+                  variant={searchFilters.minStars === preset.value ? 'secondary' : 'outline'}
                   size="sm"
+                  aria-pressed={searchFilters.minStars === preset.value}
                   onClick={() => setSearchFilters({ minStars: preset.value })}
-                  className="h-7 rounded px-2 text-xs text-muted-foreground transition-colors hover:bg-accent"
+                  className="touch-target-44 h-11 rounded-full px-3 text-sm text-muted-foreground transition-colors hover:bg-accent sm:h-7 sm:px-2 sm:text-xs"
                 >
                   ≥{preset.label}
                 </Button>
@@ -1350,7 +1378,7 @@ export const SearchBar: React.FC = () => {
             )}
 
             <Sheet open={showFilters && isMobile} onOpenChange={setShowFilters}>
-              <SheetContent side="bottom" showClose={false} className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-4 sm:p-6 bg-card safe-area-bottom">
+              <SheetContent side="bottom" showClose={false} className="max-h-[85dvh] overflow-hidden rounded-t-2xl bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[85vh] sm:p-6">
                 <SheetHeader className="text-left pr-0 pb-3 border-b border-border">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 pr-2">
@@ -1387,11 +1415,11 @@ export const SearchBar: React.FC = () => {
                   </div>
                 </SheetHeader>
 
-                <div className="py-4 space-y-5">
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain py-4">
                   {filterBody}
                 </div>
 
-                <SheetFooter className="pt-3 border-t border-border sticky bottom-0 bg-card safe-area-bottom">
+                <SheetFooter className="shrink-0 border-t border-border bg-card pt-3">
                   <Button
                     className="w-full touch-target-44 text-sm font-medium"
                     onClick={() => setShowFilters(false)}

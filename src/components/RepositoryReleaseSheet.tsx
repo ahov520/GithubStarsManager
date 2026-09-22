@@ -96,7 +96,7 @@ const ReleaseAssetsTable: React.FC<{
   }
 
   return (
-    <>
+    <div className="release-asset-table">
       <Table aria-label={t(`${release.tag_name} 资产`, `${release.tag_name} assets`)}>
         <TableHeader>
           <TableRow>
@@ -124,7 +124,7 @@ const ReleaseAssetsTable: React.FC<{
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="h-7 px-2 text-xs"
+                    className="touch-target-44 h-9 px-3 text-xs sm:h-7"
                     disabled={isSending || isSent}
                     onClick={() => onDownload(link)}
                   >
@@ -143,7 +143,7 @@ const ReleaseAssetsTable: React.FC<{
         onPageChange={onAssetPageChange}
         label={t(`${release.tag_name} 资产分页`, `${release.tag_name} asset pagination`)}
       />
-    </>
+    </div>
   );
 };
 
@@ -169,10 +169,10 @@ const ReleaseContent: React.FC<{
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="grid h-8 w-full grid-cols-3">
-        <TabsTrigger className="text-xs" value="assets">{t('资产', 'Assets')}</TabsTrigger>
-        <TabsTrigger className="text-xs" value="notes">{t('更新日志', 'Notes')}</TabsTrigger>
-        <TabsTrigger className="text-xs" value="summary">{t('总结', 'Summary')}</TabsTrigger>
+      <TabsList className="grid h-auto w-full grid-cols-3">
+        <TabsTrigger className="touch-target-44 text-xs sm:min-h-0 sm:min-w-0" value="assets">{t('资产', 'Assets')}</TabsTrigger>
+        <TabsTrigger className="touch-target-44 text-xs sm:min-h-0 sm:min-w-0" value="notes">{t('更新日志', 'Notes')}</TabsTrigger>
+        <TabsTrigger className="touch-target-44 text-xs sm:min-h-0 sm:min-w-0" value="summary">{t('总结', 'Summary')}</TabsTrigger>
       </TabsList>
       <TabsContent value="assets" className="mt-3">
         <ReleasePluginRecommendations release={release} repository={repository} language={language} />
@@ -277,7 +277,7 @@ export const RepositoryReleaseSheet: React.FC<RepositoryReleaseSheetProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-[min(100vw-1rem,48rem)] sm:max-w-none safe-area-bottom"
+        className="sheet-mobile-full w-full gap-3 p-4 safe-area-bottom sm:w-[min(100vw-1rem,48rem)] sm:max-w-none sm:p-5"
         closeLabel={t('关闭 Release 侧栏', 'Close release sheet')}
         onPointerDownOutside={(event) => {
           // Keep the overlay mounted through the current click sequence. Closing
@@ -330,14 +330,16 @@ export const RepositoryReleaseSheet: React.FC<RepositoryReleaseSheetProps> = ({
               <Accordion type="multiple" value={expandedReleaseIds} onValueChange={setExpandedReleaseIds} className="rounded-md border border-border px-3">
                 {visibleReleases.map((release) => (
                   <AccordionItem key={release.id} value={String(release.id)}>
-                    <AccordionTrigger>
-                      <span className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="truncate font-semibold">{release.tag_name}</span>
-                        {release.name && release.name !== release.tag_name && <span className="truncate text-xs font-normal text-muted-foreground">{release.name}</span>}
-                      </span>
-                      <span className="mr-1 flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                        {formatDistanceToNow(new Date(release.published_at), { addSuffix: true, locale: language === 'zh' ? zhCN : undefined })}
+                    <AccordionTrigger className="min-h-11 items-start sm:items-center">
+                      <span className="flex min-w-0 flex-1 flex-col gap-1 text-left sm:flex-row sm:items-center sm:gap-2">
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold">{release.tag_name}</span>
+                          {release.name && release.name !== release.tag_name && <span className="block truncate text-xs font-normal text-muted-foreground">{release.name}</span>}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground sm:ml-auto">
+                          <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                          {formatDistanceToNow(new Date(release.published_at), { addSuffix: true, locale: language === 'zh' ? zhCN : undefined })}
+                        </span>
                       </span>
                     </AccordionTrigger>
                     <AccordionContent>

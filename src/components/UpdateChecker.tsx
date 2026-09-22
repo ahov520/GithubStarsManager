@@ -72,7 +72,7 @@ export const UpdateChecker: React.FC<UpdateCheckerProps> = ({ onUpdateAvailable 
   return (
     <>
       <div className="flex flex-col items-start">
-        <Button type="button" onClick={() => checkForUpdates(false)} disabled={isChecking} className="gap-2">
+        <Button type="button" onClick={() => checkForUpdates(false)} disabled={isChecking} className="touch-target-44 min-h-[44px] gap-2">
           {isChecking ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           <span>{isChecking ? t('检查中…', 'Checking…') : t('检查更新', 'Check for Updates')}</span>
         </Button>

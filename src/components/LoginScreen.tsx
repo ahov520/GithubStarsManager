@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { AlertCircle, ArrowLeft, ArrowRight, Database, Github, Key, Link, Moon, Sun } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, ClipboardPaste, Database, Github, Key, Link, Moon, Sun } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useLoginActions } from '../features/lifecycle/hooks/useLoginActions';
@@ -226,6 +226,30 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  const pasteInto = async (inputId: string, options?: { silent?: boolean }) => {
+    if (isLoading) return;
+    const result = await safeReadText();
+    if (result.success && result.text) {
+      const text = result.text.trim();
+      if (inputId === 'backend-url') {
+        setBackendUrl(text);
+      } else if (inputId === 'backend-api-key') {
+        setBackendApiKey(text);
+      } else if (inputId === 'backend-github-token') {
+        setBackendGithubToken(text);
+      } else if (inputId === 'github-token') {
+        setToken(text);
+      }
+      setError('');
+      return;
+    }
+    if (!options?.silent) {
+      setError(result.error || t('无法读取剪贴板', 'Could not read the clipboard'));
+    } else {
+      console.warn('Clipboard read failed:', result.error);
+    }
+  };
+
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !isLoading) {
       if (loginMode === 'github') {
@@ -242,22 +266,7 @@ export const LoginScreen: React.FC = () => {
       // e.currentTarget is only valid during dispatch; capture the id before
       // awaiting the clipboard so the paste lands in the focused field.
       const inputId = e.currentTarget.id;
-      const result = await safeReadText();
-      if (result.success && result.text) {
-        const text = result.text.trim();
-        if (inputId === 'backend-url') {
-          setBackendUrl(text);
-        } else if (inputId === 'backend-api-key') {
-          setBackendApiKey(text);
-        } else if (inputId === 'backend-github-token') {
-          setBackendGithubToken(text);
-        } else if (inputId === 'github-token') {
-          setToken(text);
-        }
-        setError('');
-      } else {
-        console.warn('Clipboard read failed:', result.error);
-      }
+      await pasteInto(inputId, { silent: true });
     }
   };
 
@@ -355,8 +364,11 @@ export const LoginScreen: React.FC = () => {
                     }}
                     onKeyDown={handleKeyPress}
                     disabled={isLoading}
-                    className="pl-10"
+                    className="h-11 pl-10 pr-14"
                   />
+                  <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2" aria-label={t('粘贴后端 URL', 'Paste backend URL')} disabled={isLoading} onClick={() => { void pasteInto('backend-url'); }}>
+                    <ClipboardPaste className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             )}
@@ -385,8 +397,21 @@ export const LoginScreen: React.FC = () => {
                   }}
                   onKeyDown={handleKeyPress}
                   disabled={isLoading}
-                  className="pl-10"
+                  className="h-11 pl-10 pr-14"
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2"
+                  aria-label={loginMode === 'github' || backendStep === 'githubToken' ? t('粘贴 GitHub Token', 'Paste GitHub token') : t('粘贴 API Key', 'Paste API key')}
+                  disabled={isLoading}
+                  onClick={() => {
+                    void pasteInto(loginMode === 'github' ? 'github-token' : backendStep === 'credentials' ? 'backend-api-key' : 'backend-github-token');
+                  }}
+                >
+                  <ClipboardPaste className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
@@ -401,7 +426,7 @@ export const LoginScreen: React.FC = () => {
               type="button"
               onClick={loginMode === 'github' ? handleConnect : backendStep === 'credentials' ? handleBackendConnect : handleBackendTokenSetup}
               disabled={isLoading || !(loginMode === 'github' ? token : backendStep === 'credentials' ? backendApiKey : backendGithubToken).trim() || (loginMode === 'backend' && backendStep === 'credentials' && !backendUrl.trim())}
-              className="w-full"
+              className="touch-target-44 min-h-[44px] w-full"
             >
               {isLoading ? (
                 <>
@@ -432,7 +457,7 @@ export const LoginScreen: React.FC = () => {
               <li>4. {t('复制生成的token并粘贴到上方', 'Copy the generated token and paste it above')}</li>
             </ol>
             <div className="mt-3">
-              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
+              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center text-sm font-medium text-primary hover:underline">
                 {t('在GitHub上创建token →', 'Create token on GitHub →')}
               </a>
             </div>
@@ -441,7 +466,7 @@ export const LoginScreen: React.FC = () => {
           <Button
             type="button"
             variant="ghost"
-            className="mt-4 w-full text-muted-foreground hover:text-foreground"
+            className="touch-target-44 mt-4 min-h-[44px] w-full text-muted-foreground hover:text-foreground"
             onClick={() => switchLoginMode(loginMode === 'github' ? 'backend' : 'github')}
             disabled={isLoading}
           >

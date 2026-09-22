@@ -122,6 +122,7 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
       onClose={onClose}
       title={gist ? t('编辑 Gist', 'Edit Gist') : t('新建 Gist', 'New Gist')}
       maxWidth="max-w-4xl"
+      mobileFullScreen
     >
       <div className="space-y-5">
         <div className="space-y-2">

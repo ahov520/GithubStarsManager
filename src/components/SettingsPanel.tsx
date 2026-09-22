@@ -20,6 +20,7 @@ import {
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { isElectron } from '../services/electronProxy';
 import { useBackendAvailability } from '../features/settings/hooks/useBackendAvailability';
@@ -146,8 +147,8 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChang
   }, []);
 
   return (
-    <div 
-      className="relative w-full border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm"
+    <div
+      className="relative w-full overflow-x-hidden border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm"
     >
       {/* 滚动容器 */}
       <div
@@ -204,6 +205,46 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChang
   );
 };
 
+function MobileSettingsTabBar({
+  tabs,
+  activeTab,
+  onTabChange,
+  query,
+  onQueryChange,
+  noMatches,
+  searchLabel,
+  emptyLabel,
+}: {
+  tabs: SettingsTabItem[];
+  activeTab: SettingsTab;
+  onTabChange: (tabId: SettingsTab) => void;
+  query: string;
+  onQueryChange: (value: string) => void;
+  noMatches: boolean;
+  searchLabel: string;
+  emptyLabel: string;
+}) {
+  return (
+    <>
+      <div className="px-3 pt-2">
+        <Input
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder={searchLabel}
+          aria-label={searchLabel}
+          className="h-11"
+        />
+      </div>
+      {noMatches ? (
+        <p className="px-3 pt-2 text-xs text-muted-foreground">{emptyLabel}</p>
+      ) : null}
+      {tabs.length > 0 ? (
+        <MobileTabNav tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
+      ) : null}
+    </>
+  );
+}
+
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
   isOpen = true, 
   onClose,
@@ -216,6 +257,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [displayTab, setDisplayTab] = useState<SettingsTab>('general');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [tabQuery, setTabQuery] = useState('');
   const tabChangeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -392,6 +434,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     }] : []),
   ];
 
+  const normalizedTabQuery = tabQuery.trim().toLowerCase();
+  const filteredTabs = normalizedTabQuery
+    ? tabs.filter(
+      (tab) => tab.id === activeTab || tab.label.toLowerCase().includes(normalizedTabQuery),
+    )
+    : tabs;
+  const noTabMatches = normalizedTabQuery.length > 0
+    && !tabs.some((tab) => tab.label.toLowerCase().includes(normalizedTabQuery));
+
   const renderTabContent = () => {
     const content = (() => {
       switch (displayTab) {
@@ -487,7 +538,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               </div>
 
               <div className="md:hidden">
-                <MobileTabNav tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+                <MobileSettingsTabBar
+                  tabs={filteredTabs}
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                  query={tabQuery}
+                  onQueryChange={setTabQuery}
+                  noMatches={noTabMatches}
+                  searchLabel={t('搜索设置项', 'Search settings')}
+                  emptyLabel={t('没有匹配的设置', 'No matching settings')}
+                />
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto p-6">
@@ -535,12 +595,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         </div>
 
-        {/* 移动端标签导航 */}
-        <div className="lg:hidden -mx-4 sm:-mx-6">
-          <MobileTabNav
-            tabs={tabs}
+        {/* 移动端标签导航：贴在顶栏下方，滚动内容时仍可搜索和切换 */}
+        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 -mx-4 bg-background/95 backdrop-blur-sm sm:-mx-6 lg:hidden">
+          <MobileSettingsTabBar
+            tabs={filteredTabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
+            query={tabQuery}
+            onQueryChange={setTabQuery}
+            noMatches={noTabMatches}
+            searchLabel={t('搜索设置项', 'Search settings')}
+            emptyLabel={t('没有匹配的设置', 'No matching settings')}
           />
         </div>
 

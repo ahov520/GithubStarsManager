@@ -1,9 +1,11 @@
 import React, { memo, useCallback } from 'react';
-import { ExternalLink, GitFork, RefreshCw, ChevronDown, ChevronUp, FolderOpen, Folder, Play, Loader2 } from 'lucide-react';
+import { ExternalLink, GitFork, RefreshCw, ChevronDown, ChevronUp, FolderOpen, Folder, Play, Loader2, Copy, Share2 } from 'lucide-react';
 import { ForkRepo, WorkflowDefinition } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Button } from './ui/button';
+import { useDialog } from '../hooks/useDialog';
+import { safeWriteText } from '../utils/clipboardUtils';
 
 interface ForkCardProps {
   fork: ForkRepo;
@@ -37,8 +39,36 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
   language,
 }) => {
   const t = useCallback((zh: string, en: string) => language === 'zh' ? zh : en, [language]);
+  const { toast } = useDialog();
 
   const sourceFullName = fork.source?.full_name || fork.parent?.full_name || '';
+  const cloneCommand = `git clone ${fork.html_url}.git`;
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const handleCopyClone = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onMarkAsRead();
+    const result = await safeWriteText(cloneCommand);
+    toast(
+      result.success ? t('克隆命令已复制', 'Clone command copied') : (result.error || t('复制失败', 'Copy failed')),
+      result.success ? 'success' : 'error',
+    );
+  };
+
+  const handleShare = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onMarkAsRead();
+    try {
+      await navigator.share({
+        title: fork.full_name,
+        text: fork.description || fork.full_name,
+        url: fork.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast(t('分享失败', 'Share failed'), 'error');
+    }
+  };
 
   return (
     <div
@@ -151,7 +181,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   onMarkAsRead();
                 }}
                 disabled={isSyncing || !needsSync}
-                className={`touch-target-44 sm:h-8 sm:w-8 h-9 w-9 p-1 rounded transition-colors disabled:cursor-not-allowed ${
+                className={`touch-target-44 h-11 w-11 shrink-0 p-1 rounded transition-colors disabled:cursor-not-allowed sm:h-8 sm:w-8 ${
                   needsSync
                     ? 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     : 'bg-transparent text-muted-foreground/50 dark:text-muted-foreground/50 cursor-not-allowed'
@@ -175,7 +205,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                 href={fork.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 flex items-center justify-center p-1 rounded bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                 title={t('在GitHub上查看', 'View on GitHub')}
                 aria-label={t('在GitHub上查看', 'View on GitHub')}
                 onClick={(e) => {
@@ -185,6 +215,28 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCopyClone}
+                className="touch-target-44 h-11 w-11 shrink-0 rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
+                title={t('复制克隆命令', 'Copy clone command')}
+                aria-label={t('复制克隆命令', 'Copy clone command')}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              {canShare && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleShare}
+                  className="touch-target-44 h-11 w-11 shrink-0 rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
+                  title={t('分享', 'Share')}
+                  aria-label={t('分享', 'Share')}
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -250,7 +302,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                         }}
                         disabled={workflow.state === 'disabled' || isRunningWorkflow}
                         variant="secondary"
-                        className="ml-2 h-8 w-8 shrink-0 p-0"
+                        className="touch-target-44 ml-2 h-11 w-11 shrink-0 p-0 sm:h-8 sm:w-8"
                         aria-label={workflow.state === 'disabled'
                           ? (language === 'zh' ? '工作流已禁用' : 'Workflow disabled')
                           : `${language === 'zh' ? '运行工作流' : 'Run workflow'}: ${workflow.name}`

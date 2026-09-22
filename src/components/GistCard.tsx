@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Bot, Clock, Copy, Edit3, ExternalLink, FileCode2, Loader2, StarOff, Trash2, User } from 'lucide-react';
+import { Bot, Clock, Copy, Edit3, ExternalLink, FileCode2, Loader2, Share2, StarOff, Trash2, User } from 'lucide-react';
 import type { Gist } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useGistActions } from '../features/gists/hooks/useGistActions';
@@ -45,6 +45,22 @@ export const GistCard: React.FC<GistCardProps> = ({
     toast(result.success ? t('链接已复制', 'Link copied') : (result.error || t('复制失败', 'Copy failed')), result.success ? 'success' : 'error');
   };
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const handleShare = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    try {
+      await navigator.share({
+        title,
+        text: gist.description || title,
+        url: gist.html_url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast(t('分享失败', 'Share failed'), 'error');
+    }
+  };
+
   const handleAnalyze = (event: React.MouseEvent) => {
     event.stopPropagation();
     void analyzeOne(gist);
@@ -63,9 +79,9 @@ export const GistCard: React.FC<GistCardProps> = ({
   return (
     <article
       onClick={() => onOpen(gist)}
-      className="ui-card group cursor-pointer p-5"
+      className="ui-card group cursor-pointer p-4 sm:p-5"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold text-foreground dark:text-foreground">{title}</h3>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground dark:text-muted-foreground">
@@ -86,13 +102,14 @@ export const GistCard: React.FC<GistCardProps> = ({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide sm:shrink-0">
           <Button
             type="button"
             variant="ghost"
             onClick={handleAnalyze}
             disabled={isAnalyzing}
-            className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:text-muted-foreground dark:hover:bg-primary/15 dark:hover:text-primary"
+            aria-label={t('AI分析', 'AI analyze')}
+            className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:text-muted-foreground dark:hover:bg-primary/15 dark:hover:text-primary sm:h-8 sm:w-8"
             title={t('AI分析', 'AI analyze')}
           >
             {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
@@ -101,7 +118,8 @@ export const GistCard: React.FC<GistCardProps> = ({
             type="button"
             variant="ghost"
             onClick={handleCopyLink}
-            className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            aria-label={t('复制链接', 'Copy link')}
+            className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
             title={t('复制链接', 'Copy link')}
           >
             <Copy className="h-4 w-4" />
@@ -111,18 +129,32 @@ export const GistCard: React.FC<GistCardProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(event) => event.stopPropagation()}
-            className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 inline-flex items-center justify-center rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            aria-label={t('打开链接', 'Open link')}
+            className="touch-target-44 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
             title={t('打开链接', 'Open link')}
           >
             <ExternalLink className="h-4 w-4" />
           </a>
+          {canShare && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleShare}
+              aria-label={t('分享', 'Share')}
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
+              title={t('分享', 'Share')}
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
           {gist.starred && (
             <Button
               type="button"
               variant="ghost"
               onClick={handleUnstar}
               disabled={isMutating}
-              className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-warning/10 hover:text-warning disabled:opacity-50 dark:text-muted-foreground"
+              aria-label={t('取消收藏', 'Unstar')}
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-warning/10 hover:text-warning disabled:opacity-50 dark:text-muted-foreground sm:h-8 sm:w-8"
               title={t('取消收藏', 'Unstar')}
             >
               <StarOff className="h-4 w-4" />
@@ -137,7 +169,8 @@ export const GistCard: React.FC<GistCardProps> = ({
                   event.stopPropagation();
                   onEdit(gist);
                 }}
-                className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                aria-label={t('编辑', 'Edit')}
+                className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
                 title={t('编辑', 'Edit')}
               >
                 <Edit3 className="h-4 w-4" />
@@ -147,7 +180,8 @@ export const GistCard: React.FC<GistCardProps> = ({
                 variant="ghost"
                 onClick={handleDelete}
                 disabled={isMutating}
-                className="touch-target-44 sm:h-8 sm:w-8 h-9 w-9 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 dark:text-muted-foreground"
+                aria-label={t('删除', 'Delete')}
+                className="touch-target-44 h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 dark:text-muted-foreground sm:h-8 sm:w-8"
                 title={t('删除', 'Delete')}
               >
                 <Trash2 className="h-4 w-4" />

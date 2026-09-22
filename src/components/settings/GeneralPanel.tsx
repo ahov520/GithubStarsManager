@@ -65,9 +65,10 @@ export const GeneralPanel: React.FC<GeneralPanelProps> = ({ t }) => {
               value={githubToken.tokenInput}
               onChange={(event) => githubToken.setTokenInput(event.target.value)}
               disabled={githubToken.isSaving}
+              className="h-11"
             />
           </div>
-          <Button type="button" onClick={() => { void githubToken.updateToken(); }} disabled={githubToken.isSaving || !githubToken.tokenInput.trim()}>
+          <Button type="button" onClick={() => { void githubToken.updateToken(); }} disabled={githubToken.isSaving || !githubToken.tokenInput.trim()} className="touch-target-44 min-h-[44px]">
             {githubToken.isSaving ? t('更新中…', 'Updating…') : t('更新 Token', 'Update token')}
           </Button>
         </CardContent>
@@ -82,14 +83,14 @@ export const GeneralPanel: React.FC<GeneralPanelProps> = ({ t }) => {
         </CardHeader>
         <CardContent>
           <RadioGroup aria-labelledby="language-settings-title" value={language} onValueChange={(value) => setLanguage(value as 'zh' | 'en')} className="grid max-w-md grid-cols-2 gap-4">
-            <Label htmlFor="language-zh" className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-background dark:border-border dark:hover:bg-card/[0.10]">
+            <Label htmlFor="language-zh" className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-background dark:border-border dark:hover:bg-card/[0.10]">
               <RadioGroupItem value="zh" id="language-zh" aria-labelledby="language-zh-label" />
               <span>
                 <span id="language-zh-label" className="block text-base font-medium text-foreground dark:text-foreground">中文</span>
                 <span className="mt-1 block text-xs font-normal text-muted-foreground dark:text-muted-foreground">Simplified Chinese</span>
               </span>
             </Label>
-            <Label htmlFor="language-en" className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-background dark:border-border dark:hover:bg-card/[0.10]">
+            <Label htmlFor="language-en" className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-background dark:border-border dark:hover:bg-card/[0.10]">
               <RadioGroupItem value="en" id="language-en" aria-labelledby="language-en-label" />
               <span>
                 <span id="language-en-label" className="block text-base font-medium text-foreground dark:text-foreground">English</span>
@@ -159,7 +160,7 @@ export const GeneralPanel: React.FC<GeneralPanelProps> = ({ t }) => {
             <CardTitle>{t('检查更新', 'Check for Updates')}</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="flex items-center justify-between">
+        <CardContent className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="mb-1 text-sm text-muted-foreground dark:text-muted-foreground">{t(`当前版本: v${version}`, `Current Version: v${version}`)}</p>
             <p className="text-xs text-muted-foreground dark:text-muted-foreground">{t('检查是否有新版本可用', 'Check if a new version is available')}</p>
@@ -178,12 +179,12 @@ export const GeneralPanel: React.FC<GeneralPanelProps> = ({ t }) => {
         <CardContent>
           <p className="mb-4 text-sm text-muted-foreground dark:text-muted-foreground">{t('如果您在使用过程中遇到任何问题或有建议，欢迎通过以下方式联系我：', 'If you encounter any issues or have suggestions while using the app, feel free to contact me through:')}</p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button type="button" onClick={() => { const newWindow = window.open('https://x.com/GoodMan_Lee', '_blank', 'noopener,noreferrer'); if (newWindow) newWindow.opener = null; }} className="gap-2">
+            <Button type="button" onClick={() => { const newWindow = window.open('https://x.com/GoodMan_Lee', '_blank', 'noopener,noreferrer'); if (newWindow) newWindow.opener = null; }} className="touch-target-44 min-h-[44px] gap-2">
               <Twitter className="h-5 w-5" />
               <span>Twitter</span>
               <ExternalLink className="h-4 w-4" />
             </Button>
-            <Button type="button" variant="outline" onClick={() => { const newWindow = window.open(PROJECT_REPO_URL, '_blank', 'noopener,noreferrer'); if (newWindow) newWindow.opener = null; }} className="gap-2">
+            <Button type="button" variant="outline" onClick={() => { const newWindow = window.open(PROJECT_REPO_URL, '_blank', 'noopener,noreferrer'); if (newWindow) newWindow.opener = null; }} className="touch-target-44 min-h-[44px] gap-2">
               <Github className="h-5 w-5" />
               <span>{t('GitHub', 'GitHub')}</span>
               <ExternalLink className="h-4 w-4" />
