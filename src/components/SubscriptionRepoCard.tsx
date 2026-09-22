@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2, MoreHorizontal } from 'lucide-react';
+import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2, MoreHorizontal, Copy, Terminal } from 'lucide-react';
 import { getPlatformIcon as getSharedPlatformIcon } from './platformMeta';
 import type { DiscoveryRepo } from '../types';
 import { useAppStore } from '../store/useAppStore';
@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
+import { safeWriteText } from '../utils/clipboardUtils';
 
 interface SubscriptionRepoCardProps {
   repo: DiscoveryRepo;
@@ -40,6 +41,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
   // Telegram 频道："查看消息原文"弹窗
   const [telegramModalOpen, setTelegramModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -139,6 +141,15 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
 
   const cardTitle = repo.full_name || `${repo.owner?.login || ''}/${repo.name || ''}`;
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const copyRepositoryText = async (event: React.MouseEvent, kind: 'url' | 'clone') => {
+    event.stopPropagation();
+    const text = kind === 'clone' ? `git clone ${repo.html_url}.git` : repo.html_url;
+    const result = await safeWriteText(text);
+    if (!result.success) return;
+    setCopiedAction(kind);
+    window.setTimeout(() => setCopiedAction((current) => (current === kind ? null : current)), 1500);
+  };
 
   const handleShare = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -583,6 +594,22 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                 {repo.telegram ? t('查看频道消息原文', 'View original channel message') : t('查看原贴', 'View original post')}
               </button>
             )}
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => { void copyRepositoryText(event, 'url'); }}
+            >
+              <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {copiedAction === 'url' ? t('已复制链接', 'Link copied') : t('复制链接', 'Copy link')}
+            </button>
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => { void copyRepositoryText(event, 'clone'); }}
+            >
+              <Terminal className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {copiedAction === 'clone' ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')}
+            </button>
             <a
               href={repo.html_url}
               target="_blank"

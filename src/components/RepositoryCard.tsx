@@ -5,7 +5,7 @@ import {
   getPlatformIcon,
 } from './platformMeta';
 import { useRepositoryPlatforms } from '../hooks/useRepositoryPlatforms';
-import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2, FolderTree } from 'lucide-react';
+import { GripVertical, Star, StarOff, ExternalLink, Calendar, Bell, BellOff, Bot, Sparkles, Terminal, Edit3, BookOpen, Square, CheckSquare, Loader2, HelpCircle, Search, Scale, MoreHorizontal, PackageOpen, MessageSquareText, Plug, Share2, FolderTree, Copy } from 'lucide-react';
 import { Repository, Category } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -28,6 +28,7 @@ import { applyPluginActionResult } from '../plugins/applyPluginActionResult';
 import { useDialog } from '../hooks/useDialog';
 import { pluginClient } from '../plugins/pluginClient';
 import { MoveToCategorySheet } from './MoveToCategorySheet';
+import { safeWriteText } from '../utils/clipboardUtils';
 import type { RegisteredPluginAction } from '../plugins/types';
 
 type DialogContentPointerDownOutsideHandler = NonNullable<
@@ -278,6 +279,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const dragHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
+  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
   const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
   const isCompact = useCompactViewport();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -715,6 +717,14 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       if (error instanceof DOMException && error.name === 'AbortError') return;
     }
   }, [canShare, repository.description, repository.full_name, repository.html_url]);
+
+  const copyRepositoryText = useCallback(async (kind: 'url' | 'clone') => {
+    const text = kind === 'clone' ? `git clone ${repository.html_url}.git` : repository.html_url;
+    const result = await safeWriteText(text);
+    if (!result.success) return;
+    setCopiedAction(kind);
+    window.setTimeout(() => setCopiedAction((current) => (current === kind ? null : current)), 1500);
+  }, [repository.html_url]);
 
   // 使用 useCallback 优化事件处理函数
   const handleCardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -1611,6 +1621,14 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   {language === 'zh' ? '在 Zread 中查看' : 'View on DeepWiki'}
                 </a>
               )}
+              <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('url'); }}>
+                <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {copiedAction === 'url' ? (language === 'zh' ? '已复制链接' : 'Link copied') : (language === 'zh' ? '复制链接' : 'Copy link')}
+              </button>
+              <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('clone'); }}>
+                <Terminal className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {copiedAction === 'clone' ? (language === 'zh' ? '已复制克隆命令' : 'Clone command copied') : (language === 'zh' ? '复制克隆命令' : 'Copy clone command')}
+              </button>
               {(viewMode !== 'grid' || visibleGridActionCount < 7) && (
                 <a href={repository.html_url} target="_blank" rel="noopener noreferrer" className={PHONE_ACTION_ROW} onClick={() => setActionsSheetOpen(false)}>
                   <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />

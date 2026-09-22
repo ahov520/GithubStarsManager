@@ -64,6 +64,10 @@ describe('SubscriptionRepoCard phone actions', () => {
     expect(github).toHaveAttribute('href', repo.html_url);
     expect(github.className).toContain('min-h-11');
     expect(star.className).toContain('min-h-11');
+    const copyLink = screen.getByRole('button', { name: '复制链接' });
+    const copyClone = screen.getByRole('button', { name: '复制克隆命令' });
+    expect(copyLink.className).toContain('min-h-11');
+    expect(copyClone.className).toContain('w-full');
 
     fireEvent.click(analyze!);
     expect(actions.analyze).toHaveBeenCalledTimes(1);
