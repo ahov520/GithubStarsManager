@@ -216,11 +216,13 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [cloneCopied, setCloneCopied] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const [findQuery, setFindQuery] = useState('');
   const [findIndex, setFindIndex] = useState(0);
   const [findCount, setFindCount] = useState(0);
   const copyResetRef = useRef<number | null>(null);
+  const cloneResetRef = useRef<number | null>(null);
   const findInputRef = useRef<HTMLInputElement>(null);
 
   const defaultReadmeVariant = useMemo(() => getDefaultReadmeVariant(language), [language]);
@@ -625,6 +627,8 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       setFindQuery('');
       setFindIndex(0);
       setFindCount(0);
+      setLinkCopied(false);
+      setCloneCopied(false);
       isResizingRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
@@ -653,6 +657,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
 
   useEffect(() => () => {
     if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+    if (cloneResetRef.current) window.clearTimeout(cloneResetRef.current);
   }, []);
 
   useEffect(() => {
@@ -723,6 +728,18 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
       copyResetRef.current = window.setTimeout(() => setLinkCopied(false), 1600);
     } catch {
       setLinkCopied(false);
+    }
+  }, [repository]);
+
+  const copyClone = useCallback(async () => {
+    if (!repository) return;
+    try {
+      await navigator.clipboard.writeText(`git clone ${repository.html_url}.git`);
+      setCloneCopied(true);
+      if (cloneResetRef.current) window.clearTimeout(cloneResetRef.current);
+      cloneResetRef.current = window.setTimeout(() => setCloneCopied(false), 1600);
+    } catch {
+      setCloneCopied(false);
     }
   }, [repository]);
 
@@ -834,7 +851,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                       title={t('关闭翻译', 'Close Translation')}
                     >
                       <Languages className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t('已翻译', 'Translated')}</span>
+                      <span>{t('已翻译', 'Translated')}</span>
                     </Button>
                     {([
                       { mode: 'original' as DisplayMode, icon: FileText, label: t('原文', 'Original') },
@@ -854,7 +871,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                         title={label}
                       >
                         <Icon className="w-4 h-4" />
-                        <span className="hidden sm:inline">{label}</span>
+                        <span>{label}</span>
                       </Button>
                     ))}
                   </>
@@ -868,7 +885,7 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                       title={t('重试翻译', 'Retry Translation')}
                     >
                       <Languages className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t('重试', 'Retry')}</span>
+                      <span>{t('重试', 'Retry')}</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -988,6 +1005,10 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
               <Button type="button" variant="ghost" onClick={() => void copyLink()} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')} title={linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}>
                 {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 <span className="hidden sm:inline">{linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}</span>
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => void copyClone()} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={cloneCopied ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')} title={cloneCopied ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')}>
+                {cloneCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <span className="hidden sm:inline">{cloneCopied ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')}</span>
               </Button>
               {canNativeShare && (
                 <Button type="button" variant="ghost" onClick={() => void shareRepository()} className="touch-target-44 h-9 shrink-0 gap-1 rounded-lg px-2.5 text-muted-foreground sm:h-8" aria-label={t('分享', 'Share')} title={t('分享', 'Share')}>
@@ -1120,6 +1141,10 @@ export const ReadmeModal: React.FC<ReadmeModalProps> = ({
                   <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => void copyLink()}>
                     {linkCopied ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />}
                     {linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}
+                  </button>
+                  <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => void copyClone()}>
+                    {cloneCopied ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                    {cloneCopied ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')}
                   </button>
                   {canNativeShare && (
                     <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={() => { setMoreActionsOpen(false); void shareRepository(); }}>

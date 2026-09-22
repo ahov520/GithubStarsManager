@@ -341,6 +341,13 @@ describe('ReadmeModal mobile repository detail', () => {
       expect(ask.className).toContain('w-full');
       const findInSheet = screen.getAllByRole('button', { name: '查找' }).find((node) => node.className.includes('w-full'));
       expect(findInSheet?.className).toContain('min-h-11');
+      const clone = screen.getByRole('button', { name: '复制克隆命令' });
+      expect(clone.className).toContain('min-h-11');
+      expect(clone.className).toContain('w-full');
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+      await user.click(clone);
+      expect(writeText).toHaveBeenCalledWith('git clone https://github.com/owner/demo.git');
+      expect(await screen.findByRole('button', { name: '已复制克隆命令' })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: '在 GitHub 上查看' }).className).toContain('min-h-11');
       await user.click(ask);
       expect(onAsk).toHaveBeenCalledOnce();
