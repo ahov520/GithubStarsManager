@@ -6,6 +6,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { Package, Bell, Search, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, LayoutGrid, ChevronDown, CheckCircle, Settings } from 'lucide-react';
 import { Release } from '../types';
 import { useReleaseTimelineActions } from '../features/releases/hooks/useReleaseTimelineActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useAppStore } from '../store/useAppStore';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -512,11 +513,25 @@ export const ReleaseTimeline: React.FC = () => {
     return map;
   }, [paginatedReleases, paginatedRepositoryGroups, getTruncatedBody]);
 
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => handleRefresh(),
+  });
+  const pullStatus = (pullDistance > 12 || pullRefreshing) ? (
+    <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+      {pullRefreshing
+        ? t('正在刷新…', 'Refreshing…')
+        : pullDistance >= 80
+          ? t('松开刷新', 'Release to refresh')
+          : t('下拉刷新', 'Pull to refresh')}
+    </div>
+  ) : null;
+
   if (subscribedReleases.length === 0) {
     const subscribedRepoCount = activeReleaseRepoCount;
 
     return (
       <>
+      {pullStatus}
       <div className="text-center py-12">
                <Package className="w-16 h-16 text-muted-foreground dark:text-quaternary mx-auto mb-4" />
          <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">
@@ -623,6 +638,7 @@ export const ReleaseTimeline: React.FC = () => {
 
   return (
     <div className="max-w-full mx-auto px-2 sm:px-4">
+      {pullStatus}
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-start lg:justify-between">

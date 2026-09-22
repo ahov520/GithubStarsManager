@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import ForkCard from './ForkCard';
 import { useForkTimelineActions } from '../features/forks/hooks/useForkTimelineActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Modal } from './Modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -94,6 +95,10 @@ export const ForkTimeline: React.FC = () => {
     }
   }, [totalPages, currentPage]);
 
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => handleRefresh(),
+  });
+
   const handlePageChange = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
@@ -127,6 +132,15 @@ export const ForkTimeline: React.FC = () => {
 
   return (
     <div className="max-w-full mx-auto px-2 sm:px-4">
+      {(pullDistance > 12 || pullRefreshing) && (
+        <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing
+            ? t('正在刷新…', 'Refreshing…')
+            : pullDistance >= 80
+              ? t('松开刷新', 'Release to refresh')
+              : t('下拉刷新', 'Pull to refresh')}
+        </div>
+      )}
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-start lg:justify-between">

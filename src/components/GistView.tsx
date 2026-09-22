@@ -7,6 +7,7 @@ import { GistCard } from './GistCard';
 import { GistDetailModal } from './GistDetailModal';
 import { GistEditorModal } from './GistEditorModal';
 import { useGistActions, type GistCreateInput, type GistUpdateInput } from '../features/gists/hooks/useGistActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useAppStore } from '../store/useAppStore';
 import type { Gist, GistCategoryId } from '../types';
 import { filterAndSortGists, getGistCategoryItems } from '../utils/gistUtils';
@@ -47,6 +48,9 @@ export const GistView: React.FC = () => {
     submitGist,
   } = useGistActions();
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => refreshGists(),
+  });
   const [query, setQuery] = useState(gistSearchFilters.query);
   const [detailGist, setDetailGist] = useState<Gist | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -105,6 +109,15 @@ export const GistView: React.FC = () => {
 
   return (
     <div className="flex w-full min-w-0 flex-col items-stretch gap-4 lg:flex-row lg:items-start lg:gap-6">
+      {(pullDistance > 12 || pullRefreshing) && (
+        <div className="flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing
+            ? t('正在同步…', 'Syncing…')
+            : pullDistance >= 80
+              ? t('松开同步', 'Release to sync')
+              : t('下拉同步', 'Pull to sync')}
+        </div>
+      )}
       <aside className="w-full lg:w-64 lg:flex-shrink-0 lg:self-start">
         <div className="linear-sidebar z-10 p-3 lg:sticky lg:top-24">
           <div className="mb-2 flex items-center justify-between px-1 lg:mb-3 lg:px-2">

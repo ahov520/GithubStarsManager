@@ -2,6 +2,18 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { GistView } from './GistView';
 
+const harness = vi.hoisted(() => ({
+  pull: { distance: 0, refreshing: false },
+  onRefresh: undefined as undefined | (() => void),
+}));
+
+vi.mock('../hooks/usePullToRefresh', () => ({
+  usePullToRefresh: (options: { onRefresh: () => void }) => {
+    harness.onRefresh = options.onRefresh;
+    return harness.pull;
+  },
+}));
+
 const actions = {
   user: { login: 'me' },
   gists: [],
@@ -45,5 +57,16 @@ describe('GistView mobile', () => {
     expect(screen.getByRole('button', { name: '新建' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: '搜索 gist、文件名或摘要' })).toHaveClass('h-11');
     expect(screen.getByRole('combobox', { name: 'Gist 排序方式' })).toHaveClass('w-full');
+  });
+
+  it('syncs gists from the phone pull hint', () => {
+    harness.pull = { distance: 100, refreshing: false };
+    render(<GistView />);
+
+    const hint = screen.getByRole('status');
+    expect(hint).toHaveTextContent('松开同步');
+    expect(hint.className).toContain('md:hidden');
+    harness.onRefresh?.();
+    expect(actions.refreshGists).toHaveBeenCalledTimes(1);
   });
 });
