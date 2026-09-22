@@ -5,6 +5,7 @@ import { getPlatformDisplayName, getPlatformIcon } from './platformMeta';
 import { useAppStore, getAllCategories } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSearchShortcuts } from '../hooks/useSearchShortcuts';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useSearchActions } from '../features/repositories/hooks/useSearchActions';
 import { useDialog } from '../hooks/useDialog';
 import { isRepoCustomized } from '../utils/repoUtils';
@@ -107,6 +108,9 @@ export const SearchBar: React.FC = () => {
     aiSearch,
     syncStars,
   } = useSearchActions();
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => syncStars(),
+  });
   
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchFilters.query);
@@ -674,6 +678,15 @@ export const SearchBar: React.FC = () => {
 
   return (
     <TooltipProvider>
+      {(pullDistance > 12 || pullRefreshing || isSyncingStars) && (
+        <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing || isSyncingStars
+            ? t('正在同步…', 'Syncing…')
+            : pullDistance >= 80
+              ? t('松开同步', 'Release to sync')
+              : t('下拉同步', 'Pull to sync')}
+        </div>
+      )}
       <div className="ui-toolbar p-4 sm:p-5 mb-5">
       {/* Search Input */}
       <div className="relative z-40 mb-4">
