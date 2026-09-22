@@ -119,7 +119,7 @@ const baseStoreState = () => ({
   setReleaseIsRefreshing: vi.fn(),
   includePreRelease: false,
   setIncludePreRelease: vi.fn(),
-  releaseShowMode: 'unread' as const,
+  releaseShowMode: 'unread' as 'all' | 'unread',
   setReleaseShowMode: vi.fn(),
   releaseLatestMode: 'all' as const,
   setReleaseLatestMode: vi.fn(),
