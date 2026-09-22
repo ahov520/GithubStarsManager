@@ -57,8 +57,8 @@ export const TelegramSettingsModal: React.FC<TelegramSettingsModalProps> = ({ is
       <div className="space-y-5">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground dark:text-muted-foreground">
           {t(
-            '刷新时增量拉取关注频道的最新消息，消息中包含 GitHub 仓库链接的条目会展示为列表项；"加载更多"按页抓取更早的历史消息。数据由应用直连 t.me 公开预览抓取，需要桌面版或服务端模式（纯浏览器模式受跨域限制）；私有频道无法抓取。',
-            'Refreshing incrementally pulls the latest messages of followed channels; messages containing GitHub repository links are listed, and "Load more" pages back through history. The app fetches the t.me public preview directly and requires the desktop or server build (browsers are CORS-restricted). Private channels cannot be fetched.',
+            '刷新时增量拉取关注频道的最新消息，消息中包含 GitHub 仓库链接的条目会展示为列表项；"加载更多"按页抓取更早的历史消息。安卓应用与桌面版直连 t.me 公开预览，网页版需要服务端模式；私有频道无法抓取。',
+            'Refreshing incrementally pulls the latest messages of followed channels; messages containing GitHub repository links are listed, and "Load more" pages back through history. The Android app and desktop build fetch the t.me public preview directly; the website needs server mode. Private channels cannot be fetched.',
           )}
         </div>
 

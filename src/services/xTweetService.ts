@@ -18,8 +18,8 @@
  *
  * 两条路径共用：仓库 upsert（原贴指向发布时间最新的推文）→ 详情补全
  * （GraphQL 批量优先，REST 逐仓回退）→ 独立 IndexedDB 持久化 → 按推文
- * 时间倒序分页切片。纯浏览器（静态部署）受 CORS 限制不可用，需桌面版或
- * 服务端模式。
+ * 时间倒序分页切片。纯浏览器（静态部署）受 CORS 限制不可用。安卓应用走
+ * 系统网络直连，桌面版走 Electron，网页版需要服务端模式。
  */
 
 import type {
@@ -33,6 +33,11 @@ import type {
 import { logger } from './logger';
 import { backend, getBackendAuthHeaders } from './backendAdapter';
 import { fetchXTimelineViaDesktop, fetchXGraphQLViaDesktop } from './electronProxy';
+import {
+  fetchXGraphQLViaNative,
+  fetchXTimelineViaNative,
+  isNativeChannelFetchAvailable,
+} from './nativeChannelFetch';
 import type { GitHubApiService } from './githubApi';
 import { extractRepoFullNames } from './weeklyIssuesService';
 import {
@@ -100,7 +105,7 @@ export type XTimelineTransport = (handle: string) => Promise<string>;
 
 /**
  * 传输层：抓取 x.com 未登录主页 HTML。桌面端走主进程 IPC（跟随应用代理），
- * 失败时回退 fullstack 服务端路由；两者都不可用时抛错（纯浏览器模式不支持）。
+ * 其次 fullstack 服务端路由，再次安卓系统网络；纯浏览器没有可用传输层时抛错。
  */
 export const defaultXTimelineTransport: XTimelineTransport = async (handle) => {
   let desktopError: unknown = null;
@@ -125,8 +130,11 @@ export const defaultXTimelineTransport: XTimelineTransport = async (handle) => {
     if (typeof data?.html === 'string') return data.html;
     throw new Error('服务端返回数据无效');
   }
+  if (isNativeChannelFetchAvailable()) {
+    return fetchXTimelineViaNative(handle);
+  }
   if (desktopError) throw desktopError;
-  throw new Error('当前运行模式不支持 X 推文抓取：需要桌面版（Electron）或服务端模式');
+  throw new Error('当前运行模式不支持 X 推文抓取：需要安卓应用、桌面版（Electron）或服务端模式');
 };
 
 /** 从 Flight 的 client 引用解码推文 ID（VHdlZXQ6… == base64("Tweet:<id>")） */
@@ -179,8 +187,8 @@ const X_GRAPHQL_FEATURES = JSON.stringify({
 
 /**
  * 鉴权路径传输层：GET 一个 x.com GraphQL / 静态资源 URL，返回响应正文。
- * 鉴权 Cookie 只经桌面 IPC 参数或服务端 POST 体传递（URL 不带敏感信息）。
- * 非 2xx 抛错（消息含状态码，供上层映射"鉴权失效/限流"）。
+ * 鉴权 Cookie 只经桌面 IPC、服务端 POST 体或安卓系统网络请求头传递（URL
+ * 不带敏感信息）。非 2xx 抛错（消息含状态码，供上层映射"鉴权失效/限流"）。
  */
 export type XGraphQLTransport = (url: string, auth: XTweetAuth) => Promise<string>;
 
@@ -217,8 +225,11 @@ export const defaultXGraphQLTransport: XGraphQLTransport = async (url, auth) => 
     if (typeof data?.body === 'string') return data.body;
     throw new Error('服务端返回数据无效');
   }
+  if (isNativeChannelFetchAvailable()) {
+    return fetchXGraphQLViaNative(url, auth);
+  }
   if (desktopError) throw desktopError;
-  throw new Error('当前运行模式不支持 X 鉴权抓取：需要桌面版（Electron）或服务端模式');
+  throw new Error('当前运行模式不支持 X 鉴权抓取：需要安卓应用、桌面版（Electron）或服务端模式');
 };
 
 const compactJson = (value: Record<string, unknown>): string => JSON.stringify(value);

@@ -1111,7 +1111,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         {t('X 推文', 'X Tweets')}
                       </p>
                       <p className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
-                        {t('直连 x.com 抓取关注博主最新推文中的 GitHub 项目，需要桌面版或服务端模式', 'Fetches GitHub projects from followed accounts\' latest tweets on x.com; requires the desktop or server build')}
+                        {t('直连 x.com 抓取关注博主最新推文中的 GitHub 项目。安卓应用可直接抓取；网页版需要桌面版或服务端模式', 'Fetches GitHub projects from followed accounts\' latest tweets on x.com. The Android app fetches directly; the website needs the desktop or server build')}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-2">
@@ -1153,7 +1153,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         {t('Telegram 频道', 'Telegram Channels')}
                       </p>
                       <p className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
-                        {t('直连 t.me 公开预览抓取关注频道消息中的 GitHub 项目，需要桌面版或服务端模式', 'Fetches GitHub projects from followed channels\' messages via the t.me public preview; requires the desktop or server build')}
+                        {t('直连 t.me 公开预览抓取关注频道消息中的 GitHub 项目。安卓应用可直接抓取；网页版需要桌面版或服务端模式', 'Fetches GitHub projects from followed channels\' messages via the t.me public preview. The Android app fetches directly; the website needs the desktop or server build')}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-2">
