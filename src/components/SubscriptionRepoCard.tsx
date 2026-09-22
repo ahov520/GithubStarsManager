@@ -551,19 +551,19 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
       <div className="space-y-4">
         <div className="flex items-center gap-3 text-muted-foreground dark:text-muted-foreground ">
           <AlertTriangle className="w-8 h-8 flex-shrink-0" />
-          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+          <p className="min-w-0 break-words text-sm text-muted-foreground dark:text-muted-foreground">
             {language === 'zh' 
               ? `确定要取消 Star "${repo.full_name}" 吗？这将会从您的 GitHub 收藏中移除该仓库。`
               : `Are you sure you want to unstar "${repo.full_name}"? This will remove the repository from your GitHub stars.`}
           </p>
         </div>
-        <div className="flex gap-3 justify-end">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             onClick={() => {
               setUnstarConfirmOpen(false);
             }}
             variant="ghost"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-accent transition-colors"
+            className="h-11 w-full rounded-lg px-4 text-sm font-medium text-muted-foreground hover:bg-muted sm:h-9 sm:w-auto dark:text-muted-foreground dark:hover:bg-accent"
           >
             {t('取消', 'Cancel')}
           </Button>
@@ -571,7 +571,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
             type="button"
             variant="destructive"
             onClick={confirmUnstar}
-            className="rounded-lg px-4 py-2 text-sm font-medium"
+            className="h-11 w-full rounded-lg px-4 text-sm font-medium sm:h-9 sm:w-auto"
           >
             {t('确认取消', 'Confirm Unstar')}
           </Button>

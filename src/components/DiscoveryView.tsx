@@ -401,7 +401,7 @@ const LoadMoreButton: React.FC<LoadMoreButtonProps> = ({
       <Button
         onClick={onLoadMore}
         disabled={isLoading}
-        className="w-full py-3.5 rounded-xl font-medium bg-muted dark:bg-muted/20 border border-border dark:border-border hover:bg-accent dark:hover:bg-accent text-foreground dark:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted font-medium text-foreground transition-colors duration-200 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:bg-muted/20 dark:text-foreground dark:hover:bg-accent sm:h-auto sm:min-h-11 sm:py-3.5"
       >
         {isLoading ? (
           <>
@@ -1148,8 +1148,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         onClick={() => refreshChannel('x-tweet', 1, false)}
                         disabled={currentIsLoading}
                         className={isDesktopSafeMode
-                          ? 'flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
-                          : 'flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'}
+                          ? 'flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'
+                          : 'flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'}
                       >
                         <RefreshCw className="w-4 h-4" />
                         {t('开始同步', 'Start Sync')}
@@ -1158,7 +1158,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         variant="outline"
                         onClick={() => setTweetSettingsOpen(true)}
                         disabled={currentIsLoading}
-                        className="flex items-center gap-2 rounded-xl border border-border dark:border-border bg-card dark:bg-muted/40 px-6 py-2.5 text-sm font-medium text-foreground dark:text-foreground transition-colors hover:bg-accent dark:hover:bg-accent"
+                        className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:bg-accent sm:h-10 dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
                       >
                         <Users className="w-4 h-4" />
                         {t('关注列表', 'Follow List')}
@@ -1190,8 +1190,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         onClick={() => refreshChannel('telegram', 1, false)}
                         disabled={currentIsLoading}
                         className={isDesktopSafeMode
-                          ? 'flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
-                          : 'flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'}
+                          ? 'flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'
+                          : 'flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'}
                       >
                         <RefreshCw className="w-4 h-4" />
                         {t('开始同步', 'Start Sync')}
@@ -1200,7 +1200,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         variant="outline"
                         onClick={() => setTelegramSettingsOpen(true)}
                         disabled={currentIsLoading}
-                        className="flex items-center gap-2 rounded-xl border border-border dark:border-border bg-card dark:bg-muted/40 px-6 py-2.5 text-sm font-medium text-foreground dark:text-foreground transition-colors hover:bg-accent dark:hover:bg-accent"
+                        className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-6 text-sm font-medium text-foreground transition-colors hover:bg-accent sm:h-10 dark:border-border dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
                       >
                         <Users className="w-4 h-4" />
                         {t('频道列表', 'Channel List')}
@@ -1231,8 +1231,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       onClick={() => refreshChannel('weekly', 1, false)}
                       disabled={currentIsLoading}
                       className={isDesktopSafeMode
-                        ? 'flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
-                        : 'flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'}
+                        ? 'flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'
+                        : 'flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'}
                     >
                       <RefreshCw className="w-4 h-4" />
                       {t('开始同步', 'Start Sync')}
@@ -1262,8 +1262,8 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       onClick={() => refreshChannel(selectedDiscoveryChannel, 1, false)}
                       disabled={currentIsLoading}
                       className={isDesktopSafeMode
-                        ? 'flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
-                        : 'flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'}
+                        ? 'flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'
+                        : 'flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:h-10'}
                     >
                       <RefreshCw className="w-4 h-4" />
                       {t('立即刷新', 'Refresh Now')}
@@ -1303,7 +1303,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       refreshChannel(selectedDiscoveryChannel, nextPage, true);
                     }
                   }}
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-muted dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors flex items-center gap-2"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent sm:h-9 sm:w-auto dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   {t('重试', 'Retry')}
