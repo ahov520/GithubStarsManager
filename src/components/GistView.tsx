@@ -149,7 +149,7 @@ export const GistView: React.FC = () => {
               </p>
             </div>
           )}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
+          <div className="flex flex-wrap gap-2 pb-1 lg:flex-col lg:flex-nowrap lg:gap-1 lg:pb-0">
             {categories.map(category => {
               const Icon = categoryIcons[category.id];
               const active = selectedGistCategory === category.id;
@@ -160,7 +160,7 @@ export const GistView: React.FC = () => {
                   aria-pressed={active}
                   onClick={() => setSelectedGistCategory(category.id)}
                   variant="ghost"
-                  className={`linear-settings-nav-item group touch-target-44 flex h-11 shrink-0 items-center justify-between gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-accent-foreground lg:h-auto lg:w-full ${
+                  className={`linear-settings-nav-item group touch-target-44 flex h-11 max-w-full shrink-0 items-center justify-between gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-accent-foreground lg:h-auto lg:w-full ${
                     active ? 'is-active' : ''
                   }`}
                 >

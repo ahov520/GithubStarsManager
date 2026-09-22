@@ -53,7 +53,10 @@ describe('GistView mobile', () => {
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Gist 权限说明' }));
     expect(screen.getByRole('note')).toHaveTextContent('访问 Gist 需要 gist 权限');
-    expect(screen.getByRole('button', { name: /全部gist/ })).toBeInTheDocument();
+    const allGists = screen.getByRole('button', { name: /全部gist/ });
+    expect(allGists).toBeInTheDocument();
+    expect(allGists.parentElement).toHaveClass('flex-wrap');
+    expect(allGists.parentElement?.className).not.toContain('overflow-x-auto');
     expect(screen.getByRole('button', { name: '新建' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: '搜索 gist、文件名或摘要' })).toHaveClass('h-11');
     expect(screen.getByRole('combobox', { name: 'Gist 排序方式' })).toHaveClass('w-full');
