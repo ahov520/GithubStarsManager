@@ -1,7 +1,7 @@
 import { Button } from './ui/button';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import hljs from 'highlight.js';
-import { AlertCircle, Copy, ExternalLink, Loader2, RefreshCw, Share2 } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, Copy, ExternalLink, Loader2, RefreshCw, Search, Share2, X } from 'lucide-react';
 import { Modal } from './Modal';
 import type { Gist, GistFile } from '../types';
 import { getGistTitle, inferGistCodeLanguage } from '../utils/gistUtils';
@@ -21,9 +21,59 @@ interface HighlightedCodeProps {
   file: GistFile;
   fetchRaw: (rawUrl: string, signal: AbortSignal) => Promise<string>;
   onContentLoaded?: (filename: string, content: string, rawUrl?: string) => void;
+  findQuery?: string;
+  findIndex?: number;
+  findCount?: number;
+  onMatchCount?: (count: number) => void;
 }
 
-const HighlightedCode: React.FC<HighlightedCodeProps> = ({ file, fetchRaw, onContentLoaded }) => {
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const highlightGistMatches = (root: HTMLElement, query: string): HTMLElement[] => {
+  const needle = query.trim();
+  if (!needle) return [];
+  const pattern = new RegExp(escapeRegExp(needle), 'gi');
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || parent.closest('mark')) return NodeFilter.FILTER_REJECT;
+      pattern.lastIndex = 0;
+      return pattern.test(node.nodeValue ?? '') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  const nodes: Text[] = [];
+  let current = walker.nextNode();
+  while (current) {
+    nodes.push(current as Text);
+    current = walker.nextNode();
+  }
+  const marks: HTMLElement[] = [];
+  nodes.forEach((textNode) => {
+    const text = textNode.nodeValue ?? '';
+    const fragment = document.createDocumentFragment();
+    let cursor = 0;
+    pattern.lastIndex = 0;
+    let match = pattern.exec(text);
+    while (match) {
+      const index = match.index;
+      if (index > cursor) fragment.append(text.slice(cursor, index));
+      const mark = document.createElement('mark');
+      mark.dataset.gistFind = 'true';
+      mark.className = 'rounded-sm bg-yellow-200 px-0.5 text-inherit dark:bg-yellow-500/40 data-[current=true]:bg-orange-300 dark:data-[current=true]:bg-orange-500/70';
+      mark.textContent = match[0];
+      fragment.append(mark);
+      marks.push(mark);
+      cursor = index + match[0].length;
+      if (match[0].length === 0) pattern.lastIndex += 1;
+      match = pattern.exec(text);
+    }
+    if (cursor < text.length) fragment.append(text.slice(cursor));
+    textNode.parentNode?.replaceChild(fragment, textNode);
+  });
+  return marks;
+};
+
+const HighlightedCode: React.FC<HighlightedCodeProps> = ({ file, fetchRaw, onContentLoaded, findQuery = '', findIndex = 0, findCount = 0, onMatchCount }) => {
   const codeRef = useRef<HTMLElement>(null);
   const language = inferGistCodeLanguage(file.filename, file.language);
   const language2 = useAppStore(state => state.language);
@@ -38,13 +88,15 @@ const HighlightedCode: React.FC<HighlightedCodeProps> = ({ file, fetchRaw, onCon
   const [isLoadingRaw, setIsLoadingRaw] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
   const onContentLoadedRef = useRef(onContentLoaded);
+  const onMatchCountRef = useRef(onMatchCount);
 
   // rawContent 来自 raw_url，始终比 file.content（可能是 API 截断的部分内容）更完整。
   const content = rawContent ?? file.content ?? '';
 
   useEffect(() => {
     onContentLoadedRef.current = onContentLoaded;
-  }, [onContentLoaded]);
+    onMatchCountRef.current = onMatchCount;
+  }, [onContentLoaded, onMatchCount]);
 
   useEffect(() => {
     if (!needsRawFetch || !file.raw_url) return;
@@ -75,14 +127,29 @@ const HighlightedCode: React.FC<HighlightedCodeProps> = ({ file, fetchRaw, onCon
   }, [needsRawFetch, file.raw_url, file.filename, retryTick, fetchRaw]);
 
   useEffect(() => {
-    if (!codeRef.current) return;
-    codeRef.current.removeAttribute('data-highlighted');
+    const code = codeRef.current;
+    if (!code) return;
+    code.textContent = content || '';
+    code.removeAttribute('data-highlighted');
     try {
-      hljs.highlightElement(codeRef.current);
+      hljs.highlightElement(code);
     } catch {
       // Highlight.js can fail for obscure aliases; plaintext keeps the modal usable.
     }
-  }, [content, language]);
+    const marks = highlightGistMatches(code, findQuery);
+    const activeIndex = marks.length === 0 ? 0 : Math.min(findIndex, marks.length - 1);
+    marks.forEach((mark, index) => {
+      if (index === activeIndex) mark.dataset.current = 'true';
+    });
+    if (marks[activeIndex] && findQuery.trim()) {
+      try {
+        marks[activeIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      } catch {
+        // 测试环境没有布局时忽略滚动。
+      }
+    }
+    onMatchCountRef.current?.(marks.length);
+  }, [content, language, findQuery, findIndex, findCount]);
 
   if (isLoadingRaw) {
     return (
@@ -129,6 +196,11 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
   const { toast } = useDialog();
   const [activeFilename, setActiveFilename] = useState<string>('');
   const [loadedContents, setLoadedContents] = useState<Record<string, string>>({});
+  const [findOpen, setFindOpen] = useState(false);
+  const [findQuery, setFindQuery] = useState('');
+  const [findIndex, setFindIndex] = useState(0);
+  const [findCount, setFindCount] = useState(0);
+  const findInputRef = useRef<HTMLInputElement>(null);
   const previousGistIdRef = useRef<Gist['id'] | null>(null);
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
 
@@ -194,6 +266,19 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
   };
 
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  useEffect(() => {
+    if (!findOpen) return undefined;
+    const frame = window.requestAnimationFrame(() => findInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [findOpen]);
+
+  const stepFind = (delta: number) => {
+    setFindIndex((current) => {
+      if (findCount <= 0) return 0;
+      return (current + delta + findCount) % findCount;
+    });
+  };
 
   const handleShare = async () => {
     if (!gist) return;
@@ -290,6 +375,15 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
               </div>
               <Button
                 type="button"
+                aria-pressed={findOpen}
+                onClick={() => setFindOpen(true)}
+                className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+              >
+                <Search className="h-4 w-4" />
+                {t('查找', 'Find')}
+              </Button>
+              <Button
+                type="button"
                 disabled={!canCopyActiveFile}
                 onClick={() => handleCopy(activeCopyContent, t('文件内容已复制', 'File copied'))}
                 className="touch-target-44 inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
@@ -298,11 +392,52 @@ export const GistDetailModal: React.FC<GistDetailModalProps> = ({ gist, isOpen, 
                 {t('复制文件', 'Copy file')}
               </Button>
             </div>
+            {findOpen && (
+              <div className="flex w-full min-w-0 flex-wrap items-center gap-1">
+                <input
+                  ref={findInputRef}
+                  value={findQuery}
+                  onChange={(event) => {
+                    setFindQuery(event.target.value);
+                    setFindIndex(0);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      stepFind(event.shiftKey ? -1 : 1);
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      setFindOpen(false);
+                    }
+                  }}
+                  aria-label={t('在 Gist 中查找', 'Find in Gist')}
+                  placeholder={t('查找', 'Find')}
+                  enterKeyHint="search"
+                  className="h-11 min-w-[8rem] flex-1 rounded-lg border border-border bg-background px-3 text-base text-foreground"
+                />
+                <span className="shrink-0 px-1 text-center text-xs tabular-nums text-muted-foreground" aria-live="polite">
+                  {findQuery.trim() ? (findCount > 0 ? `${Math.min(findIndex, findCount - 1) + 1}/${findCount}` : t('无匹配', 'No matches')) : ''}
+                </span>
+                <Button type="button" variant="ghost" aria-label={t('上一处', 'Previous match')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => stepFind(-1)} disabled={findCount === 0}>
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button type="button" variant="ghost" aria-label={t('下一处', 'Next match')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => stepFind(1)} disabled={findCount === 0}>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <Button type="button" variant="ghost" aria-label={t('关闭查找', 'Close find')} className="touch-target-44 h-11 w-11 shrink-0 p-0" onClick={() => setFindOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <HighlightedCode
               key={`${gist.id}:${activeFile.filename}:${activeFile.raw_url ?? ''}`}
               file={effectiveActiveFile!}
               fetchRaw={fetchGistFileRaw}
               onContentLoaded={handleContentLoaded}
+              findQuery={findOpen ? findQuery : ''}
+              findIndex={findIndex}
+              findCount={findCount}
+              onMatchCount={setFindCount}
             />
           </div>
         ) : (

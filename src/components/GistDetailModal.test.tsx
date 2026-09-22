@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { GistDetailModal } from './GistDetailModal';
 import type { Gist } from '../types';
@@ -51,6 +51,38 @@ describe('GistDetailModal', () => {
     expect(screen.getByRole('link', { name: '打开' })).toHaveClass('h-11');
     expect(screen.getByRole('button', { name: 'note.ts' })).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: '复制文件' })).toHaveClass('h-11');
+    expect(screen.getByRole('button', { name: '查找' })).toHaveClass('h-11');
     delete (navigator as { share?: unknown }).share;
+  });
+
+  it('finds text in the gist file and steps between matches', async () => {
+    const searchable: Gist = {
+      ...gist,
+      files: {
+        'note.ts': {
+          filename: 'note.ts',
+          type: 'text/plain',
+          language: 'TypeScript',
+          size: 40,
+          content: 'const token = 1\nconst token = 2',
+        },
+      },
+    };
+    render(<GistDetailModal gist={searchable} isOpen onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: '查找' }));
+    const input = await screen.findByRole('textbox', { name: '在 Gist 中查找' });
+    expect(input.className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '下一处' }).className).toContain('h-11');
+    fireEvent.change(input, { target: { value: 'token' } });
+    await waitFor(() => {
+      expect(document.querySelectorAll('mark[data-gist-find]')).toHaveLength(2);
+    });
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '下一处' }));
+    await waitFor(() => {
+      const marks = [...document.querySelectorAll('mark[data-gist-find]')];
+      expect(marks[1]?.getAttribute('data-current')).toBe('true');
+    });
+    expect(screen.getByText('2/2')).toBeInTheDocument();
   });
 });
