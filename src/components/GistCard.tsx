@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Bot, Clock, Copy, Edit3, ExternalLink, FileCode2, Loader2, MoreHorizontal, Share2, StarOff, Trash2, User } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import type { Gist } from '../types';
@@ -8,6 +8,26 @@ import { useDialog } from '../hooks/useDialog';
 import { safeWriteText } from '../utils/clipboardUtils';
 import { getGistFileCount, getGistPrimaryLanguage, getGistTitle } from '../utils/gistUtils';
 import { Button } from './ui/button';
+
+function useCompactViewport(): boolean {
+  const query = '(max-width: 767px)';
+  const [compact, setCompact] = useState(() => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(query).matches
+  ));
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined;
+    const media = window.matchMedia(query);
+    const update = () => setCompact(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
+
+  return compact;
+}
 
 interface GistCardProps {
   gist: Gist;
@@ -30,6 +50,8 @@ export const GistCard: React.FC<GistCardProps> = ({
   const { analyzeOne, unstarGist, deleteGist, isAnalyzingGist, isMutating } = useGistActions();
   const { toast } = useDialog();
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const isCompact = useCompactViewport();
   const t = (zh: string, en: string) => language === 'zh' ? zh : en;
   const closeActions = () => setActionsOpen(false);
   const title = getGistTitle(gist);
@@ -41,6 +63,12 @@ export const GistCard: React.FC<GistCardProps> = ({
     Object.values(gist.files || {}).slice(0, 3).map(file => file.filename).join(', '),
     [gist.files]
   );
+  const summary = gist.ai_summary || gist.description || fileNames || t('暂无描述', 'No description');
+  const summaryCanExpand = summary.length > 40 || summary.includes('\n');
+
+  useEffect(() => {
+    setSummaryOpen(false);
+  }, [gist.id]);
 
   const handleCopyLink = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -207,9 +235,24 @@ export const GistCard: React.FC<GistCardProps> = ({
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-2 break-words text-sm leading-6 text-muted-foreground dark:text-muted-foreground">
-        {gist.ai_summary || gist.description || fileNames || t('暂无描述', 'No description')}
-      </p>
+      <div className="mt-4 min-w-0 max-w-full">
+        <p className={`break-words text-sm leading-6 text-muted-foreground dark:text-muted-foreground ${isCompact && summaryOpen ? '' : 'line-clamp-2'}`}>
+          {summary}
+        </p>
+        {isCompact && summaryCanExpand && (
+          <button
+            type="button"
+            className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+            aria-expanded={summaryOpen}
+            onClick={(event) => {
+              event.stopPropagation();
+              setSummaryOpen((open) => !open);
+            }}
+          >
+            {summaryOpen ? t('收起描述', 'Show less') : t('展开描述', 'Show more')}
+          </button>
+        )}
+      </div>
 
       {gist.analysis_failed && (
         <div className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">

@@ -55,6 +55,35 @@ describe('GistCard share', () => {
     delete (navigator as { share?: unknown }).share;
   });
 
+  it('expands a long gist summary on a phone without opening the detail', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    const description = '这是一段在 Gist 列表里放不下的说明，手机上需要就地展开后半段，而不必先打开代码详情。';
+    const onOpen = vi.fn();
+    try {
+      render(<GistCard gist={{ ...gist, description }} isMine={false} onOpen={onOpen} onEdit={vi.fn()} onUnstarred={vi.fn()} />);
+      const toggle = screen.getByRole('button', { name: '展开描述' });
+      expect(toggle.className).toContain('h-11');
+      const paragraph = screen.getAllByText(description).find((node) => node.tagName === 'P');
+      expect(paragraph?.className).toContain('line-clamp-2');
+      fireEvent.click(toggle);
+      expect(onOpen).not.toHaveBeenCalled();
+      expect(paragraph?.className).not.toContain('line-clamp-2');
+      expect(screen.getByRole('button', { name: '收起描述' })).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('opens labeled gist actions from a phone sheet', () => {
     const onOpen = vi.fn();
     render(<GistCard gist={gist} isMine onOpen={onOpen} onEdit={vi.fn()} onUnstarred={vi.fn()} />);
