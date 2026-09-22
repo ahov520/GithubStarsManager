@@ -138,7 +138,7 @@ export const SortAlgorithmTooltip: React.FC<SortAlgorithmTooltipProps> = ({ chan
           type="button"
           variant="ghost"
           size="icon"
-          className="h-6 w-6 rounded-full text-muted-foreground dark:text-muted-foreground/70"
+          className="touch-target-44 h-11 w-11 rounded-full text-muted-foreground dark:text-muted-foreground/70 sm:h-6 sm:w-6"
           aria-label={info.title}
           onMouseEnter={() => { cancelClose(); setOpen(true); }}
           onMouseLeave={scheduleClose}

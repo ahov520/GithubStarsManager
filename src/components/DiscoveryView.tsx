@@ -270,14 +270,14 @@ const PlatformFilter: React.FC<PlatformFilterProps> = ({ platform, onPlatformCha
           aria-label={language === 'zh'
             ? `平台筛选：${selectedPlatform?.name ?? '全部平台'}`
             : `Platform filter: ${selectedPlatform?.nameEn ?? 'All Platforms'}`}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium bg-muted text-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors"
+          className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-muted px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
         >
           <Filter className="h-4 w-4" />
           <span className="hidden xl:inline">{language === 'zh' ? selectedPlatform?.name : selectedPlatform?.nameEn}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-48 [&_[role=menuitemradio]]:min-h-11 sm:[&_[role=menuitemradio]]:min-h-0">
         <DropdownMenuRadioGroup value={platform} onValueChange={(value) => onPlatformChange(value as DiscoveryPlatform)}>
           {platforms.map((p) => (
             <DropdownMenuRadioItem
@@ -327,14 +327,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           type="button"
           variant="outline"
           aria-label={ariaLabel ?? selectedOption?.label}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium bg-card dark:bg-muted/40 border border-border dark:border-border text-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors ${className}`}
+          className={`touch-target-44 flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent ${className}`}
         >
           {selectedOption?.icon && <span className="h-4 w-4">{selectedOption.icon}</span>}
           <span>{selectedOption?.label}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className={`w-48 ${dropdownClassName}`}>
+      <DropdownMenuContent align="end" className={`w-48 [&_[role=menuitemradio]]:min-h-11 sm:[&_[role=menuitemradio]]:min-h-0 ${dropdownClassName}`}>
         <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
           {options.map((option) => (
             <DropdownMenuRadioItem
@@ -828,7 +828,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
           )}
         {selectedDiscoveryChannel === 'topic' && (
                   <Select value={discoverySelectedTopic || 'all'} onValueChange={(value) => setDiscoverySelectedTopic(value === 'all' ? null : value as TopicCategory)}>
-                    <SelectTrigger aria-label={t('主题筛选', 'Topic filter')} className="ui-field h-9 w-auto min-w-28 px-3 py-1.5 text-sm font-medium text-foreground dark:text-foreground"><SelectValue placeholder={t('主题', 'Topic')} /></SelectTrigger>
+                    <SelectTrigger aria-label={t('主题筛选', 'Topic filter')} className="ui-field touch-target-44 h-11 w-auto min-w-28 px-3 text-sm font-medium text-foreground dark:text-foreground sm:h-9"><SelectValue placeholder={t('主题', 'Topic')} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t('主题', 'Topic')}</SelectItem>
                       <SelectItem value="ai">{t('人工智能', 'AI')}</SelectItem>
@@ -937,7 +937,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                         onClick={handleAbortAnalysis}
                         aria-label={t('停止分析', 'Stop analysis')}
                         title={t('停止', 'Stop')}
-                        className="h-8 w-8"
+                        className="touch-target-44 h-11 w-11 sm:h-8 sm:w-8"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -989,22 +989,22 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       onChange={(e) => setSearchInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       placeholder={t('搜索仓库…', 'Search repositories…')}
-                      className="ui-field h-auto w-full py-2.5 pl-10 pr-4 text-foreground dark:text-foreground" />
+                      className="ui-field h-11 w-full pl-10 pr-4 text-base text-foreground dark:text-foreground sm:h-10 sm:text-sm" />
                   </div>
                   <Button
                     onClick={handleSearch}
                     aria-label={t('搜索', 'Search')}
                     disabled={!searchInput.trim() || currentIsLoading}
-                    className="ui-button-primary px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                    className="ui-button-primary touch-target-44 flex h-11 items-center gap-2 px-5 font-medium disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Search className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('搜索', 'Search')}</span>
+                    <span>{t('搜索', 'Search')}</span>
                   </Button>
                 </div>
                 
                 <div className="flex flex-wrap gap-2.5">
                   <Select value={discoveryLanguage} onValueChange={(value) => setDiscoveryLanguage(value as ProgrammingLanguage)}>
-                    <SelectTrigger aria-label={t('编程语言', 'Programming language')} className="ui-field h-9 w-auto min-w-32 px-3 py-1.5 text-sm font-medium text-foreground dark:text-foreground"><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label={t('编程语言', 'Programming language')} className="ui-field touch-target-44 h-11 w-auto min-w-32 px-3 text-sm font-medium text-foreground dark:text-foreground sm:h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="All">{t('所有语言', 'All Languages')}</SelectItem>
                       <SelectItem value="JavaScript">JavaScript</SelectItem>
