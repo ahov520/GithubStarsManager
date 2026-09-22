@@ -86,14 +86,14 @@ export const BulkCategorizeModal: React.FC<BulkCategorizeModalProps> = ({
                 variant="ghost"
                 aria-pressed={selectedCategory === category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`h-auto w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                className={`flex h-auto min-h-11 w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${
                   selectedCategory === category.id
                     ? 'border-primary bg-muted dark:bg-primary/10'
                     : 'border-border dark:hover:border-border-strong'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-foreground dark:text-foreground">
+                <div className="flex min-w-0 items-center space-x-3">
+                  <span className="min-w-0 break-words text-left text-sm font-medium text-foreground dark:text-foreground">
                     {category.name}
                   </span>
                 </div>
@@ -119,18 +119,18 @@ export const BulkCategorizeModal: React.FC<BulkCategorizeModalProps> = ({
           </p>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
           <Button
             onClick={onClose}
             disabled={isProcessing}
-            className="px-4 py-2 text-foreground dark:text-foreground bg-muted dark:bg-muted/40 rounded-lg hover:bg-accent dark:hover:bg-accent disabled:opacity-50"
+            className="h-11 w-full rounded-lg bg-muted px-4 text-foreground hover:bg-accent disabled:opacity-50 sm:h-9 sm:w-auto dark:bg-muted/40 dark:text-foreground dark:hover:bg-accent"
           >
             {t('取消', 'Cancel')}
           </Button>
           <Button
             onClick={handleCategorize}
             disabled={!selectedCategory || isProcessing}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 w-full rounded-lg bg-primary px-4 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-auto dark:bg-primary dark:hover:bg-primary/80"
           >
             {isProcessing ? t('处理中…', 'Processing…') : t('确认分类', 'Confirm Categorize')}
           </Button>
