@@ -14,7 +14,8 @@
  * 翻页：每个"加载更多"对每个未取尽的关注频道拉取一页，游标（含取尽标记）
  * 随消息原子落盘跨会话续传；page 1 刷新始终重抓最新页且不回退已推进的
  * 游标。60 秒水位只用于 page 1 去抖，不拦"加载更多"（点了就该翻页）。
- * 纯浏览器（静态部署）受 CORS 限制不可用，需桌面版或服务端模式。
+ * 纯浏览器（静态部署）受 CORS 限制不可用。安卓应用走系统网络直连，
+ * 桌面版走 Electron，网页版需要服务端模式。
  */
 
 import type {
@@ -27,6 +28,7 @@ import type {
 import { logger } from './logger';
 import { backend, getBackendAuthHeaders } from './backendAdapter';
 import { fetchTelegramChannelViaDesktop } from './electronProxy';
+import { fetchTelegramChannelViaNative, isNativeChannelFetchAvailable } from './nativeChannelFetch';
 import type { GitHubApiService } from './githubApi';
 import { extractRepoFullNames } from './weeklyIssuesService';
 import {
@@ -92,8 +94,8 @@ export type TelegramChannelTransport = (channel: string, before?: string) => Pro
 
 /**
  * 传输层：抓取 t.me/s/<name> 公开预览 HTML（before 为上一页游标）。桌面端走
- * 主进程 IPC（跟随应用代理），失败时回退 fullstack 服务端路由；两者都不可用
- * 时抛错（纯浏览器模式不支持）。
+ * 主进程 IPC（跟随应用代理），其次 fullstack 服务端路由，再次安卓系统网络；
+ * 纯浏览器没有可用传输层时抛错。
  */
 export const defaultTelegramChannelTransport: TelegramChannelTransport = async (channel, before) => {
   let desktopError: unknown = null;
@@ -119,8 +121,11 @@ export const defaultTelegramChannelTransport: TelegramChannelTransport = async (
     if (typeof data?.html === 'string') return data.html;
     throw new Error('服务端返回数据无效');
   }
+  if (isNativeChannelFetchAvailable()) {
+    return fetchTelegramChannelViaNative(channel, before);
+  }
   if (desktopError) throw desktopError;
-  throw new Error('当前运行模式不支持 Telegram 频道抓取：需要桌面版（Electron）或服务端模式');
+  throw new Error('当前运行模式不支持 Telegram 频道抓取：需要安卓应用、桌面版（Electron）或服务端模式');
 };
 
 /**

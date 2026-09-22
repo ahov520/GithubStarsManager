@@ -115,8 +115,8 @@ export const XTweetSettingsModal: React.FC<XTweetSettingsModalProps> = ({ isOpen
       <div className="space-y-5">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground dark:text-muted-foreground">
           {t(
-            '刷新时会增量拉取关注博主的最新推文，推文中包含 GitHub 仓库链接的条目会展示为列表项。数据由应用直连 x.com 抓取，需要桌面版或服务端模式（纯浏览器模式受跨域限制）。可选填写登录鉴权 Cookie 以启用更多推文与历史翻页。',
-            'Refreshing incrementally pulls the latest tweets of followed accounts; tweets containing GitHub repository links are listed. The app fetches x.com directly and requires the desktop or server build (browsers are CORS-restricted). Optional auth cookies unlock more tweets and history paging.',
+            '刷新时会增量拉取关注博主的最新推文，推文中包含 GitHub 仓库链接的条目会展示为列表项。安卓应用与桌面版直连 x.com，网页版需要服务端模式。可选填写登录鉴权 Cookie 以启用更多推文与历史翻页。',
+            'Refreshing incrementally pulls the latest tweets of followed accounts; tweets containing GitHub repository links are listed. The Android app and desktop build fetch x.com directly; the website needs server mode. Optional auth cookies unlock more tweets and history paging.',
           )}
         </div>
 
