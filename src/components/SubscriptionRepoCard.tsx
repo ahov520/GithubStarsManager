@@ -155,7 +155,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
     <>
     <div 
       onClick={handleCardClick}
-      className="ui-card cursor-pointer p-4 transition-all duration-200 sm:p-5"
+      className="ui-card min-w-0 max-w-full cursor-pointer overflow-hidden p-4 transition-all duration-200 sm:p-5"
       style={{ userSelect: 'none' }}
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
@@ -311,9 +311,9 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                     <button
                       type="button"
                       onClick={(event) => event.stopPropagation()}
-                      className="relative mb-3 block w-full cursor-text text-left"
+                      className="relative mb-3 block w-full min-w-0 max-w-full cursor-text overflow-hidden text-left"
                     >
-                      <span className="block text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
+                      <span className="block overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
                         {repo.description}
                       </span>
                     </button>
@@ -338,10 +338,10 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                     <button
                       type="button"
                       onClick={(event) => event.stopPropagation()}
-                      className="relative mb-3 flex w-full cursor-text items-start gap-1.5 text-left"
+                      className="relative mb-3 flex w-full min-w-0 max-w-full cursor-text items-start gap-1.5 overflow-hidden text-left"
                     >
                       <Bot className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground dark:text-muted-foreground" aria-hidden="true" />
-                      <span className="block text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
+                      <span className="block min-w-0 overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
                         {repo.ai_summary}
                       </span>
                     </button>

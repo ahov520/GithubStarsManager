@@ -726,7 +726,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
   }, [safeDiscoveryChannels]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 max-w-[100vw] flex-col overflow-x-hidden">
       {canPullRefresh && (pullDistance > 12 || pullRefreshing) && (
         <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
           {pullRefreshing
@@ -753,7 +753,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
       />
 
       <div
-        className="flex flex-col gap-4 lg:flex-row lg:gap-6 flex-1 min-h-0 min-w-0 items-start"
+        className="flex w-full min-w-0 flex-1 flex-col items-stretch gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div
           ref={sidebarRef}
@@ -997,7 +997,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
           {/* 内容区域 */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 space-y-4 overflow-y-auto lg:pr-2"
+            className="min-w-0 max-w-full flex-1 space-y-4 overflow-x-hidden overflow-y-auto lg:pr-2"
           >
             {selectedDiscoveryChannel === 'code-search' && <CodeSearchView />}
             {selectedDiscoveryChannel !== 'code-search' && (
