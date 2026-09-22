@@ -49,6 +49,33 @@ const repo: DiscoveryRepo = {
 };
 
 describe('SubscriptionRepoCard phone actions', () => {
+  it('expands a long discovery description without opening a popover', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    const description = '这是一段在发现卡片里放不下的仓库介绍，需要在手机上就地展开后半段，而不是弹出一个容易被顶栏挡住的浮层。';
+    try {
+      render(<TooltipProvider><SubscriptionRepoCard repo={{ ...repo, description }} /></TooltipProvider>);
+      const toggle = screen.getByRole('button', { name: '展开描述' });
+      expect(toggle.className).toContain('h-11');
+      expect(screen.getByText(description).className).toContain('line-clamp-2');
+      fireEvent.click(toggle);
+      expect(screen.getByText(description).className).not.toContain('line-clamp-2');
+      expect(screen.getByRole('button', { name: '收起描述' })).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('opens labeled discovery actions from the phone sheet', () => {
     render(<TooltipProvider><SubscriptionRepoCard repo={repo} /></TooltipProvider>);
 

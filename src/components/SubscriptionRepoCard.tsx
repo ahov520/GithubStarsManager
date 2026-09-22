@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2, MoreHorizontal, Copy, Terminal } from 'lucide-react';
 import { getPlatformIcon as getSharedPlatformIcon } from './platformMeta';
 import type { DiscoveryRepo } from '../types';
@@ -14,6 +14,28 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import { safeWriteText } from '../utils/clipboardUtils';
+
+function useCompactViewport(): boolean {
+  const query = '(max-width: 767px)';
+  const [compact, setCompact] = useState(() => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(query).matches
+  ));
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined;
+    const media = window.matchMedia(query);
+    const update = () => setCompact(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
+
+  return compact;
+}
+
+const textCanExpand = (value?: string) => (value?.length ?? 0) > 40 || Boolean(value?.includes('\n'));
 
 interface SubscriptionRepoCardProps {
   repo: DiscoveryRepo;
@@ -42,6 +64,14 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
   const [telegramModalOpen, setTelegramModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const isCompact = useCompactViewport();
+
+  useEffect(() => {
+    setDescriptionOpen(false);
+    setSummaryOpen(false);
+  }, [repo.id]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -328,8 +358,28 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
             </div>
           </div>
 
-          {/* Description */}
-          {repo.description && (
+          {/* Description. Phones expand the blurb in place; hover popovers stay on wider screens. */}
+          {repo.description && isCompact && (
+            <div className="mb-3 min-w-0 max-w-full">
+              <p className={`overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground ${descriptionOpen ? '' : 'line-clamp-2'}`}>
+                {repo.description}
+              </p>
+              {textCanExpand(repo.description) && (
+                <button
+                  type="button"
+                  className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+                  aria-expanded={descriptionOpen}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setDescriptionOpen((open) => !open);
+                  }}
+                >
+                  {descriptionOpen ? t('收起描述', 'Show less') : t('展开描述', 'Show more')}
+                </button>
+              )}
+            </div>
+          )}
+          {repo.description && !isCompact && (
             <Popover>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -355,8 +405,30 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
             </Popover>
           )}
 
-          {/* AI Summary */}
-          {repo.ai_summary && (
+          {repo.ai_summary && isCompact && (
+            <div className="mb-3 flex min-w-0 max-w-full items-start gap-1.5">
+              <Bot className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className={`overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground ${summaryOpen ? '' : 'line-clamp-2'}`}>
+                  {repo.ai_summary}
+                </p>
+                {textCanExpand(repo.ai_summary) && (
+                  <button
+                    type="button"
+                    className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+                    aria-expanded={summaryOpen}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSummaryOpen((open) => !open);
+                    }}
+                  >
+                    {summaryOpen ? t('收起总结', 'Hide summary') : t('展开总结', 'Show summary')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {repo.ai_summary && !isCompact && (
             <Popover>
               <Tooltip>
                 <TooltipTrigger asChild>
