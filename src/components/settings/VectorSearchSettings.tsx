@@ -24,6 +24,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { SliderInput } from '../ui/SliderInput';
 import { useDialog } from '../../hooks/useDialog';
 import { useVectorSearchActions } from '../../features/settings/hooks/useVectorSearchActions';
+import { isReadSupported, safeReadText } from '../../utils/clipboardUtils';
 
 interface VectorSearchSettingsProps {
   t: (zh: string, en: string) => string;
@@ -82,6 +83,15 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
   const [formWorkerUrl, setFormWorkerUrl] = useState(vectorSearchConfig.workerUrl || '');
   const [formAuthToken, setFormAuthToken] = useState(vectorSearchConfig.authToken || '');
   const [showAuthToken, setShowAuthToken] = useState(false);
+  const canPaste = isReadSupported();
+  const pasteSecret = async (apply: (value: string) => void) => {
+    const result = await safeReadText();
+    if (result.success && result.text.trim()) {
+      apply(result.text.trim());
+      return;
+    }
+    toast(result.error || t('无法读取剪贴板', 'Could not read the clipboard'), 'error');
+  };
   const [formIndexMode, setFormIndexMode] = useState<'description' | 'readme'>(vectorSearchConfig.indexMode || 'readme');
   const [formReadmeMaxChars, setFormReadmeMaxChars] = useState(vectorSearchConfig.readmeMaxChars || 6000);
   const [formReadmeMaxCharsInput, setFormReadmeMaxCharsInput] = useState(String(vectorSearchConfig.readmeMaxChars || 6000));
@@ -198,7 +208,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                   setFormDimensionsInput(String(dimensions));
                 }}
                 aria-pressed={formApiType === type.value}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                className={`touch-target-44 h-11 rounded-md px-3 text-sm transition-colors ${
                   formApiType === type.value
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
@@ -233,7 +243,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 ? 'http://localhost:11434'
                 : 'https://api.example.com/v1/embeddings'
             }
-            className="w-full px-3 py-2 text-sm border border-input rounded-md bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+            className="h-11 w-full rounded-md border border-input bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
           />
         </div>
 
@@ -242,24 +252,37 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <label htmlFor="embedding-api-key" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
             API Key
           </label>
-          <div className="relative">
-            <Input
-              id="embedding-api-key"
-              type={showApiKey ? 'text' : 'password'}
-              value={formApiKey}
-              onChange={(e) => setFormApiKey(e.target.value)}
-              placeholder={formApiType === 'ollama' ? t('可留空', 'Optional') : 'sk-xxx'}
-              className="w-full px-3 py-2 pr-10 text-sm border border-input rounded-md bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              aria-label={showApiKey ? t('隐藏 API Key', 'Hide API key') : t('显示 API Key', 'Show API key')}
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 p-0 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground"
-            >
-              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Input
+                id="embedding-api-key"
+                type={showApiKey ? 'text' : 'password'}
+                value={formApiKey}
+                onChange={(e) => setFormApiKey(e.target.value)}
+                placeholder={formApiType === 'ollama' ? t('可留空', 'Optional') : 'sk-xxx'}
+                className="h-11 w-full rounded-md border border-input bg-card px-3 pr-12 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label={showApiKey ? t('隐藏 API Key', 'Hide API key') : t('显示 API Key', 'Show API key')}
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="touch-target-44 absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 p-0 text-muted-foreground"
+              >
+                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+            </div>
+            {canPaste && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => pasteSecret(setFormApiKey)}
+                aria-label={t('粘贴 API Key', 'Paste API key')}
+                className="touch-target-44 h-11 shrink-0 px-3"
+              >
+                {t('粘贴', 'Paste')}
+              </Button>
+            )}
           </div>
           {formApiType === 'ollama' && (
             <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
@@ -287,7 +310,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 ? 'nomic-embed-text'
                 : 'model-name'
             }
-            className="w-full px-3 py-2 text-sm border border-input rounded-md bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+            className="h-11 w-full rounded-md border border-input bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
           />
         </div>
 
@@ -296,7 +319,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <label htmlFor="embedding-dimensions" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
             {t('向量维度', 'Vector Dimensions')}
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <NumberInput
               id="embedding-dimensions"
               ref={dimensionsInputRef}
@@ -308,7 +331,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 setFormDimensions(dimensions);
                 setFormDimensionsInput(String(dimensions));
               }}
-              className="flex-1 text-sm"
+              className="flex-1 text-base sm:text-sm h-11 sm:h-9"
             />
             <Button
               onClick={() => {
@@ -319,7 +342,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 dimensionsInputRef.current?.focus();
                 dimensionsInputRef.current?.select();
               }}
-              className="px-3 py-2 text-sm bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground rounded-md hover:bg-accent dark:hover:bg-accent"
+              className="touch-target-44 h-11 rounded-md bg-muted px-3 text-sm text-muted-foreground hover:bg-accent dark:bg-card dark:text-muted-foreground dark:hover:bg-accent"
             >
               {t('自动检测', 'Auto Detect')}
             </Button>
@@ -330,11 +353,11 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
         </div>
 
         {/* Test & Save */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             onClick={handleTestEmbedding}
             disabled={testingEmbedding || !formBaseUrl || !formModel}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {testingEmbedding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             {t('测试 Embedding 连接', 'Test Embedding Connection')}
@@ -342,7 +365,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <Button
             onClick={handleSaveEmbeddingConfig}
             variant={embeddingSaved ? 'default' : 'outline'}
-            className="h-9 px-4 text-sm"
+            className="touch-target-44 h-11 px-4 text-sm"
           >
             {embeddingSaved ? `✓ ${t('已保存', 'Saved')}` : t('保存配置', 'Save Config')}
           </Button>
@@ -379,7 +402,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
             value={formWorkerUrl}
             onChange={(e) => setFormWorkerUrl(e.target.value)}
             placeholder="https://github-stars-vectorize.your-name.workers.dev"
-            className="w-full px-3 py-2 text-sm border border-input rounded-md bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+            className="h-11 w-full rounded-md border border-input bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
           />
         </div>
 
@@ -388,33 +411,46 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <label htmlFor="vectorize-auth-token" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
             {t('认证 Token', 'Auth Token')}
           </label>
-          <div className="relative">
-            <Input
-              id="vectorize-auth-token"
-              type={showAuthToken ? 'text' : 'password'}
-              value={formAuthToken}
-              onChange={(e) => setFormAuthToken(e.target.value)}
-              placeholder={t('Worker 认证令牌', 'Worker authentication token')}
-              className="w-full px-3 py-2 pr-10 text-sm border border-input rounded-md bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              aria-label={showAuthToken ? t('隐藏认证 Token', 'Hide auth token') : t('显示认证 Token', 'Show auth token')}
-              onClick={() => setShowAuthToken(!showAuthToken)}
-              className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 p-0 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground"
-            >
-              {showAuthToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Input
+                id="vectorize-auth-token"
+                type={showAuthToken ? 'text' : 'password'}
+                value={formAuthToken}
+                onChange={(e) => setFormAuthToken(e.target.value)}
+                placeholder={t('Worker 认证令牌', 'Worker authentication token')}
+                className="h-11 w-full rounded-md border border-input bg-card px-3 pr-12 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:bg-card dark:text-foreground sm:h-9 sm:text-sm"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label={showAuthToken ? t('隐藏认证 Token', 'Hide auth token') : t('显示认证 Token', 'Show auth token')}
+                onClick={() => setShowAuthToken(!showAuthToken)}
+                className="touch-target-44 absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 p-0 text-muted-foreground"
+              >
+                {showAuthToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+            </div>
+            {canPaste && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => pasteSecret(setFormAuthToken)}
+                aria-label={t('粘贴认证 Token', 'Paste auth token')}
+                className="touch-target-44 h-11 shrink-0 px-3"
+              >
+                {t('粘贴', 'Paste')}
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Test */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             onClick={handleTestWorker}
             disabled={testingWorker || !formWorkerUrl}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {testingWorker ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             {t('测试 Worker 连接', 'Test Worker Connection')}
@@ -561,7 +597,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 setFormReadmeMaxChars(maxChars);
                 setFormReadmeMaxCharsInput(String(maxChars));
               }}
-              className="w-full text-sm"
+              className="h-11 w-full text-base sm:h-9 sm:text-sm"
             />
             <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               {t('建议 4000-8000，越长精度越高但索引越慢', 'Recommended 4000-8000. Longer = higher precision but slower indexing')}
@@ -573,7 +609,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
         <Button
           onClick={handleSaveWorkerConfig}
           variant={workerSaved ? 'default' : 'outline'}
-          className="h-9 px-4 text-sm"
+          className="touch-target-44 h-11 px-4 text-sm"
         >
           {workerSaved ? `✓ ${t('已保存', 'Saved')}` : t('保存索引配置', 'Save Index Config')}
         </Button>
@@ -582,7 +618,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <Button
             onClick={handleRebuildIndex}
             disabled={isIndexing || !isConfigComplete}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isIndexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             {t('重建向量索引', 'Rebuild Vector Index')}
@@ -590,7 +626,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
           <Button
             onClick={handleIncrementalIndex}
             disabled={isIndexing || !isConfigComplete || incrementalTargetCount === 0}
-            className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-accent px-4 text-sm text-accent-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isIndexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             {t('增量索引', 'Incremental Index')}
@@ -602,7 +638,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
             <Button
               onClick={handleAbortIndexing}
               variant="destructive"
-              className="h-9 gap-2 px-4 text-sm"
+              className="touch-target-44 h-11 gap-2 px-4 text-sm"
             >
               <Square className="w-4 h-4" />
               {t('中止', 'Abort')}
@@ -732,7 +768,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
         <Button
           onClick={handleSaveWorkerConfig}
           variant={workerSaved ? 'default' : 'outline'}
-          className="h-9 px-4 text-sm"
+          className="touch-target-44 h-11 px-4 text-sm"
         >
           {workerSaved ? `✓ ${t('已保存', 'Saved')}` : t('保存搜索参数', 'Save Search Parameters')}
         </Button>
@@ -750,7 +786,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
             'If you changed the Embedding model (different dimensions), you need to delete the old index and recreate it.'
           )}
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             onClick={async () => {
               const cmd = 'npx wrangler vectorize delete github-stars';
@@ -761,7 +797,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 toast(t('复制删除命令失败', 'Failed to copy delete command'), 'error');
               }
             }}
-            className="rounded-md bg-accent px-4 py-2 text-sm text-accent-foreground hover:bg-muted hover:text-foreground"
+            className="touch-target-44 h-11 rounded-md bg-accent px-4 text-sm text-accent-foreground hover:bg-muted hover:text-foreground"
           >
             {t('复制删除命令', 'Copy Delete Command')}
           </Button>
@@ -775,7 +811,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
                 toast(t('复制创建命令失败', 'Failed to copy create command'), 'error');
               }
             }}
-            className="rounded-md bg-accent px-4 py-2 text-sm text-accent-foreground hover:bg-muted hover:text-foreground"
+            className="touch-target-44 h-11 rounded-md bg-accent px-4 text-sm text-accent-foreground hover:bg-muted hover:text-foreground"
           >
             {t('复制创建命令', 'Copy Create Command')}
           </Button>
@@ -800,7 +836,7 @@ export const VectorSearchSettings: React.FC<VectorSearchSettingsProps> = ({ t })
             aria-expanded={showDeployGuide}
             aria-controls="vector-deploy-guide"
             aria-label={t('切换部署指南', 'Toggle deploy guide')}
-            className="h-8 w-8 p-0"
+            className="touch-target-44 h-11 w-11 p-0"
           >
             {showDeployGuide ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
           </Button>
