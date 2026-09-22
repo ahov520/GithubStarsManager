@@ -174,6 +174,44 @@ describe('RepositoryCard view modes', () => {
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
   });
 
+  it('wraps a long repository name and owner on a phone', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard
+            repository={{
+              ...repository,
+              name: 'super-long-mobile-repository-name-that-should-wrap',
+              full_name: 'organization-with-a-very-long-login/super-long-mobile-repository-name-that-should-wrap',
+              owner: { ...repository.owner, login: 'organization-with-a-very-long-login' },
+            }}
+            allCategories={[]}
+            viewMode="list"
+          />
+        </TooltipProvider>
+      );
+      const heading = screen.getByRole('heading', { name: 'super-long-mobile-repository-name-that-should-wrap' });
+      expect(heading).toHaveClass('break-words');
+      expect(heading.className).not.toContain('truncate');
+      const owner = screen.getByText('organization-with-a-very-long-login');
+      expect(owner).toHaveClass('break-all');
+      expect(owner.className).not.toContain('truncate');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('expands a clamped description on a phone without opening the README', async () => {
     const user = userEvent.setup();
     const originalMatchMedia = window.matchMedia;

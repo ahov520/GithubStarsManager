@@ -891,10 +891,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           className={`${viewMode === 'list' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full flex-shrink-0`}
         />
         <div className="min-w-0 flex-1">
-          <h3 className={`${viewMode === 'list' ? 'text-base' : ''} font-semibold text-foreground dark:text-foreground truncate`}>
+          <h3 className={`${viewMode === 'list' ? 'text-base' : ''} font-semibold text-foreground dark:text-foreground ${isCompact ? 'break-words' : 'truncate'}`}>
             {highlightSearchTerm(repository.name, searchQuery)}
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate">
+          <p className={`text-sm text-muted-foreground dark:text-muted-foreground ${isCompact ? 'break-all' : 'truncate'}`}>
             {repository.owner.login}
           </p>
           {viewMode === 'list' && (
