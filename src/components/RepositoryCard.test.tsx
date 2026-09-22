@@ -174,6 +174,37 @@ describe('RepositoryCard view modes', () => {
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
   });
 
+  it('opens labeled repository actions from a phone sheet', async () => {
+    const user = userEvent.setup();
+    const onAskRepository = vi.fn();
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      renderRepositoryCard('list', { onAskRepository });
+      await user.click(screen.getByRole('button', { name: '更多操作' }));
+      const move = screen.getByRole('button', { name: '移到分类' });
+      expect(move.className).toContain('min-h-11');
+      expect(move.className).toContain('w-full');
+      expect(screen.queryByRole('menuitem', { name: '移到分类' })).not.toBeInTheDocument();
+      const github = screen.getByRole('link', { name: '在 GitHub 中查看' });
+      expect(github.className).toContain('min-h-11');
+      expect(github).toHaveAttribute('href', repository.html_url);
+      await user.click(screen.getByRole('button', { name: '问答此仓库' }));
+      expect(onAskRepository).toHaveBeenCalledWith(repository);
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('shares the repository from the list menu when the browser can share', async () => {
     const user = userEvent.setup();
     const share = vi.fn().mockResolvedValue(undefined);

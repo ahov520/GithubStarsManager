@@ -22,6 +22,7 @@ import { useCompactLongPress } from '../hooks/useCompactLongPress';
 import { useRepositoryCardActions } from '../features/repositories/hooks/useRepositoryCardActions';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import { usePluginActions } from '../plugins/hooks/usePluginActions';
 import { applyPluginActionResult } from '../plugins/applyPluginActionResult';
 import { useDialog } from '../hooks/useDialog';
@@ -179,6 +180,62 @@ const PluginRepositoryActionItems: React.FC<{
   ));
 };
 
+const PluginRepositorySheetItems: React.FC<{
+  actions: RegisteredPluginAction[];
+  repository: Repository;
+  language: 'zh' | 'en';
+  onDone: () => void;
+}> = ({ actions, repository, language, onDone }) => {
+  const { toast } = useDialog();
+
+  const run = async (action: RegisteredPluginAction) => {
+    onDone();
+    try {
+      const operation = await pluginClient.runAction({
+        pluginId: action.pluginId,
+        actionId: action.id,
+        repositories: [repository],
+      });
+      if (!operation.success) {
+        toast(operation.error.message, 'error');
+        return;
+      }
+      await applyPluginActionResult(operation.result, toast, language);
+    } catch {
+      toast(language === 'zh' ? '无法应用插件结果' : 'Failed to apply plugin result', 'error');
+    }
+  };
+
+  return actions.map((action) => (
+    <button key={`${action.pluginId}:${action.id}`} type="button" className={PHONE_ACTION_ROW} onClick={() => void run(action)}>
+      <Plug className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {action.title}
+    </button>
+  ));
+};
+
+const PHONE_ACTION_ROW = 'flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50';
+
+function useCompactViewport(): boolean {
+  const query = '(max-width: 767px)';
+  const [compact, setCompact] = useState(() => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(query).matches
+  ));
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined;
+    const media = window.matchMedia(query);
+    const update = () => setCompact(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
+
+  return compact;
+}
+
 const MAX_CACHE_SIZE = 500;
 
 const highlightCache = new Map<string, React.ReactNode>();
@@ -220,7 +277,9 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const [showDragHint, setShowDragHint] = useState(false);
   const dragHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
   const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
+  const isCompact = useCompactViewport();
   const cardRef = useRef<HTMLDivElement>(null);
   const menuDismissedByPointerDownRef = useRef(false);
   const releaseSheetOutsideDismissedAtRef = useRef<number | null>(null);
@@ -251,6 +310,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     if (viewMode !== 'list' || selectionMode) {
       setIsActionsMenuOpen(false);
     }
+    if (selectionMode) setActionsSheetOpen(false);
   }, [viewMode, selectionMode]);
 
   useEffect(() => {
@@ -856,7 +916,24 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           </div>
         )}
 
-        {viewMode === 'list' && !selectionMode && (
+        {viewMode === 'list' && !selectionMode && isCompact && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="touch-target-44 h-9 w-9 sm:h-8 sm:w-8"
+            title={language === 'zh' ? '更多操作' : 'More actions'}
+            aria-label={language === 'zh' ? '更多操作' : 'More actions'}
+            onClick={(event) => {
+              event.stopPropagation();
+              setActionsSheetOpen(true);
+            }}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        )}
+
+        {viewMode === 'list' && !selectionMode && !isCompact && (
           <DropdownMenu open={isActionsMenuOpen} onOpenChange={setIsActionsMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button
@@ -1101,7 +1178,24 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               <StarOff className={`w-4 h-4 ${unstarring ? 'animate-pulse' : ''}`} />
             </SelectionAwareButton>
           )}
-          {(visibleGridActionCount < 8 || pluginActions.actions.length > 0) && (
+          {(visibleGridActionCount < 8 || pluginActions.actions.length > 0) && isCompact && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={selectionMode}
+              className="touch-target-44 h-9 w-9 shrink-0 rounded-md bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground sm:h-8 sm:w-8"
+              aria-label={language === 'zh' ? '更多仓库操作' : 'More repository actions'}
+              title={language === 'zh' ? '更多仓库操作' : 'More repository actions'}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsSheetOpen(true);
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          )}
+          {(visibleGridActionCount < 8 || pluginActions.actions.length > 0) && !isCompact && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1449,6 +1543,104 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           </Suspense>
         </ErrorBoundary>,
         document.body
+      )}
+
+      {isCompact && (
+        <Sheet open={actionsSheetOpen} onOpenChange={setActionsSheetOpen}>
+          <SheetContent
+            side="bottom"
+            showClose={false}
+            className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <SheetHeader className="pr-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <SheetTitle className="text-base">{language === 'zh' ? '仓库操作' : 'Repository actions'}</SheetTitle>
+                  <SheetDescription className="truncate">{repository.full_name}</SheetDescription>
+                </div>
+                <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setActionsSheetOpen(false)}>
+                  {language === 'zh' ? '完成' : 'Done'}
+                </Button>
+              </div>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+              <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); setMoveCategoryOpen(true); }}>
+                <FolderTree className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {language === 'zh' ? '移到分类' : 'Move to category'}
+              </button>
+              {(viewMode !== 'grid' || visibleGridActionCount < 1) && (
+                <button type="button" className={PHONE_ACTION_ROW} disabled={isAnalyzing} onClick={() => { setActionsSheetOpen(false); void handleAIAnalyze(); }}>
+                  {isAnalyzing ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> : <Bot className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  {language === 'zh' ? 'AI 分析' : 'Analyze with AI'}
+                </button>
+              )}
+              {onAskRepository && (viewMode !== 'grid' || visibleGridActionCount < 2) && (
+                <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); onAskRepository(repository); }}>
+                  <MessageSquareText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '问答此仓库' : 'Ask this repository'}
+                </button>
+              )}
+              {(viewMode !== 'grid' || visibleGridActionCount < 3) && (
+                <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); toggleReleaseSubscription(); }}>
+                  {isSubscribed ? <Bell className="h-4 w-4 shrink-0" aria-hidden="true" /> : <BellOff className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  {isSubscribed ? (language === 'zh' ? '取消订阅 Release' : 'Unsubscribe from releases') : (language === 'zh' ? '订阅 Release' : 'Subscribe to releases')}
+                </button>
+              )}
+              {viewMode === 'grid' && visibleGridActionCount < 4 && (
+                <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); setEditModalOpen(true); }}>
+                  <Edit3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '编辑仓库信息' : 'Edit repository info'}
+                </button>
+              )}
+              {(viewMode !== 'grid' || visibleGridActionCount < 5) && (
+                <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); setReleaseSheetOpen(true); }}>
+                  <PackageOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '查看 Release' : 'View releases'}
+                </button>
+              )}
+              {(viewMode !== 'grid' || visibleGridActionCount < 6) && (
+                <a
+                  href={language === 'zh' ? getZreadUrl(repository.full_name) : getDeepWikiUrl(repository.html_url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={PHONE_ACTION_ROW}
+                  onClick={() => setActionsSheetOpen(false)}
+                >
+                  <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '在 Zread 中查看' : 'View on DeepWiki'}
+                </a>
+              )}
+              {(viewMode !== 'grid' || visibleGridActionCount < 7) && (
+                <a href={repository.html_url} target="_blank" rel="noopener noreferrer" className={PHONE_ACTION_ROW} onClick={() => setActionsSheetOpen(false)}>
+                  <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '在 GitHub 中查看' : 'View on GitHub'}
+                </a>
+              )}
+              {canShare && (
+                <button type="button" className={PHONE_ACTION_ROW} onClick={() => { setActionsSheetOpen(false); void handleShare(); }}>
+                  <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {language === 'zh' ? '分享' : 'Share'}
+                </button>
+              )}
+              {vectorSearchAvailable && (
+                <button type="button" className={PHONE_ACTION_ROW} disabled={isFindingSimilar} onClick={() => { setActionsSheetOpen(false); void handleFindSimilar(); }}>
+                  {isFindingSimilar ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  {language === 'zh' ? '查找同类仓库' : 'Find similar repositories'}
+                </button>
+              )}
+              {(viewMode !== 'grid' || visibleGridActionCount < 8) && (
+                <button type="button" className={`${PHONE_ACTION_ROW} text-destructive`} disabled={unstarring} onClick={() => { setActionsSheetOpen(false); void handleUnstar(); }}>
+                  <StarOff className={`h-4 w-4 shrink-0 ${unstarring ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                  {language === 'zh' ? '取消 Star' : 'Unstar'}
+                </button>
+              )}
+              {pluginActions.actions.length > 0 && (
+                <PluginRepositorySheetItems actions={pluginActions.actions} repository={repository} language={language} onDone={() => setActionsSheetOpen(false)} />
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
       )}
 
       {moveCategoryOpen && (
