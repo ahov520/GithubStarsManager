@@ -43,5 +43,7 @@ describe('GistView mobile', () => {
     expect(screen.getByRole('note')).toHaveTextContent('访问 Gist 需要 gist 权限');
     expect(screen.getByRole('button', { name: /全部gist/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '新建' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: '搜索 gist、文件名或摘要' })).toHaveClass('h-11');
+    expect(screen.getByRole('combobox', { name: 'Gist 排序方式' })).toHaveClass('w-full');
   });
 });

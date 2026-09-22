@@ -178,7 +178,7 @@ export const GistView: React.FC = () => {
                     if (event.key === 'Enter' && !event.nativeEvent.isComposing) basicSearch();
                   }}
                   aria-label={t('搜索 gist、文件名或摘要', 'Search gists, filenames, or summaries')}
-                  className="ui-field w-full py-2 pl-9 pr-12 text-sm text-foreground dark:text-foreground"
+                  className="ui-field h-11 w-full py-2 pl-9 pr-12 text-base text-foreground dark:text-foreground sm:h-10 sm:text-sm"
                   placeholder={t('搜索 gist、文件名、摘要…', 'Search gists, filenames, summaries…')}
                 />
                 {query && (
@@ -209,7 +209,7 @@ export const GistView: React.FC = () => {
               </Button>
             </div>
 
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={gistSearchFilters.sortBy}
                 onValueChange={(value) => {
@@ -218,7 +218,7 @@ export const GistView: React.FC = () => {
                   }
                 }}
               >
-                <SelectTrigger aria-label={t('Gist 排序方式', 'Gist sort order')} className="ui-field touch-target-44 h-11 w-[9.5rem] shrink-0 px-3 py-1 text-sm sm:h-9">
+                <SelectTrigger aria-label={t('Gist 排序方式', 'Gist sort order')} className="ui-field touch-target-44 h-11 w-full shrink-0 px-3 py-1 text-sm sm:h-9 sm:w-[9.5rem]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -229,7 +229,6 @@ export const GistView: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide">
               <Button
                 type="button"
                 variant="outline"
@@ -258,7 +257,6 @@ export const GistView: React.FC = () => {
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {t('同步', 'Sync')}
               </Button>
-              </div>
               <Button
                 type="button"
                 onClick={() => {
