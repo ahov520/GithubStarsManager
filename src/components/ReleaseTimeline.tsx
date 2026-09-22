@@ -600,7 +600,7 @@ export const ReleaseTimeline: React.FC = () => {
                   </p>
                   <Button
                     onClick={() => setIsReleaseSourceSettingsOpen(true)}
-                    className="inline-flex items-center space-x-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    className="touch-target-44 inline-flex h-11 items-center space-x-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                     title={t('Release 来源设置', 'Release Source Settings')}
                   >
                     <Settings className="w-4 h-4" />
