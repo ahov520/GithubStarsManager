@@ -582,7 +582,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
             variant="outline"
             size="sm"
             onClick={clearAllFilters}
-            className="mt-5"
+            className="mt-5 h-11"
           >
             <X className="w-4 h-4" />
             {language === 'zh' ? '清除全部筛选' : 'Clear all filters'}
@@ -619,7 +619,7 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({
                 key={repo.id}
                 type="button"
                 variant="outline"
-                className="h-10 max-w-[11rem] shrink-0 px-3 text-sm"
+                className="h-11 max-w-[11rem] shrink-0 px-3 text-sm"
                 onClick={() => setReadmeRequest({ id: repo.id, token: Date.now() })}
               >
                 <span className="truncate">{repo.name}</span>

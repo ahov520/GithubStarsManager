@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo, useState, useEffect } from 'react';
-import { ExternalLink, GitBranch, Calendar, Download, ChevronDown, ChevronUp, BookOpen, ArrowUpRight, FolderOpen, Folder, BellOff, FileArchive, Code2, Loader2, CheckCircle2, Sparkles, Share2 } from 'lucide-react';
+import { ExternalLink, GitBranch, Calendar, Download, ChevronDown, ChevronUp, BookOpen, ArrowUpRight, FolderOpen, Folder, BellOff, FileArchive, Code2, Loader2, CheckCircle2, Sparkles, Share2, MoreHorizontal, Copy } from 'lucide-react';
 import { Release } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -13,6 +13,8 @@ import {
   shouldShowAssetsUpdatedIndicator,
 } from '../utils/releaseAssets';
 import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
+import { safeWriteText } from '../utils/clipboardUtils';
 import { ReleasePluginRecommendations } from './ReleasePluginRecommendations';
 
 interface DownloadLink {
@@ -93,6 +95,8 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
   // AI 总结状态内聚在 hook（展开态留在卡片内，不持久化）；
   // 卡片卸载时的请求取消由 hook 的 unmount 副作用承担（卡片卸载即 hook 卸载）。
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const summary = useMemo(() => summaries[release.id] ?? { status: 'idle' as const }, [summaries, release.id]);
 
   // 完成或失败后自动展开（原 runSummaryAnalysis 成功/失败分支的 setIsSummaryExpanded(true)）
@@ -143,6 +147,14 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
       if (error instanceof DOMException && error.name === 'AbortError') return;
     }
   }, [canShare, release.html_url, release.name, release.repository.full_name, release.tag_name]);
+
+  const handleCopyLink = useCallback(async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const result = await safeWriteText(release.html_url);
+    if (!result.success) return;
+    setLinkCopied(true);
+    window.setTimeout(() => setLinkCopied(false), 1500);
+  }, [release.html_url]);
 
   return (
     <div
@@ -270,11 +282,24 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
             )}
 
             <Button
+              type="button"
+              variant="outline"
+              className="touch-target-44 h-11 shrink-0 gap-1 px-3 text-xs md:hidden"
+              aria-label={t('发布操作', 'Release actions')}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsOpen(true);
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              {t('操作', 'Actions')}
+            </Button>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 onUnsubscribe();
               }}
-              className="touch-target-44 h-11 w-11 shrink-0 p-1 rounded bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent dark:hover:text-foreground transition-colors sm:h-8 sm:w-8"
+              className="touch-target-44 hidden h-11 w-11 shrink-0 rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground md:inline-flex sm:h-8 sm:w-8"
               title={t('取消订阅 Release', 'Unsubscribe from releases')}
               aria-label={t('取消订阅 Release', 'Unsubscribe from releases')}
             >
@@ -284,7 +309,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
               href={release.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="touch-target-44 flex h-11 w-11 shrink-0 items-center justify-center rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground sm:h-8 sm:w-8"
+              className="touch-target-44 hidden h-11 w-11 shrink-0 items-center justify-center rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground md:flex sm:h-8 sm:w-8"
               title={t('在GitHub上查看', 'View on GitHub')}
               aria-label={t('在GitHub上查看', 'View on GitHub')}
               onClick={(e) => {
@@ -298,7 +323,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
               <Button
                 type="button"
                 onClick={(event) => { void handleShare(event); }}
-                className="touch-target-44 h-11 w-11 shrink-0 rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground sm:h-8 sm:w-8"
+                className="touch-target-44 hidden h-11 w-11 shrink-0 rounded bg-muted p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground md:inline-flex sm:h-8 sm:w-8"
                 title={t('分享', 'Share')}
                 aria-label={t('分享', 'Share')}
               >
@@ -509,6 +534,75 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
           </div>
         </div>
       </div>
+
+      <Sheet open={actionsOpen} onOpenChange={setActionsOpen}>
+        <SheetContent
+          side="bottom"
+          showClose={false}
+          className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <SheetHeader className="pr-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <SheetTitle className="text-base">{t('发布操作', 'Release actions')}</SheetTitle>
+                <SheetDescription className="truncate">{release.repository.full_name} {release.tag_name}</SheetDescription>
+              </div>
+              <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setActionsOpen(false)}>
+                {t('完成', 'Done')}
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => { void handleCopyLink(event); }}
+            >
+              <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {linkCopied ? t('已复制', 'Copied') : t('复制链接', 'Copy link')}
+            </button>
+            <a
+              href={release.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-accent"
+              onClick={() => {
+                setActionsOpen(false);
+                onMarkAsRead();
+              }}
+            >
+              <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('在GitHub上查看', 'View on GitHub')}
+            </a>
+            {canShare && (
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+                onClick={(event) => {
+                  setActionsOpen(false);
+                  void handleShare(event);
+                }}
+              >
+                <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('分享', 'Share')}
+              </button>
+            )}
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsOpen(false);
+                onUnsubscribe();
+              }}
+            >
+              <BellOff className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('取消订阅 Release', 'Unsubscribe from releases')}
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 });

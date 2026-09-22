@@ -39,7 +39,9 @@ const extensionLanguageMap: Record<string, string> = {
 export const getGistTitle = (gist: Gist): string => {
   if (gist.description?.trim()) return gist.description.trim();
   const firstFile = Object.keys(gist.files || {})[0];
-  return firstFile || `gist:${gist.id.slice(0, 8)}`;
+  if (firstFile) return firstFile;
+  const id = typeof gist.id === 'string' ? gist.id : '';
+  return id ? `gist:${id.slice(0, 8)}` : 'gist';
 };
 
 export const getGistFileCount = (gist: Gist): number => Object.keys(gist.files || {}).length;

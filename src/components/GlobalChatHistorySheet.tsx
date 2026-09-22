@@ -120,11 +120,11 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
         </SheetHeader>
 
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground sm:left-2.5" aria-hidden="true" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="h-8 pl-8 text-xs"
+            className="h-11 w-full pl-10 text-base sm:h-8 sm:pl-8 sm:text-xs"
             placeholder={t('搜索标题或仓库名', 'Search title or repository')}
             aria-label={t('搜索问答历史', 'Search chat history')}
           />
@@ -136,7 +136,7 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
           ) : loadError && visibleSessions.length === 0 ? (
             <div className="flex min-h-28 flex-col items-center justify-center gap-3 rounded-md border border-destructive/40 px-4 text-center text-sm" role="alert">
               <p className="text-destructive">{loadError}</p>
-              <Button type="button" variant="secondary" size="sm" onClick={() => void refresh()}>
+              <Button type="button" variant="secondary" size="sm" onClick={() => void refresh()} className="h-11">
                 {t('重试', 'Retry')}
               </Button>
             </div>
@@ -152,7 +152,7 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
               {loadError && (
                 <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-destructive/40 px-3 py-2 text-xs text-destructive" role="alert">
                   <span>{loadError}</span>
-                  <Button type="button" variant="secondary" size="sm" className="h-7" onClick={() => void refresh()}>
+                  <Button type="button" variant="secondary" size="sm" className="h-11 shrink-0" onClick={() => void refresh()}>
                     {t('重试', 'Retry')}
                   </Button>
                 </div>
@@ -165,7 +165,7 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-auto min-w-0 flex-1 items-center justify-start gap-2.5 px-2 py-2 text-left"
+                      className="h-auto min-h-11 min-w-0 flex-1 items-center justify-start gap-2.5 px-2 py-2 text-left"
                       onClick={() => {
                         if (repository) onSelectSession(repository, session.id);
                       }}
@@ -184,7 +184,7 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                      className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground hover:text-destructive sm:h-7 sm:w-7"
                       onClick={() => setPendingDeletion(session)}
                       aria-label={t(`删除会话：${session.title}`, `Delete conversation: ${session.title}`)}
                     >
@@ -210,9 +210,9 @@ export const GlobalChatHistorySheet: React.FC<GlobalChatHistorySheetProps> = ({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t('取消', 'Cancel')}</AlertDialogCancel>
+              <AlertDialogCancel className="h-11 w-full sm:w-auto">{t('取消', 'Cancel')}</AlertDialogCancel>
               <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="h-11 w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 sm:w-auto"
                 onClick={() => {
                   if (pendingDeletion) void handleDelete(pendingDeletion.id);
                   setPendingDeletion(null);

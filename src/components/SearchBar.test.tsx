@@ -319,6 +319,33 @@ describe('SearchBar', () => {
     expect(setSearchResults).toHaveBeenCalledWith(expect.any(Array));
   });
 
+  it('shows the last sync time beside the phone sync controls', () => {
+    currentState = createStoreState({});
+    mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);
+
+    render(<SearchBar />);
+
+    const syncLabel = screen.getByText('同步于 从未同步');
+    expect(syncLabel.className).toContain('sm:hidden');
+    const sortButton = screen.getByRole('button', { name: '按星标排序' });
+    expect(sortButton.parentElement?.parentElement?.className).toContain('flex-wrap');
+    expect(screen.getByRole('button', { name: '最近更新时间' }).className).toContain('hidden');
+  });
+
+  it('opens the AI search explanation from a tap and labels the AI button', () => {
+    currentState = createStoreState({});
+    mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);
+
+    render(<SearchBar />);
+
+    const aiSearch = screen.getByRole('button', { name: 'AI搜索' });
+    expect(aiSearch.className).toContain('h-11');
+    expect(aiSearch.textContent).toContain('AI');
+
+    fireEvent.click(screen.getByRole('button', { name: '关于 AI 搜索' }));
+    expect(screen.getByText(/回退模式/)).toBeInTheDocument();
+  });
+
   it('dispatches the global history open event from the 问答历史 button', () => {
     currentState = createStoreState({});
     mockUseAppStore.mockReturnValue(currentState as ReturnType<typeof useAppStore>);

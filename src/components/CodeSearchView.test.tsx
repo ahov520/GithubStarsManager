@@ -106,6 +106,21 @@ describe('CodeSearchView', () => {
     expect(screen.getByText('已收藏')).toBeInTheDocument();
   });
 
+  it('turns the starred filter off from a tappable empty state', async () => {
+    mockedStore.mockImplementation(
+      ((selector: (s: unknown) => unknown) =>
+        selector({ repositories: [], language: 'zh' })) as unknown as typeof useAppStore
+    );
+    render(<CodeSearchView />);
+    fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
+    await screen.findByRole('link', { name: 'facebook/react' });
+    fireEvent.click(screen.getByLabelText('只显示我收藏的仓库'));
+    const turnOff = await screen.findByRole('button', { name: '关闭收藏过滤' });
+    expect(turnOff.className).toContain('h-11');
+    fireEvent.click(turnOff);
+    expect(await screen.findByRole('link', { name: 'facebook/react' })).toBeInTheDocument();
+  });
+
   it('starred-only switch filters out non-starred hits', async () => {
     render(<CodeSearchView />);
     fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
@@ -125,6 +140,26 @@ describe('CodeSearchView', () => {
       expect.objectContaining({ langs: ['TypeScript'] }),
       expect.anything()
     );
+  });
+
+  it('copies the file path and snippet from a code hit', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    render(<CodeSearchView />);
+    fireEvent.change(screen.getByLabelText('代码搜索关键词'), { target: { value: 'hello' } });
+    await screen.findByRole('link', { name: 'facebook/react' });
+
+    const copyPath = screen.getAllByRole('button', { name: '复制路径' })[0];
+    expect(copyPath.className).toContain('h-11');
+    fireEvent.click(copyPath);
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('src/index.ts'));
+    expect(await screen.findByRole('button', { name: '已复制路径' })).toBeInTheDocument();
+
+    const copySnippet = screen.getAllByRole('button', { name: '复制片段' })[0];
+    expect(copySnippet.className).toContain('h-11');
+    fireEvent.click(copySnippet);
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'));
   });
 
   it('shares a code hit when the browser can share', async () => {

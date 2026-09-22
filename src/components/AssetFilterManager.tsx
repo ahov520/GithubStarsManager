@@ -148,6 +148,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
               aria-label={t('清除所有筛选', 'Clear all filters')}
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="sm:hidden">{t('清除', 'Clear')}</span>
               <span className="hidden sm:inline">{t('清除所有筛选', 'Clear all filters')}</span>
             </Button>
           )}
@@ -159,7 +160,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
             aria-label={t('新建过滤器', 'New Filter')}
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{t('新建', 'New')}</span>
+            <span>{t('新建', 'New')}</span>
           </Button>
         </div>
       </div>
@@ -231,7 +232,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                 {customFilters.map(filter => (
                   <div
                     key={filter.id}
-                    className={`group flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors ${
+                    className={`group flex max-w-full min-h-11 items-center space-x-2 px-3 py-2 rounded-lg border transition-colors ${
                       selectedFilters.includes(filter.id)
                         ? 'bg-primary border-transparent text-primary-foreground font-medium'
                         : 'bg-muted border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
@@ -240,7 +241,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
                     <Button
                       variant="ghost"
                       onClick={() => onFilterToggle(filter.id)}
-                      className="touch-target-44 sm:min-h-0 sm:min-w-0 h-auto min-h-0 flex flex-1 items-center justify-start space-x-2 p-0"
+                      className="touch-target-44 h-auto min-h-11 w-auto max-w-full items-center justify-start gap-2 whitespace-normal px-1 text-left sm:min-h-0 sm:min-w-0 sm:flex-1 sm:p-0"
                       aria-pressed={selectedFilters.includes(filter.id)}
                       aria-label={`${filter.name} (${filter.keywords.join(', ')})`}
                       title={`${filter.name} (${filter.keywords.join(', ')})`}

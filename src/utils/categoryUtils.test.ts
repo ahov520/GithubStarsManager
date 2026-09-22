@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Category, Repository } from '../types';
-import { getAICategory, getEffectiveTags, matchesCategory, resolveCategoryAssignment, buildCategoryHints } from './categoryUtils';
+import { buildRepositoryCategoryAssignment, getAICategory, getEffectiveTags, matchesCategory, resolveCategoryAssignment, buildCategoryHints } from './categoryUtils';
 
 const aiCategory: Category = {
   id: 'ai',
@@ -620,5 +620,36 @@ describe('category keyword direction', () => {
   it('preserves a locked manual game category', () => {
     const repository = { ...baseRepository, ai_tags: ['Go'], custom_category: '游戏', category_locked: true };
     expect(matchesCategory(repository, gameCategory, 'effective')).toBe(true);
+  });
+});
+
+describe('buildRepositoryCategoryAssignment', () => {
+  const all = { id: 'all', name: '全部分类', icon: '📁', keywords: [] };
+  const tools = { id: 'tools', name: '工具', icon: '🔧', keywords: ['cli'] };
+
+  it('locks a repository into the chosen category', () => {
+    const next = buildRepositoryCategoryAssignment(baseRepository, tools, [all, tools], '2026-09-22T00:00:00.000Z');
+    expect(next?.custom_category).toBe('工具');
+    expect(next?.category_locked).toBe(true);
+    expect(next?.last_edited).toBe('2026-09-22T00:00:00.000Z');
+  });
+
+  it('clears an assigned repository when moved to all categories', () => {
+    const next = buildRepositoryCategoryAssignment(
+      { ...baseRepository, custom_category: '工具', category_locked: true },
+      all,
+      [all, tools],
+    );
+    expect(next?.custom_category).toBe('');
+    expect(next?.category_locked).toBe(false);
+  });
+
+  it('does not write when the repository already has no category', () => {
+    const next = buildRepositoryCategoryAssignment(
+      { ...baseRepository, ai_tags: [], topics: [], language: 'Rust', description: '', custom_category: undefined },
+      all,
+      [all, tools],
+    );
+    expect(next).toBeNull();
   });
 });

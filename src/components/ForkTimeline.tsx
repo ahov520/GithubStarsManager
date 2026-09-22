@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import ForkCard from './ForkCard';
 import { useForkTimelineActions } from '../features/forks/hooks/useForkTimelineActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Modal } from './Modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -94,6 +95,10 @@ export const ForkTimeline: React.FC = () => {
     }
   }, [totalPages, currentPage]);
 
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => handleRefresh(),
+  });
+
   const handlePageChange = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
@@ -127,6 +132,15 @@ export const ForkTimeline: React.FC = () => {
 
   return (
     <div className="max-w-full mx-auto px-2 sm:px-4">
+      {(pullDistance > 12 || pullRefreshing) && (
+        <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing
+            ? t('正在刷新…', 'Refreshing…')
+            : pullDistance >= 80
+              ? t('松开刷新', 'Release to refresh')
+              : t('下拉刷新', 'Pull to refresh')}
+        </div>
+      )}
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-start lg:justify-between">
@@ -187,7 +201,7 @@ export const ForkTimeline: React.FC = () => {
                 setForkSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="ui-field w-full py-2 pl-10 pr-12 text-foreground dark:text-foreground"
+              className="ui-field h-11 w-full pl-10 pr-12 text-base text-foreground dark:text-foreground sm:h-10 sm:text-sm"
             />
             {searchQuery && (
               <Button
@@ -322,7 +336,7 @@ export const ForkTimeline: React.FC = () => {
             {searchQuery && (
               <Button
                 onClick={() => setForkSearchQuery('')}
-                className="ui-button-primary mt-4 px-4 py-2 text-sm"
+                className="ui-button-primary touch-target-44 mt-4 h-11 px-4 text-sm"
               >
                 {t('清除搜索', 'Clear Search')}
               </Button>
@@ -362,15 +376,15 @@ export const ForkTimeline: React.FC = () => {
 
       {/* Bottom Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8">
-          <div className="flex items-center space-x-1">
+        <div className="mt-8 flex justify-center">
+          <div className="flex max-w-full items-center space-x-1 overflow-x-auto pb-1">
             <Button
               type="button"
               variant="ghost"
               onClick={() => handlePageChange(1)}
               disabled={clampedPage === 1}
               aria-label={t('第一页', 'First page')}
-              className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
             >
               <ChevronsLeft className="w-4 h-4" />
             </Button>
@@ -380,7 +394,7 @@ export const ForkTimeline: React.FC = () => {
               onClick={() => handlePageChange(clampedPage - 1)}
               disabled={clampedPage === 1}
               aria-label={t('上一页', 'Previous page')}
-              className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -393,10 +407,10 @@ export const ForkTimeline: React.FC = () => {
                   variant="ghost"
                   aria-current={page === clampedPage ? 'page' : undefined}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-2 rounded-lg text-sm ${
+                  className={`touch-target-44 h-11 min-w-11 shrink-0 rounded-lg px-3 text-sm sm:h-8 ${
                     page === clampedPage
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
+                      : 'bg-muted text-muted-foreground hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent'
                   }`}
                 >
                   {page}
@@ -414,7 +428,7 @@ export const ForkTimeline: React.FC = () => {
               onClick={() => handlePageChange(clampedPage + 1)}
               disabled={clampedPage === totalPages}
               aria-label={t('下一页', 'Next page')}
-              className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -424,7 +438,7 @@ export const ForkTimeline: React.FC = () => {
               onClick={() => handlePageChange(totalPages)}
               disabled={clampedPage === totalPages}
               aria-label={t('最后一页', 'Last page')}
-              className="p-2 rounded-lg bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-lg bg-muted p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent sm:h-8 sm:w-8"
             >
               <ChevronsRight className="w-4 h-4" />
             </Button>
@@ -437,6 +451,7 @@ export const ForkTimeline: React.FC = () => {
         isOpen={syncModal.isOpen}
         onClose={() => setSyncModal(prev => ({ ...prev, isOpen: false }))}
         title={language === 'zh' ? '同步上游代码 (Sync upstream)' : 'Sync Upstream'}
+        mobileFullScreen
       >
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground dark:text-muted-foreground">
@@ -456,24 +471,24 @@ export const ForkTimeline: React.FC = () => {
               </div>
             ) : (
               <Select value={syncModal.branch} onValueChange={(value) => setSyncModal(prev => ({ ...prev, branch: value }))}>
-                <SelectTrigger aria-labelledby="fork-target-branch-label" className="ui-field h-10 w-full px-3 py-2 dark:text-foreground"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-labelledby="fork-target-branch-label" className="ui-field touch-target-44 h-11 w-full px-3 text-base dark:text-foreground sm:h-10 sm:text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>{syncModalBranches.length > 0 ? syncModalBranches.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>) : <SelectItem value={syncModal.branch}>{syncModal.branch}</SelectItem>}</SelectContent>
               </Select>
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
               onClick={() => setSyncModal(prev => ({ ...prev, isOpen: false }))}
-              className="px-4 py-2 text-sm font-medium"
+              className="touch-target-44 h-11 w-full px-4 text-sm font-medium sm:w-auto"
             >
               {language === 'zh' ? '取消' : 'Cancel'}
             </Button>
             <Button
               onClick={confirmSyncUpstream}
               disabled={isFetchingBranches || !syncModal.branch}
-              className="ui-button-primary px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ui-button-primary touch-target-44 h-11 w-full px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {language === 'zh' ? '确认同步' : 'Sync Branch'}
             </Button>

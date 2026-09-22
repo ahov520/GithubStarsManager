@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
@@ -166,6 +166,14 @@ describe('MarkdownRenderer', () => {
       expect(img).toHaveAttribute('alt', 'Alt text');
     });
 
+    it('opens phone-sized controls when an image is tapped', () => {
+      render(<MarkdownRenderer content="![Alt text](https://example.com/image.png)" />);
+      fireEvent.click(screen.getByRole('img', { name: 'Alt text' }));
+      for (const name of ['下载图片', '放大', '缩小', '重置', '关闭']) {
+        expect(screen.getByRole('button', { name }).className).toContain('h-11');
+      }
+    });
+
     it('should resolve relative image URLs with baseUrl', () => {
       const { container } = render(
         <MarkdownRenderer 
@@ -189,10 +197,14 @@ describe('MarkdownRenderer', () => {
       expect(pre?.querySelectorAll('span[aria-hidden="true"]')).toHaveLength(0);
     });
 
-    it('should provide a hover copy button for code blocks', () => {
+    it('keeps the code copy button visible on a phone', () => {
       const content = '```javascript\nconsole.log("hello");\n```';
       const { container } = render(<MarkdownRenderer content={content} />);
-      expect(container.querySelector('button[aria-label="复制代码"]')).toBeInTheDocument();
+      const button = container.querySelector('button[aria-label="复制代码"]');
+      expect(button).toBeInTheDocument();
+      expect(button?.className).toContain('opacity-100');
+      expect(button?.className).toContain('h-11');
+      expect(button?.className).toContain('md:opacity-0');
     });
 
     it('should normalize language aliases', () => {

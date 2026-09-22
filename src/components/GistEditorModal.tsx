@@ -123,6 +123,26 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
       title={gist ? t('编辑 Gist', 'Edit Gist') : t('新建 Gist', 'New Gist')}
       maxWidth="max-w-4xl"
       mobileFullScreen
+      scrollable
+      footer={(
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            onClick={onClose}
+            className="h-11 w-full border border-border bg-card text-sm text-muted-foreground hover:bg-muted sm:w-auto dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+          >
+            {t('取消', 'Cancel')}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit || isSaving}
+            className="h-11 w-full text-sm font-medium sm:w-auto"
+          >
+            {isSaving ? t('保存中…', 'Saving…') : t('保存', 'Save')}
+          </Button>
+        </div>
+      )}
     >
       <div className="space-y-5">
         <div className="space-y-2">
@@ -133,22 +153,22 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
             id="gist-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none transition-colors focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground"
+            className="h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground outline-none transition-colors focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:text-sm"
             placeholder={t('这个 gist 是做什么的？', 'What is this gist for?')}
           />
         </div>
 
         {!gist && (
-          <div className="flex items-center gap-3 text-sm text-muted-foreground dark:text-muted-foreground">
-            <Checkbox id="gist-public" aria-label={t('公开 Gist', 'Public gist')} checked={isPublic} onCheckedChange={(checked) => setIsPublic(checked === true)} />
-            <label htmlFor="gist-public" className="cursor-pointer text-left">
+          <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
+            <Checkbox id="gist-public" aria-label={t('公开 Gist', 'Public gist')} checked={isPublic} onCheckedChange={(checked) => setIsPublic(checked === true)} className="relative after:absolute after:-inset-3 after:content-['']" />
+            <label htmlFor="gist-public" className="inline-flex min-h-11 cursor-pointer items-center px-3 text-left">
               {t('公开 Gist', 'Public gist')}
             </label>
           </div>
         )}
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm font-medium text-foreground dark:text-foreground">{t('文件', 'Files')}</div>
             {hasDuplicateFilenames && (
               <div className="text-xs text-destructive">
@@ -158,7 +178,7 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
             <Button
               type="button"
               onClick={() => setFiles(prev => [...prev, createEmptyFile()])}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
             >
               <Plus className="h-4 w-4" />
               {t('添加文件', 'Add file')}
@@ -173,7 +193,7 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
                   aria-label={t(`文件名 ${index + 1}`, `Filename ${index + 1}`)}
                   value={file.filename}
                   onChange={(event) => updateFile(file.id, { filename: event.target.value })}
-                  className="min-w-0 flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground"
+                  className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base text-foreground outline-none focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:text-sm"
                   placeholder={`file-${index + 1}.txt`}
                 />
                 <Button
@@ -181,7 +201,8 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
                   variant="ghost"
                   onClick={() => removeFile(file.id)}
                   disabled={visibleFiles.length === 1}
-                  className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40 dark:text-muted-foreground"
+                  aria-label={t('删除文件', 'Delete file')}
+                  className="h-11 w-11 shrink-0 rounded-lg p-0 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40 dark:text-muted-foreground"
                   title={t('删除文件', 'Delete file')}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -193,29 +214,11 @@ export const GistEditorModal: React.FC<GistEditorModalProps> = ({ gist, isOpen, 
                 value={file.content}
                 onChange={(event) => updateFile(file.id, { content: event.target.value })}
                 rows={8}
-                className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground"
+                className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 font-mono text-base text-foreground outline-none focus:border-primary dark:border-border dark:bg-muted/40 dark:text-foreground sm:text-sm"
                 placeholder={t('输入文件内容', 'Enter file content')}
               />
             </div>
           ))}
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
-          >
-            {t('取消', 'Cancel')}
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit || isSaving}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSaving ? t('保存中…', 'Saving…') : t('保存', 'Save')}
-          </Button>
         </div>
       </div>
     </Modal>

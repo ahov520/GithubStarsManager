@@ -21,6 +21,7 @@ import { SiAndroid, SiApple, SiLinux, SiX, SiTelegram } from '@icons-pack/react-
 import { SiWindows } from './SiWindows';
 import { useAppStore } from '../store/useAppStore';
 import { useDiscoveryActions } from '../features/discovery/hooks/useDiscoveryActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { DiscoverySidebar } from './DiscoverySidebar';
 import { SubscriptionRepoCard } from './SubscriptionRepoCard';
 import { CodeSearchView } from './CodeSearchView';
@@ -31,6 +32,7 @@ import { TelegramSettingsModal } from './TelegramSettingsModal';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DiscoveryChannelPicker } from './DiscoveryChannelPicker';
 import type {
   DiscoveryChannelId,
   DiscoveryChannelIcon,
@@ -186,14 +188,15 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
   }, []);
 
   return (
-    <div 
-      className="relative w-full overflow-x-hidden border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm lg:hidden"
+    <div
+      className="relative flex w-full items-stretch overflow-x-hidden border-b border-border bg-background/95 backdrop-blur-sm dark:border-border dark:bg-card/95 lg:hidden"
     >
+      <div className="relative min-w-0 flex-1">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
         role="tablist"
-        className="flex overflow-x-auto scrollbar-hide py-2 px-2 gap-1 snap-x snap-mandatory"
+        className="flex gap-1 overflow-x-auto scrollbar-hide px-2 py-2 snap-x snap-mandatory"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -231,14 +234,23 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({
           </Button>
         ))}
       </div>
-      
-      {/* Active indicator */}
+
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background/95 to-transparent dark:from-card/95" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background/95 to-transparent dark:from-card/95" />
+
       <div
-        className="absolute bottom-0 h-0.5 bg-primary rounded-full transition-transform duration-200 ease-out will-change-transform"
+        className="absolute bottom-0 h-0.5 rounded-full bg-primary transition-transform duration-200 ease-out will-change-transform"
         style={{
           width: indicatorStyle.width,
           transform: `translateX(${indicatorStyle.translateX}px)`,
         }}
+      />
+      </div>
+      <DiscoveryChannelPicker
+        channels={channels}
+        selectedChannel={selectedChannel}
+        onChannelSelect={onChannelSelect}
+        language={language}
       />
     </div>
   );
@@ -273,7 +285,7 @@ const PlatformFilter: React.FC<PlatformFilterProps> = ({ platform, onPlatformCha
           className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-muted px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
         >
           <Filter className="h-4 w-4" />
-          <span className="hidden xl:inline">{language === 'zh' ? selectedPlatform?.name : selectedPlatform?.nameEn}</span>
+          <span className="max-w-[7rem] truncate sm:max-w-none">{language === 'zh' ? selectedPlatform?.name : selectedPlatform?.nameEn}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -698,6 +710,12 @@ export const DiscoveryView: React.FC = React.memo(() => {
     }
   }, [safeDiscoveryChannels, refreshChannel]);
 
+  const canPullRefresh = selectedDiscoveryChannel !== 'code-search';
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    enabled: canPullRefresh,
+    onRefresh: () => refreshChannel(selectedDiscoveryChannel, 1, false),
+  });
+
   const mobileChannels = useMemo(() => {
     return safeDiscoveryChannels
       .filter(ch => ch.enabled)
@@ -708,7 +726,16 @@ export const DiscoveryView: React.FC = React.memo(() => {
   }, [safeDiscoveryChannels]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 max-w-[100vw] flex-col overflow-x-hidden">
+      {canPullRefresh && (pullDistance > 12 || pullRefreshing) && (
+        <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing
+            ? t('正在刷新…', 'Refreshing…')
+            : pullDistance >= 80
+              ? t('松开刷新', 'Release to refresh')
+              : t('下拉刷新', 'Pull to refresh')}
+        </div>
+      )}
       {/* Mobile Tab Navigation */}
       <MobileTabNav
         channels={mobileChannels}
@@ -726,7 +753,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
       />
 
       <div
-        className="flex flex-col gap-4 lg:flex-row lg:gap-6 flex-1 min-h-0 min-w-0 items-start"
+        className="flex w-full min-w-0 flex-1 flex-col items-stretch gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div
           ref={sidebarRef}
@@ -779,7 +806,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       </p>
                     )}
                     {currentLastRefresh && (
-                      <p className="hidden sm:block text-xs text-muted-foreground dark:text-muted-foreground">
+                      <p className="truncate text-xs text-muted-foreground dark:text-muted-foreground">
                         {t('更新于', 'Updated')} {formatLastRefresh(currentLastRefresh)}
                       </p>
                     )}
@@ -953,6 +980,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       title={t('AI分析', 'Analyze with AI')}
                     >
                       <Bot className="w-4 h-4" />
+                      <span className="sm:hidden">{t('分析', 'AI')}</span>
                       <span className="hidden sm:inline">{t('AI分析', 'AI Analyze')}</span>
                     </Button>
                   )}
@@ -970,7 +998,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
           {/* 内容区域 */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 space-y-4 overflow-y-auto lg:pr-2"
+            className="min-w-0 max-w-full flex-1 space-y-4 overflow-x-hidden overflow-y-auto lg:pr-2"
           >
             {selectedDiscoveryChannel === 'code-search' && <CodeSearchView />}
             {selectedDiscoveryChannel !== 'code-search' && (

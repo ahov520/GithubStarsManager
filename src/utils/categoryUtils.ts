@@ -322,3 +322,44 @@ export const resolveCategoryAssignment = (
     ? repository.custom_category
     : undefined;
 };
+
+/**
+ * 把仓库改到目标分类后的下一份数据。
+ * 「全部分类」表示显式清空；与 AI/默认分类一致时去掉自定义标记。
+ * 结果与当前存储一致时返回 null，避免多余写入。
+ */
+export const buildRepositoryCategoryAssignment = (
+  repository: Repository,
+  category: Category,
+  allCategories: Category[],
+  now = new Date().toISOString(),
+): Repository | null => {
+  if (category.id === 'all') {
+    if (repository.custom_category === '') return null;
+    const hasAssignedCategory = !!repository.custom_category
+      || !!(getAICategory(repository, allCategories) || getDefaultCategory(repository, allCategories));
+    if (!hasAssignedCategory) return null;
+    return {
+      ...repository,
+      custom_category: '',
+      category_locked: false,
+      last_edited: now,
+    };
+  }
+
+  const customCategoryValue = computeCustomCategory(
+    category.name,
+    getAICategory(repository, allCategories),
+    getDefaultCategory(repository, allCategories),
+  );
+  const categoryLocked = customCategoryValue !== undefined && customCategoryValue !== '';
+  if (repository.custom_category === customCategoryValue && !!repository.category_locked === categoryLocked) {
+    return null;
+  }
+  return {
+    ...repository,
+    custom_category: customCategoryValue,
+    category_locked: categoryLocked,
+    last_edited: now,
+  };
+};

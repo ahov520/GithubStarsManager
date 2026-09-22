@@ -6,6 +6,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { Package, Bell, Search, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, LayoutGrid, ChevronDown, CheckCircle, Settings } from 'lucide-react';
 import { Release } from '../types';
 import { useReleaseTimelineActions } from '../features/releases/hooks/useReleaseTimelineActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useAppStore } from '../store/useAppStore';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -512,11 +513,25 @@ export const ReleaseTimeline: React.FC = () => {
     return map;
   }, [paginatedReleases, paginatedRepositoryGroups, getTruncatedBody]);
 
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => handleRefresh(),
+  });
+  const pullStatus = (pullDistance > 12 || pullRefreshing) ? (
+    <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+      {pullRefreshing
+        ? t('正在刷新…', 'Refreshing…')
+        : pullDistance >= 80
+          ? t('松开刷新', 'Release to refresh')
+          : t('下拉刷新', 'Pull to refresh')}
+    </div>
+  ) : null;
+
   if (subscribedReleases.length === 0) {
     const subscribedRepoCount = activeReleaseRepoCount;
 
     return (
       <>
+      {pullStatus}
       <div className="text-center py-12">
                <Package className="w-16 h-16 text-muted-foreground dark:text-quaternary mx-auto mb-4" />
          <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">
@@ -533,30 +548,31 @@ export const ReleaseTimeline: React.FC = () => {
         {subscribedRepoCount > 0 && (
            <div className="mb-6 flex flex-col items-center gap-3">
              {/* Pre-release toggle */}
-             <div className="flex items-center gap-2 select-none">
+             <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 px-3 select-none">
                <Switch
                  checked={includePreRelease}
                  onCheckedChange={setIncludePreRelease}
                  aria-label={t('包含 Pre-release', 'Include Pre-release')}
+                 className="after:-inset-y-3"
                />
                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                  {t('包含 Pre-release', 'Include Pre-release')}
                </span>
-             </div>
+             </label>
 
              <div className="flex flex-wrap items-center justify-center gap-2">
                {/* Refresh button */}
                <Button
                  onClick={handleRefresh}
                  disabled={releaseIsRefreshing}
-                 className="flex items-center space-x-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="touch-target-44 flex h-11 items-center space-x-2 rounded-lg bg-primary px-6 text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                >
                  <RefreshCw className={`w-5 h-5 ${releaseIsRefreshing ? 'animate-spin' : ''}`} />
                  <span>{releaseIsRefreshing ? t('刷新中…', 'Refreshing…') : t('刷新Release', 'Refresh Releases')}</span>
                </Button>
                <Button
                  onClick={() => setIsReleaseSourceSettingsOpen(true)}
-                 className="flex items-center space-x-2 px-4 py-3 bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors"
+                 className="touch-target-44 flex h-11 items-center space-x-2 rounded-lg bg-muted px-4 text-muted-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
                  title={t('Release 来源设置', 'Release Source Settings')}
                >
                  <Settings className="w-5 h-5" />
@@ -600,7 +616,7 @@ export const ReleaseTimeline: React.FC = () => {
                   </p>
                   <Button
                     onClick={() => setIsReleaseSourceSettingsOpen(true)}
-                    className="inline-flex items-center space-x-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    className="touch-target-44 inline-flex h-11 items-center space-x-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                     title={t('Release 来源设置', 'Release Source Settings')}
                   >
                     <Settings className="w-4 h-4" />
@@ -622,6 +638,7 @@ export const ReleaseTimeline: React.FC = () => {
 
   return (
     <div className="max-w-full mx-auto px-2 sm:px-4">
+      {pullStatus}
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-start lg:justify-between">
@@ -642,11 +659,12 @@ export const ReleaseTimeline: React.FC = () => {
             )}
 
             {/* Pre-release toggle */}
-            <label className="inline-flex min-h-[44px] items-center gap-1.5 select-none">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 px-1 select-none">
               <Switch
                 checked={includePreRelease}
                 onCheckedChange={setIncludePreRelease}
                 aria-label={t('包含 Pre-release', 'Include Pre-release')}
+                className="after:-inset-y-3"
               />
               <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {t('Pre', 'Pre')}
@@ -858,7 +876,7 @@ export const ReleaseTimeline: React.FC = () => {
             {releaseShowMode === 'unread' && (
               <Button
                 onClick={() => handleShowModeChange('all')}
-                className="ui-button-primary mt-4 px-4 py-2 text-sm"
+                className="ui-button-primary mt-4 h-11 px-4 text-sm"
               >
                 {t('查看全部', 'Show All')}
               </Button>
@@ -866,7 +884,7 @@ export const ReleaseTimeline: React.FC = () => {
             {selectedFilters.length > 0 && releaseShowMode !== 'unread' && (
               <Button
                 onClick={handleClearFilters}
-                className="ui-button-primary mt-4 px-4 py-2 text-sm"
+                className="ui-button-primary mt-4 h-11 px-4 text-sm"
               >
                 {t('清除过滤器', 'Clear Filters')}
               </Button>

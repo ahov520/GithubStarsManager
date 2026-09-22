@@ -151,7 +151,9 @@ describe('RepositoryList view mode controls', () => {
     render(<RepositoryList repositories={[repository]} selectedCategory="all" />);
 
     expect(screen.getByTestId('repository-card-1')).toHaveAttribute('data-readme-token', '0');
-    fireEvent.click(screen.getByRole('button', { name: repository.name }));
+    const recentButton = screen.getByRole('button', { name: repository.name });
+    expect(recentButton.className).toContain('h-11');
+    fireEvent.click(recentButton);
     expect(screen.getByTestId('repository-card-1').getAttribute('data-readme-token')).not.toBe('0');
     window.localStorage.removeItem(RECENT_REPOSITORIES_KEY);
   });

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, FileCode2, Loader2, RefreshCw, Search, Share2, Star, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, FileCode2, Loader2, RefreshCw, Search, Share2, Star, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/useAppStore';
 import { Button } from './ui/button';
@@ -18,9 +18,16 @@ import {
   type GrepMatchMode,
   type GrepSearchResult,
 } from '../services/grepAppService';
+import { safeWriteText } from '../utils/clipboardUtils';
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 450;
+
+const plainSnippetText = (html: string): string => {
+  if (!html || typeof DOMParser === 'undefined') return '';
+  const text = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+  return text.replace(/\u00a0/g, ' ').trim();
+};
 
 function toggleInSet(prev: Set<string>, value: string): Set<string> {
   const next = new Set(prev);
@@ -95,7 +102,22 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
   const fileUrl =
     repo && hit.path ? `https://github.com/${repo}/blob/${branch}/${encodedPath}` : `https://github.com/${repo}`;
   const snippet = useMemo(() => sanitizeGrepSnippet(hit.snippetHtml), [hit.snippetHtml]);
+  const snippetText = useMemo(() => plainSnippetText(snippet), [snippet]);
+  const [copied, setCopied] = useState<'path' | 'snippet' | null>(null);
+  const copyResetRef = useRef<number | null>(null);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  useEffect(() => () => {
+    if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+  }, []);
+
+  const copyHitText = async (kind: 'path' | 'snippet', text: string) => {
+    const result = await safeWriteText(text);
+    if (!result.success) return;
+    setCopied(kind);
+    if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+    copyResetRef.current = window.setTimeout(() => setCopied(null), 1600);
+  };
   const handleShare = async () => {
     try {
       await navigator.share({
@@ -109,7 +131,7 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
   };
   if (!repo) return null;
   return (
-    <article className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+    <article className="min-w-0 max-w-full rounded-xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <FileCode2 className="h-4 w-4 shrink-0 text-muted-foreground" />
         <a
@@ -138,7 +160,7 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
         href={fileUrl}
         target="_blank"
         rel="noreferrer"
-        className="mb-2 flex min-h-11 items-center truncate text-sm text-muted-foreground hover:text-primary hover:underline sm:min-h-0 sm:text-xs"
+        className="mb-2 block min-h-11 min-w-0 max-w-full break-all text-sm leading-6 text-muted-foreground hover:text-primary hover:underline sm:truncate sm:text-xs"
         title={hit.path}
       >
         {hit.path}
@@ -152,6 +174,24 @@ const HitCard: React.FC<{ hit: GrepCodeHit; isStarred: boolean; t: (zh: string, 
         <p className="text-xs text-muted-foreground">{t('无片段预览', 'No snippet preview')}</p>
       )}
       <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => void copyHitText('path', hit.path)}
+          className="inline-flex h-11 items-center gap-1 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground sm:h-8"
+        >
+          {copied === 'path' ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+          {copied === 'path' ? t('已复制路径', 'Path copied') : t('复制路径', 'Copy path')}
+        </button>
+        {snippetText && (
+          <button
+            type="button"
+            onClick={() => void copyHitText('snippet', snippetText)}
+            className="inline-flex h-11 items-center gap-1 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground sm:h-8"
+          >
+            {copied === 'snippet' ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+            {copied === 'snippet' ? t('已复制片段', 'Snippet copied') : t('复制片段', 'Copy snippet')}
+          </button>
+        )}
         {canShare && (
           <button
             type="button"
@@ -495,7 +535,7 @@ export const CodeSearchView: React.FC = () => {
                   : t('没有匹配结果，换个关键词或放宽过滤器试试', 'No matches, try another keyword or looser filters')}
               </p>
               {starredOnly && (
-                <Button variant="outline" size="sm" onClick={() => setStarredOnly(false)}>
+                <Button variant="outline" size="sm" onClick={() => setStarredOnly(false)} className="h-11 px-4 sm:h-8">
                   {t('关闭收藏过滤', 'Turn off starred-only')}
                 </Button>
               )}

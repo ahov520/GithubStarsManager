@@ -72,6 +72,8 @@ describe('SubscriptionRepoCard weekly channel', () => {
   it('renders weekly badges and the view-original-post button', () => {
     render(<TooltipProvider><SubscriptionRepoCard repo={makeWeeklyRepo()} /></TooltipProvider>);
     expect(screen.getByTitle('查看原贴')).toBeInTheDocument();
+    expect(screen.getByText('a nice tool').className).toContain('overflow-hidden');
+    expect(screen.getByText('a nice tool').className).toContain('break-words');
     expect(screen.getByText('周刊收录')).toBeInTheDocument();
     expect(screen.getByText('第 300 期')).toBeInTheDocument();
   });

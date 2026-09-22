@@ -16,12 +16,15 @@ import {
   Cable,
   Star,
   Plug,
+  LayoutGrid,
+  Check,
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import { isElectron } from '../services/electronProxy';
 import { useBackendAvailability } from '../features/settings/hooks/useBackendAvailability';
 import {
@@ -58,11 +61,26 @@ interface SettingsPanelProps {
 // 移动端标签导航组件
 interface MobileTabNavProps {
   tabs: SettingsTabItem[];
+  allTabs: SettingsTabItem[];
   activeTab: SettingsTab;
   onTabChange: (tab: SettingsTab) => void;
+  pickerLabel: string;
+  pickerTitle: string;
+  pickerHint: string;
+  pickerDone: string;
 }
 
-const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChange }) => {
+const MobileTabNav: React.FC<MobileTabNavProps> = ({
+  tabs,
+  allTabs,
+  activeTab,
+  onTabChange,
+  pickerLabel,
+  pickerTitle,
+  pickerHint,
+  pickerDone,
+}) => {
+  const [pickerOpen, setPickerOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Map<SettingsTab, HTMLButtonElement>>(new Map());
   const [indicatorStyle, setIndicatorStyle] = useState({ translateX: 0, width: 0 });
@@ -147,8 +165,10 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChang
   }, []);
 
   return (
+    <>
+    <div className="flex items-stretch border-b border-border bg-background/95 backdrop-blur-sm dark:border-border dark:bg-card/95">
     <div
-      className="relative w-full overflow-x-hidden border-b border-border dark:border-border bg-background/95 dark:bg-card/95 backdrop-blur-sm"
+      className="relative min-w-0 flex-1 overflow-x-hidden"
     >
       {/* 滚动容器 */}
       <div
@@ -200,13 +220,68 @@ const MobileTabNav: React.FC<MobileTabNavProps> = ({ tabs, activeTab, onTabChang
       
       {/* 左右渐变遮罩 */}
       <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-background/95 dark:from-card/95 to-transparent pointer-events-none md:hidden" />
-      <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-background/95 dark:from-card/95 to-transparent pointer-events-none md:hidden" />
+      <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background/95 dark:from-card/95 to-transparent pointer-events-none md:hidden" />
     </div>
+    <Button
+      type="button"
+      variant="ghost"
+      className="touch-target-44 my-2 mr-2 h-11 w-11 shrink-0 rounded-full"
+      aria-label={pickerLabel}
+      aria-expanded={pickerOpen}
+      onClick={() => setPickerOpen(true)}
+    >
+      <LayoutGrid className="h-4 w-4" />
+    </Button>
+    </div>
+    <Sheet open={pickerOpen} onOpenChange={setPickerOpen}>
+      <SheetContent
+        side="bottom"
+        showClose={false}
+        className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      >
+        <SheetHeader className="pr-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <SheetTitle className="text-base">{pickerTitle}</SheetTitle>
+              <SheetDescription>{pickerHint}</SheetDescription>
+            </div>
+            <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setPickerOpen(false)}>
+              {pickerDone}
+            </Button>
+          </div>
+        </SheetHeader>
+        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+          {allTabs.map((tab) => {
+            const selected = tab.id === activeTab;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                aria-current={selected ? 'page' : undefined}
+                onClick={() => {
+                  onTabChange(tab.id);
+                  setPickerOpen(false);
+                }}
+                className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm ${
+                  selected ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-accent'
+                }`}
+              >
+                <span className="h-4 w-4 shrink-0" aria-hidden="true">{tab.icon}</span>
+                {tab.label}
+                {selected ? <Check className="ml-auto h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </SheetContent>
+    </Sheet>
+    </>
   );
 };
 
 function MobileSettingsTabBar({
   tabs,
+  allTabs,
   activeTab,
   onTabChange,
   query,
@@ -214,8 +289,13 @@ function MobileSettingsTabBar({
   noMatches,
   searchLabel,
   emptyLabel,
+  pickerLabel,
+  pickerTitle,
+  pickerHint,
+  pickerDone,
 }: {
   tabs: SettingsTabItem[];
+  allTabs: SettingsTabItem[];
   activeTab: SettingsTab;
   onTabChange: (tabId: SettingsTab) => void;
   query: string;
@@ -223,6 +303,10 @@ function MobileSettingsTabBar({
   noMatches: boolean;
   searchLabel: string;
   emptyLabel: string;
+  pickerLabel: string;
+  pickerTitle: string;
+  pickerHint: string;
+  pickerDone: string;
 }) {
   return (
     <>
@@ -238,9 +322,16 @@ function MobileSettingsTabBar({
       {noMatches ? (
         <p className="px-3 pt-2 text-xs text-muted-foreground">{emptyLabel}</p>
       ) : null}
-      {tabs.length > 0 ? (
-        <MobileTabNav tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
-      ) : null}
+      <MobileTabNav
+        tabs={tabs}
+        allTabs={allTabs}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        pickerLabel={pickerLabel}
+        pickerTitle={pickerTitle}
+        pickerHint={pickerHint}
+        pickerDone={pickerDone}
+      />
     </>
   );
 }
@@ -540,6 +631,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <div className="md:hidden">
                 <MobileSettingsTabBar
                   tabs={filteredTabs}
+                  allTabs={tabs}
                   activeTab={activeTab}
                   onTabChange={handleTabChange}
                   query={tabQuery}
@@ -547,6 +639,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   noMatches={noTabMatches}
                   searchLabel={t('搜索设置项', 'Search settings')}
                   emptyLabel={t('没有匹配的设置', 'No matching settings')}
+                  pickerLabel={t('全部设置', 'All settings')}
+                  pickerTitle={t('全部设置', 'All settings')}
+                  pickerHint={t('选择一个设置页', 'Choose a settings page')}
+                  pickerDone={t('完成', 'Done')}
                 />
               </div>
 
@@ -599,6 +695,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 -mx-4 bg-background/95 backdrop-blur-sm sm:-mx-6 lg:hidden">
           <MobileSettingsTabBar
             tabs={filteredTabs}
+            allTabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
             query={tabQuery}
@@ -606,6 +703,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             noMatches={noTabMatches}
             searchLabel={t('搜索设置项', 'Search settings')}
             emptyLabel={t('没有匹配的设置', 'No matching settings')}
+            pickerLabel={t('全部设置', 'All settings')}
+            pickerTitle={t('全部设置', 'All settings')}
+            pickerHint={t('选择一个设置页', 'Choose a settings page')}
+            pickerDone={t('完成', 'Done')}
           />
         </div>
 

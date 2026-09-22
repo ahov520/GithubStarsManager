@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2 } from 'lucide-react';
+import { Star, StarOff, ExternalLink, Bot, GitFork, Sparkles, BookOpen, AlertTriangle, FileText, Calendar, Share2, MoreHorizontal, Copy, Terminal } from 'lucide-react';
 import { getPlatformIcon as getSharedPlatformIcon } from './platformMeta';
 import type { DiscoveryRepo } from '../types';
 import { useAppStore } from '../store/useAppStore';
@@ -12,6 +12,8 @@ import { Modal } from './Modal';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
+import { safeWriteText } from '../utils/clipboardUtils';
 
 interface SubscriptionRepoCardProps {
   repo: DiscoveryRepo;
@@ -38,6 +40,8 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
   const [tweetModalOpen, setTweetModalOpen] = useState(false);
   // Telegram 频道："查看消息原文"弹窗
   const [telegramModalOpen, setTelegramModalOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -138,6 +142,15 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
   const cardTitle = repo.full_name || `${repo.owner?.login || ''}/${repo.name || ''}`;
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+  const copyRepositoryText = async (event: React.MouseEvent, kind: 'url' | 'clone') => {
+    event.stopPropagation();
+    const text = kind === 'clone' ? `git clone ${repo.html_url}.git` : repo.html_url;
+    const result = await safeWriteText(text);
+    if (!result.success) return;
+    setCopiedAction(kind);
+    window.setTimeout(() => setCopiedAction((current) => (current === kind ? null : current)), 1500);
+  };
+
   const handleShare = async (event: React.MouseEvent) => {
     event.stopPropagation();
     try {
@@ -155,7 +168,7 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
     <>
     <div 
       onClick={handleCardClick}
-      className="ui-card cursor-pointer p-4 transition-all duration-200 sm:p-5"
+      className="ui-card min-w-0 max-w-full cursor-pointer overflow-hidden p-4 transition-all duration-200 sm:p-5"
       style={{ userSelect: 'none' }}
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
@@ -184,8 +197,21 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
               </span>
             </div>
 
+            <Button
+              type="button"
+              variant="outline"
+              className="touch-target-44 h-11 w-full justify-start gap-2 md:hidden"
+              aria-label={t('发现操作', 'Discovery actions')}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsOpen(true);
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              {t('操作', 'Actions')}
+            </Button>
             {/* Action buttons */}
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide sm:shrink-0">
+            <div className="hidden items-center gap-1 overflow-x-auto scrollbar-hide md:flex sm:shrink-0">
               {/* AI Analyze button */}
               <Button
                 size="icon"
@@ -311,9 +337,9 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                     <button
                       type="button"
                       onClick={(event) => event.stopPropagation()}
-                      className="relative mb-3 block w-full cursor-text text-left"
+                      className="relative mb-3 block w-full min-w-0 max-w-full cursor-text overflow-hidden text-left"
                     >
-                      <span className="block text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
+                      <span className="block overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
                         {repo.description}
                       </span>
                     </button>
@@ -338,10 +364,10 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
                     <button
                       type="button"
                       onClick={(event) => event.stopPropagation()}
-                      className="relative mb-3 flex w-full cursor-text items-start gap-1.5 text-left"
+                      className="relative mb-3 flex w-full min-w-0 max-w-full cursor-text items-start gap-1.5 overflow-hidden text-left"
                     >
                       <Bot className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground dark:text-muted-foreground" aria-hidden="true" />
-                      <span className="block text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
+                      <span className="block min-w-0 overflow-hidden break-words text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2 rounded px-1 -mx-1 hover:bg-accent/50 dark:hover:bg-card/[0.02] transition-colors duration-200">
                         {repo.ai_summary}
                       </span>
                     </button>
@@ -510,6 +536,118 @@ export const SubscriptionRepoCard: React.FC<SubscriptionRepoCardProps> = ({ repo
           onClose={() => setTelegramModalOpen(false)}
           message={repo.telegram} />
       )}
+
+      <Sheet open={actionsOpen} onOpenChange={setActionsOpen}>
+        <SheetContent
+          side="bottom"
+          showClose={false}
+          className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <SheetHeader className="pr-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <SheetTitle className="text-base">{t('发现操作', 'Discovery actions')}</SheetTitle>
+                <SheetDescription className="truncate">{cardTitle}</SheetDescription>
+              </div>
+              <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setActionsOpen(false)}>
+                {t('完成', 'Done')}
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50"
+              disabled={!githubToken || isAnalyzing}
+              onClick={(event) => {
+                setActionsOpen(false);
+                handleAnalyze(event);
+              }}
+            >
+              <Bot className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {isAnalyzed || isFailed ? t('重新分析', 'Re-analyze') : t('AI分析', 'AI Analyze')}
+            </button>
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => {
+                setActionsOpen(false);
+                handleOpenInZRead(event);
+              }}
+            >
+              <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('在ZRead打开', 'Open in ZRead')}
+            </button>
+            {(repo.weeklyIssue || repo.xTweet || repo.telegram) && (
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+                onClick={(event) => {
+                  setActionsOpen(false);
+                  if (repo.telegram) handleOpenTelegramMessage(event);
+                  else if (repo.xTweet) handleOpenTweet(event);
+                  else handleOpenIssue(event);
+                }}
+              >
+                <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {repo.telegram ? t('查看频道消息原文', 'View original channel message') : t('查看原贴', 'View original post')}
+              </button>
+            )}
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => { void copyRepositoryText(event, 'url'); }}
+            >
+              <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {copiedAction === 'url' ? t('已复制链接', 'Link copied') : t('复制链接', 'Copy link')}
+            </button>
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+              onClick={(event) => { void copyRepositoryText(event, 'clone'); }}
+            >
+              <Terminal className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {copiedAction === 'clone' ? t('已复制克隆命令', 'Clone command copied') : t('复制克隆命令', 'Copy clone command')}
+            </button>
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-accent"
+              onClick={() => setActionsOpen(false)}
+            >
+              <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('在GitHub打开', 'Open on GitHub')}
+            </a>
+            {canShare && (
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent"
+                onClick={(event) => {
+                  setActionsOpen(false);
+                  void handleShare(event);
+                }}
+              >
+                <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('分享', 'Share')}
+              </button>
+            )}
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50"
+              disabled={!githubToken || isStarring}
+              onClick={(event) => {
+                setActionsOpen(false);
+                handleStar(event);
+              }}
+            >
+              {isStarred ? <StarOff className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Star className="h-4 w-4 shrink-0" aria-hidden="true" />}
+              {isStarred ? t('取消Star', 'Unstar') : t('添加Star', 'Add Star')}
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };

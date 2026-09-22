@@ -1,5 +1,6 @@
-import React, { memo, useCallback } from 'react';
-import { ExternalLink, GitFork, RefreshCw, ChevronDown, ChevronUp, FolderOpen, Folder, Play, Loader2, Copy, Share2 } from 'lucide-react';
+import React, { memo, useCallback, useState } from 'react';
+import { ExternalLink, GitFork, RefreshCw, ChevronDown, ChevronUp, FolderOpen, Folder, Play, Loader2, Copy, Share2, MoreHorizontal } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from './ui/sheet';
 import { ForkRepo, WorkflowDefinition } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -40,6 +41,8 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
 }) => {
   const t = useCallback((zh: string, en: string) => language === 'zh' ? zh : en, [language]);
   const { toast } = useDialog();
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const closeActions = () => setActionsOpen(false);
 
   const sourceFullName = fork.source?.full_name || fork.parent?.full_name || '';
   const cloneCommand = `git clone ${fork.html_url}.git`;
@@ -154,7 +157,19 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
               )}
             </div>
             <div className="flex items-center space-x-1 flex-shrink-0">
-              {/* Workflows dropdown */}
+              <Button
+                type="button"
+                variant="outline"
+                className="touch-target-44 h-11 shrink-0 gap-1 px-3 md:hidden"
+                aria-label={t('复刻操作', 'Fork actions')}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setActionsOpen(true);
+                }}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                {t('操作', 'Actions')}
+              </Button>
               <Button
                 variant={isWorkflowsExpanded ? 'secondary' : 'ghost'}
                 onClick={(e) => {
@@ -162,7 +177,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                   onToggleWorkflows();
                   onMarkAsRead();
                 }}
-                className="touch-target-44 h-8 shrink-0 gap-1 whitespace-nowrap px-2 text-xs"
+                className="touch-target-44 h-11 shrink-0 gap-1 whitespace-nowrap px-2 text-xs sm:h-8"
                 title={isWorkflowsExpanded ? t('隐藏工作流', 'Hide Workflows') : t('显示工作流', 'Show Workflows')}
                 aria-label={isWorkflowsExpanded ? t('隐藏工作流', 'Hide Workflows') : t('显示工作流', 'Show Workflows')}
                 aria-expanded={isWorkflowsExpanded}
@@ -171,7 +186,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
                 <span className="text-xs font-medium">{isWorkflowsExpanded ? t('隐藏', 'Hide') : t('工作流', 'Workflows')}</span>
                 {isWorkflowsExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </Button>
-
+              <div className="hidden items-center space-x-1 md:flex">
               {/* Sync Upstream button — enabled only when fork needs sync (out-of-date) */}
               <Button
                 variant="ghost"
@@ -240,6 +255,7 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Expandable Workflows section */}
@@ -326,6 +342,67 @@ const ForkCard: React.FC<ForkCardProps> = memo(({
           </div>
         </div>
       </div>
+
+      <Sheet open={actionsOpen} onOpenChange={setActionsOpen}>
+        <SheetContent
+          side="bottom"
+          showClose={false}
+          className="max-h-[85dvh] gap-3 overflow-hidden rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <SheetHeader className="pr-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <SheetTitle className="text-base">{t('复刻操作', 'Fork actions')}</SheetTitle>
+                <SheetDescription className="truncate">{fork.full_name}</SheetDescription>
+              </div>
+              <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={closeActions}>
+                {t('完成', 'Done')}
+              </Button>
+            </div>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent disabled:opacity-50"
+              disabled={isSyncing || !needsSync}
+              onClick={(event) => {
+                event.stopPropagation();
+                closeActions();
+                onSyncUpstream();
+                onMarkAsRead();
+              }}
+            >
+              {isSyncing ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4 shrink-0" aria-hidden="true" />}
+              {needsSync ? t('更新分支', 'Update branch') : t('已是最新版本', 'Already up to date')}
+            </button>
+            <a
+              href={fork.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-accent"
+              onClick={(event) => {
+                event.stopPropagation();
+                closeActions();
+                onMarkAsRead();
+              }}
+            >
+              <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('在GitHub上查看', 'View on GitHub')}
+            </a>
+            <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={(event) => { closeActions(); void handleCopyClone(event); }}>
+              <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('复制克隆命令', 'Copy clone command')}
+            </button>
+            {canShare && (
+              <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-accent" onClick={(event) => { closeActions(); void handleShare(event); }}>
+                <Share2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('分享', 'Share')}
+              </button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 });

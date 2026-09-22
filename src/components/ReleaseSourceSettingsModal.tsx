@@ -59,7 +59,7 @@ const PaginatedRepoList: React.FC<PaginatedRepoListProps> = ({ repos, language, 
         onClick={() => setIsExpanded(prev => !prev)}
         aria-expanded={isExpanded}
         aria-controls={repositoryListId}
-        className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-card dark:bg-card/[0.03] dark:text-muted-foreground dark:hover:bg-accent"
+        className="touch-target-44 flex min-h-11 w-full items-center justify-between rounded-lg bg-card px-3 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-card dark:bg-card/[0.03] dark:text-muted-foreground dark:hover:bg-accent"
       >
         <span>{t(`仓库列表（${repos.length}）`, `Repositories (${repos.length})`)}</span>
         <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -74,7 +74,7 @@ const PaginatedRepoList: React.FC<PaginatedRepoListProps> = ({ repos, language, 
           ) : visibleRepos.map(repo => (
             <div
               key={normalizeRepoKey(repo.full_name)}
-              className={`flex items-center justify-between gap-3 rounded-lg bg-card dark:bg-muted/40 px-3 py-2 ${repo.release_hidden ? 'opacity-60' : ''}`}
+              className={`flex min-h-11 items-center justify-between gap-3 rounded-lg bg-card px-3 py-2 dark:bg-muted/40 ${repo.release_hidden ? 'opacity-60' : ''}`}
             >
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-foreground dark:text-foreground">{repo.full_name}</div>
@@ -94,7 +94,7 @@ const PaginatedRepoList: React.FC<PaginatedRepoListProps> = ({ repos, language, 
                   size="icon"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="h-8 w-8 rounded-md p-0 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-accent"
+                  className="touch-target-44 h-11 w-11 rounded-md p-0 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-accent"
                   aria-label={t('上一页', 'Previous page')}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -105,7 +105,7 @@ const PaginatedRepoList: React.FC<PaginatedRepoListProps> = ({ repos, language, 
                   size="icon"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="h-8 w-8 rounded-md p-0 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-accent"
+                  className="touch-target-44 h-11 w-11 rounded-md p-0 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-accent"
                   aria-label={t('下一页', 'Next page')}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -160,7 +160,7 @@ const RepoListEditor: React.FC<RepoListEditorProps> = ({
         <p className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground">{description}</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           type="text"
           aria-label={t('仓库名称', 'Repository name')}
@@ -170,12 +170,12 @@ const RepoListEditor: React.FC<RepoListEditorProps> = ({
             if (event.key === 'Enter' && !event.nativeEvent.isComposing) handleAdd();
           }}
           placeholder={placeholder}
-          className="min-w-0 flex-1 rounded-lg border border-border dark:border-border bg-card dark:bg-muted/40 px-3 py-2 text-sm text-foreground dark:text-foreground focus:border-transparent focus:ring-2 focus:ring-ring"
+          className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:flex-1 sm:text-sm"
         />
         <Button
           type="button"
           onClick={handleAdd}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          className="touch-target-44 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           {t('添加', 'Add')}
@@ -191,7 +191,7 @@ const RepoListEditor: React.FC<RepoListEditorProps> = ({
             type="button"
             variant="ghost"
             onClick={() => removeReleaseSourceRepository(sourceId, repo.full_name)}
-            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+            className="touch-target-44 h-11 w-11 shrink-0 rounded-md p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
             title={t('移除仓库', 'Remove repository')}
             aria-label={t('移除仓库', 'Remove repository')}
           >
@@ -236,7 +236,7 @@ const WatchCustomReleaseSyncPanel: React.FC<WatchCustomReleaseSyncPanelProps> = 
           type="button"
           onClick={handleSync}
           disabled={isSyncing || !githubToken}
-          className="inline-flex min-h-10 min-w-24 flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="touch-target-44 inline-flex h-11 w-full flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
           {isSyncing ? t('同步中…', 'Syncing…') : t('同步', 'Sync')}
@@ -255,7 +255,7 @@ const WatchCustomReleaseSyncPanel: React.FC<WatchCustomReleaseSyncPanelProps> = 
               variant="ghost"
               onClick={() => updateReleaseSourceRepository(WATCH_CUSTOM_RELEASE_SOURCE_ID, repo.full_name, { release_hidden: !hidden })}
               aria-pressed={hidden}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="touch-target-44 h-11 w-11 shrink-0 rounded-md p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               title={hidden ? t('显示并检查 Release', 'Show and check releases') : t('隐藏并跳过 Release 检查', 'Hide and skip release checks')}
               aria-label={hidden ? t('显示并检查 Release', 'Show and check releases') : t('隐藏并跳过 Release 检查', 'Hide and skip release checks')}
             >
@@ -308,7 +308,7 @@ export const ReleaseSourceSettingsModal: React.FC<ReleaseSourceSettingsModalProp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('Release 来源设置', 'Release Source Settings')} maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('Release 来源设置', 'Release Source Settings')} maxWidth="max-w-2xl" mobileFullScreen scrollable>
       <div className="space-y-5">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground dark:text-muted-foreground">
           {t(
@@ -378,7 +378,7 @@ export const ReleaseSourceSettingsModal: React.FC<ReleaseSourceSettingsModalProp
           <Button
             type="button"
             onClick={onClose}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="touch-target-44 h-11 w-full rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
           >
             {t('完成', 'Done')}
           </Button>

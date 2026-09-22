@@ -277,7 +277,7 @@ docker stop github-stars-backend && docker rm github-stars-backend
 
 ## Note on Desktop Packaging
 
-This Docker setup does not affect the existing desktop packaging workflows. The GitHub Actions workflow for building desktop applications remains unchanged and continues to work as before.
+This Docker setup does not build the Android client. GitHub Actions builds an Android APK and does not package the desktop app.
 ## MCP Server (Agent access)
 
 With the existing Docker Compose deployment, the backend MCP endpoints are exposed through nginx (frontend container) so agents on the host do not need a published backend port. The optional full-stack Compose deployment exposes the same endpoint URLs directly from its single Node service:

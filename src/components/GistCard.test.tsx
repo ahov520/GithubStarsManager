@@ -4,6 +4,7 @@ import { GistCard } from './GistCard';
 import type { Gist } from '../types';
 
 const toast = vi.fn();
+const analyzeOne = vi.hoisted(() => vi.fn());
 
 vi.mock('../store/useAppStore', () => ({
   useAppStore: (selector: (state: { language: 'zh' }) => unknown) => selector({ language: 'zh' }),
@@ -11,7 +12,7 @@ vi.mock('../store/useAppStore', () => ({
 
 vi.mock('../features/gists/hooks/useGistActions', () => ({
   useGistActions: () => ({
-    analyzeOne: vi.fn(),
+    analyzeOne,
     unstarGist: vi.fn(),
     deleteGist: vi.fn(),
     isAnalyzingGist: () => false,
@@ -52,6 +53,21 @@ describe('GistCard share', () => {
     });
     expect(onOpen).not.toHaveBeenCalled();
     delete (navigator as { share?: unknown }).share;
+  });
+
+  it('opens labeled gist actions from a phone sheet', () => {
+    const onOpen = vi.fn();
+    render(<GistCard gist={gist} isMine onOpen={onOpen} onEdit={vi.fn()} onUnstarred={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gist 操作' }));
+    const analyze = screen.getAllByRole('button', { name: 'AI分析' }).find((node) => node.className.includes('w-full'));
+    const edit = screen.getAllByRole('button', { name: '编辑' }).find((node) => node.className.includes('w-full'));
+    expect(analyze?.className).toContain('min-h-11');
+    expect(edit?.className).toContain('min-h-11');
+    expect(screen.getAllByRole('link', { name: '打开链接' }).some((node) => node.className.includes('min-h-11'))).toBe(true);
+    fireEvent.click(analyze!);
+    expect(analyzeOne).toHaveBeenCalledWith(gist);
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   it('hides share when the browser cannot share', () => {
