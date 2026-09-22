@@ -40,7 +40,10 @@ describe('GlobalChatHistorySheet', () => {
 
     render(<GlobalChatHistorySheet isOpen repositories={repositories} onClose={() => {}} onSelectSession={() => {}} />);
 
+    expect(screen.getByLabelText('搜索问答历史').className).toContain('h-11');
     const items = await screen.findAllByTitle(/进入 owner\//);
+    expect(items[0].className).toContain('min-h-11');
+    expect(screen.getAllByRole('button', { name: /删除会话/ })[0].className).toContain('h-11');
     expect(items.map((item) => item.textContent)).toEqual([
       expect.stringContaining('title-newer'),
       expect.stringContaining('title-older'),
