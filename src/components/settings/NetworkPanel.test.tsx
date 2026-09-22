@@ -54,4 +54,21 @@ describe('NetworkPanel', () => {
 
     expect(screen.getByLabelText('Username')).toHaveValue('stored-user');
   });
+
+  it('keeps proxy and remote download actions at 44px', () => {
+    mocks.useNetworkActions.mockReturnValue({
+      ...actions,
+      rpcForm: { enabled: true, host: '127.0.0.1', port: 6800, secret: '' },
+    });
+    render(<NetworkPanel t={(zh) => zh} />);
+
+    expect(document.getElementById('rpc-host')?.className).toContain('h-11');
+    expect(document.getElementById('rpc-port')?.className).toContain('h-11');
+    expect(document.getElementById('proxy-host')?.className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '显示密钥' }).className).toContain('h-11');
+    expect(screen.getByRole('button', { name: '显示密码' }).className).toContain('h-11');
+    for (const button of screen.getAllByRole('button', { name: '测试连接' })) {
+      expect(button.className).toContain('h-11');
+    }
+  });
 });

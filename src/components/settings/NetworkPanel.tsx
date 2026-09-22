@@ -59,7 +59,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
               </label>
               <RadioGroup aria-labelledby="proxy-type-label" value={form.type} onValueChange={(value) => setForm({ ...form, type: value as ProxyType })} className="grid max-w-md grid-cols-2 gap-3">
                 {(['http', 'socks5'] as ProxyType[]).map((type) => (
-                  <label key={type} onClick={() => setForm({ ...form, type })} className={`flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors ${form.type === type ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-border hover:bg-background dark:border-border dark:hover:bg-accent'}`}>
+                  <label key={type} onClick={() => setForm({ ...form, type })} className={`flex min-h-11 cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors ${form.type === type ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-border hover:bg-background dark:border-border dark:hover:bg-accent'}`}>
                     <RadioGroupItem value={type} id={`proxy-type-${type}`} aria-label={type.toUpperCase()} />
                     <span className="text-sm font-medium uppercase text-foreground dark:text-foreground">{type}</span>
                   </label>
@@ -68,8 +68,8 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
             </div>
 
             {/* Host and Port */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="sm:col-span-2">
                 <label htmlFor="proxy-host" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1">
                   {t('主机地址', 'Host')}
                 </label>
@@ -79,7 +79,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   value={form.host}
                   onChange={(e) => setForm({ ...form, host: e.target.value })}
                   placeholder="127.0.0.1"
-                  className="w-full px-3 py-2 bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg text-foreground dark:text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none"
+                  className="h-11 w-full rounded-lg border border-border bg-muted px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring focus:outline-none dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                 />
               </div>
               <div>
@@ -94,7 +94,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   min={1}
                   max={65535}
                   allowUndefined
-                  className="w-full"
+                  className="h-11 w-full text-base sm:h-9 sm:text-sm"
                 />
               </div>
             </div>
@@ -105,13 +105,13 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                 type="button"
                 variant="ghost"
                 onClick={() => setShowAuth(!showAuth)}
-                className="h-auto p-0 text-sm text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors"
+                className="touch-target-44 h-11 px-1 text-sm text-muted-foreground transition-colors hover:text-muted-foreground dark:text-muted-foreground dark:hover:text-muted-foreground"
               >
                 {showAuth ? t('隐藏认证', 'Hide Authentication') : t('需要认证（可选）', 'Authentication (optional)')}
               </Button>
 
               {showAuth && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label htmlFor="proxy-username" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1">
                       {t('用户名', 'Username')}
@@ -122,7 +122,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                       value={form.username || ''}
                       onChange={(e) => setForm({ ...form, username: e.target.value || undefined })}
                       placeholder={t('可选', 'Optional')}
-                      className="w-full px-3 py-2 bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg text-foreground dark:text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none"
+                      className="h-11 w-full rounded-lg border border-border bg-muted px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring focus:outline-none dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                     />
                   </div>
                   <div>
@@ -136,7 +136,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                         value={form.password || ''}
                         onChange={(e) => setForm({ ...form, password: e.target.value || undefined })}
                         placeholder={t('可选', 'Optional')}
-                        className="w-full px-3 py-2 pr-10 bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg text-foreground dark:text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none"
+                        className="h-11 w-full rounded-lg border border-border bg-muted px-3 pr-12 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring focus:outline-none dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                       />
                       <Button
                         type="button"
@@ -144,7 +144,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                         size="icon"
                         aria-label={showPassword ? t('隐藏密码', 'Hide password') : t('显示密码', 'Show password')}
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 p-0 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground"
+                        className="absolute right-0 top-0 touch-target-44 h-11 w-11 p-0 text-muted-foreground hover:text-muted-foreground sm:h-9 sm:w-9 dark:hover:text-muted-foreground"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
@@ -155,11 +155,11 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center space-x-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <Button
                 onClick={handleTest}
                 disabled={testing || !form.host || !form.port}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="touch-target-44 h-11 rounded-lg border border-border bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
               >
                 {testing ? (
                   <span className="flex items-center space-x-2">
@@ -174,7 +174,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
               <Button
                 onClick={handleSave}
                 disabled={saving || !hasChanges || !isFormValid}
-                className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="touch-target-44 h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? (
                   <span className="flex items-center space-x-2">
@@ -232,8 +232,8 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
         {rpcForm.enabled && (
           <div className="space-y-4">
             {/* Host and Port */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="sm:col-span-2">
                 <label htmlFor="rpc-host" className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1">
                   {t('主机地址', 'Host')}
                 </label>
@@ -243,7 +243,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   value={rpcForm.host}
                   onChange={(e) => setRpcForm({ ...rpcForm, host: e.target.value })}
                   placeholder="127.0.0.1"
-                  className="w-full px-3 py-2 bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg text-foreground dark:text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none"
+                  className="h-11 w-full rounded-lg border border-border bg-muted px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring focus:outline-none dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                 />
               </div>
               <div>
@@ -258,7 +258,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   min={1}
                   max={65535}
                   allowUndefined
-                  className="w-full"
+                  className="h-11 w-full text-base sm:h-9 sm:text-sm"
                 />
               </div>
             </div>
@@ -280,7 +280,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   placeholder={hasStoredSecret
                     ? t('已保存密钥，留空则保留', 'Secret saved, leave blank to keep')
                     : t('可选，对应 aria2 的 --rpc-secret', 'Optional, aria2 --rpc-secret')}
-                  className="w-full px-3 py-2 pr-10 bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg text-foreground dark:text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none"
+                  className="h-11 w-full rounded-lg border border-border bg-muted px-3 pr-12 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring focus:outline-none dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-9 sm:text-sm"
                 />
                 <Button
                   type="button"
@@ -288,7 +288,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
                   size="icon"
                   aria-label={showSecret ? t('隐藏密钥', 'Hide secret') : t('显示密钥', 'Show secret')}
                   onClick={() => setShowSecret(!showSecret)}
-                  className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground"
+                  className="absolute right-0 top-0 touch-target-44 h-11 w-11 p-0 text-muted-foreground hover:text-muted-foreground sm:h-9 sm:w-9 dark:hover:text-muted-foreground"
                 >
                   {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
@@ -310,11 +310,11 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
             </p>
 
             {/* Actions */}
-            <div className="flex items-center space-x-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <Button
                 onClick={handleRpcTest}
                 disabled={rpcTesting || !rpcForm.host || !rpcForm.port}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground bg-muted dark:bg-muted/40 border border-border dark:border-border rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="touch-target-44 h-11 rounded-lg border border-border bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
               >
                 {rpcTesting ? (
                   <span className="flex items-center space-x-2">
@@ -329,7 +329,7 @@ export const NetworkPanel: React.FC<NetworkPanelProps> = ({ t }) => {
               <Button
                 onClick={handleRpcSave}
                 disabled={rpcSaving || !rpcHasChanges || !isRpcFormValid}
-                className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="touch-target-44 h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {rpcSaving ? (
                   <span className="flex items-center space-x-2">
