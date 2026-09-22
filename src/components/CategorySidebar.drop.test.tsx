@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CategorySidebar } from './CategorySidebar';
 import { useAppStore } from '../store/useAppStore';
@@ -164,5 +164,34 @@ describe('CategorySidebar drop-to-uncategorize (issue #353 suggestion)', () => {
     expect(rollback.custom_category).toBe('分类B');
     expect(rollback.category_locked).toBe(true);
     expect(syncMocks.toast).toHaveBeenCalledWith('同步到后端失败，已恢复分类更改。', 'error');
+  });
+});
+
+describe('CategorySidebar phone search', () => {
+  const originalWidth = window.innerWidth;
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 360 });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
+  });
+
+  it('filters the category drawer without hiding the shortcut chips', () => {
+    renderSidebar([categorizedRepo]);
+    fireEvent.click(screen.getByRole('button', { name: '打开分类抽屉' }));
+    const dialog = screen.getByRole('dialog');
+    const search = within(dialog).getByRole('textbox', { name: '搜索分类' });
+    expect(search.className).toContain('h-11');
+
+    fireEvent.change(search, { target: { value: '分类B' } });
+    expect(within(dialog).getByText('分类B')).toBeInTheDocument();
+    expect(within(dialog).queryByText('分类C')).not.toBeInTheDocument();
+    expect(within(dialog).queryByText('全部分类')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /分类C/, hidden: true })).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '清除分类搜索' }));
+    expect(within(dialog).getByText('分类C')).toBeInTheDocument();
   });
 });

@@ -9,9 +9,11 @@ import {
   ChevronRight,
   Undo2,
   FolderTree,
+  Search,
   X,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
+import { Input } from './ui/input';
 import { Category, Repository } from '../types';
 import { useAppStore, getAllCategories, sortCategoriesByOrder } from '../store/useAppStore';
 import { useRepositoryDragStore } from '../store/useRepositoryDragStore';
@@ -72,6 +74,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState('');
   // 用于防止拖拽后触发点击的标志
   const justDroppedRef = useRef(false);
   const dropTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -192,6 +195,12 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
     const categories = getAllCategories(customCategories, language, hiddenDefaultCategoryIds, defaultCategoryOverrides);
     return sortCategoriesByOrder(categories, categoryOrder);
   }, [customCategories, language, hiddenDefaultCategoryIds, defaultCategoryOverrides, categoryOrder]);
+
+  const drawerCategories = useMemo(() => {
+    const query = categoryQuery.trim().toLowerCase();
+    if (!query) return allCategories;
+    return allCategories.filter((category) => category.name.toLowerCase().includes(query));
+  }, [allCategories, categoryQuery]);
 
   const repositoryMap = useMemo(() => new Map(repositories.map(repo => [String(repo.id), repo])), [repositories]);
 
@@ -425,7 +434,10 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
           </div>
 
           {/* 移动端分类抽屉 Sheet */}
-          <Sheet open={isMobileDrawerOpen} onOpenChange={setIsMobileDrawerOpen}>
+          <Sheet open={isMobileDrawerOpen} onOpenChange={(open) => {
+            setIsMobileDrawerOpen(open);
+            if (!open) setCategoryQuery('');
+          }}>
             <SheetContent side="left" showClose={false} className="w-[86vw] max-w-sm p-0 flex flex-col h-full bg-card safe-area-bottom">
               <SheetHeader className="p-4 border-b border-border text-left">
                 <div className="flex items-center justify-between">
@@ -463,8 +475,39 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                 </div>
               </SheetHeader>
 
+              <div className="px-4 pt-3">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="mobile-category-search"
+                    value={categoryQuery}
+                    onChange={(event) => setCategoryQuery(event.target.value)}
+                    aria-label={t('搜索分类', 'Search categories')}
+                    placeholder={t('搜索分类…', 'Search categories…')}
+                    className="h-11 pl-9 pr-12"
+                  />
+                  {categoryQuery && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2"
+                      aria-label={t('清除分类搜索', 'Clear category search')}
+                      onClick={() => setCategoryQuery('')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               <div className="flex-1 overflow-y-auto p-3 space-y-1.5 safe-area-bottom">
-                {allCategories.map(category => {
+                {drawerCategories.length === 0 && (
+                  <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                    {t('没有匹配的分类', 'No matching categories')}
+                  </p>
+                )}
+                {drawerCategories.map(category => {
                   const count = getCategoryCount(category);
                   const isSelected = selectedCategory === category.id;
                   const isDragTarget = dragOverCategoryId === category.id;
