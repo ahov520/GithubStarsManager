@@ -927,8 +927,9 @@ export const SearchBar: React.FC = () => {
 
         </div>
 
-        {/* Sort Controls + Sync Button */}
-        <div className="relative z-30 flex shrink-0 items-center gap-2">
+        {/* Sort Controls + Sync Button. On a phone these wrap so the sync time stays on screen. */}
+        <div className="relative z-30 flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:flex-nowrap">
+          <div className="flex items-center gap-2">
           <SortByDropdown
             value={searchFilters.sortBy}
             onChange={(value) => setSearchFilters({ sortBy: value as 'stars' | 'updated' | 'name' | 'starred' })}
@@ -944,9 +945,10 @@ export const SearchBar: React.FC = () => {
           >
             {searchFilters.sortOrder === 'desc' ? <ArrowDown className="w-4 h-4" aria-hidden="true" /> : <ArrowUp className="w-4 h-4" aria-hidden="true" />}
           </Button>
+          </div>
 
           {/* Sync Button */}
-          <div className="flex items-center gap-2 ml-1">
+          <div className="flex min-w-0 items-center gap-2">
             <DropdownMenu>
               <div className="flex items-center">
                 <div className="ui-button-primary inline-flex items-stretch overflow-hidden">
@@ -990,6 +992,9 @@ export const SearchBar: React.FC = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <span className="max-w-[8rem] truncate text-xs text-muted-foreground sm:hidden">
+              {t('同步于', 'Synced')} {formatLastSync(lastSync)}
+            </span>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -997,7 +1002,7 @@ export const SearchBar: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   aria-label={t('最近更新时间', 'Last synced')}
-                  className="touch-target-44 h-11 w-11 shrink-0 text-muted-foreground sm:h-8 sm:w-8"
+                  className="touch-target-44 hidden h-11 w-11 shrink-0 text-muted-foreground sm:inline-flex sm:h-8 sm:w-8"
                 >
                   <Clock className="h-4 w-4" aria-hidden="true" />
                 </Button>
