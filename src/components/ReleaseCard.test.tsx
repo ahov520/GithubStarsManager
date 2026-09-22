@@ -258,4 +258,22 @@ describe('ReleaseCard asset updated indicator', () => {
       Reflect.deleteProperty(navigator, 'share');
     }
   });
+
+  it('opens labeled release actions from the phone sheet', () => {
+    const onUnsubscribe = vi.fn();
+    renderCard({ onUnsubscribe });
+    fireEvent.click(screen.getByRole('button', { name: '发布操作' }));
+
+    const copy = screen.getByRole('button', { name: '复制链接' });
+    const github = screen.getAllByRole('link', { name: '在GitHub上查看' }).find((node) => node.className.includes('w-full'));
+    const unsubscribe = screen.getAllByRole('button', { name: '取消订阅 Release' }).find((node) => node.className.includes('w-full'));
+
+    expect(copy.className).toContain('min-h-11');
+    expect(github).toHaveAttribute('href', 'https://github.com/owner/repo/releases/tag/v1');
+    expect(github?.className).toContain('min-h-11');
+    expect(unsubscribe?.className).toContain('min-h-11');
+
+    fireEvent.click(unsubscribe!);
+    expect(onUnsubscribe).toHaveBeenCalledTimes(1);
+  });
 });
