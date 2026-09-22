@@ -309,18 +309,18 @@ export const BulkRestoreModal: React.FC<BulkRestoreModalProps> = ({
           </div>
         )}
 
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
           <Button
             onClick={onClose}
             disabled={isProcessing}
-            className="px-4 py-2 text-muted-foreground dark:text-muted-foreground bg-muted dark:bg-muted rounded-lg hover:bg-accent dark:hover:bg-accent disabled:opacity-50"
+            className="h-11 w-full rounded-lg bg-muted px-4 text-muted-foreground hover:bg-accent disabled:opacity-50 sm:h-9 sm:w-auto dark:bg-muted dark:text-muted-foreground dark:hover:bg-accent"
           >
             {t('取消', 'Cancel')}
           </Button>
           <Button
             onClick={handleRestore}
             disabled={!hasEnabledField || isProcessing}
-            className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-auto"
           >
             <RotateCcw className="w-4 h-4" />
             <span>{isProcessing ? t('还原中…', 'Restoring…') : t('确认还原', 'Confirm Restore')}</span>

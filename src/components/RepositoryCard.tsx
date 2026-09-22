@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   getPlatformDisplayName,
@@ -279,9 +279,13 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const dragHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
   const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
-  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
+  const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | 'name' | null>(null);
   const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
   const isCompact = useCompactViewport();
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+  const [failureReasonOpen, setFailureReasonOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const menuDismissedByPointerDownRef = useRef(false);
   const releaseSheetOutsideDismissedAtRef = useRef<number | null>(null);
@@ -531,6 +535,17 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     };
   }, [repository, showAISummary, language, allCategories]);
 
+  useLayoutEffect(() => {
+    setDescriptionExpanded(false);
+    setFailureReasonOpen(false);
+  }, [repository.id, displayContent.content]);
+
+  useLayoutEffect(() => {
+    const node = descriptionRef.current;
+    if (!isCompact || descriptionExpanded || !node) return;
+    setDescriptionOverflows(node.scrollHeight > node.clientHeight + 1);
+  }, [isCompact, descriptionExpanded, displayContent.content, viewMode]);
+
   // 使用 useMemo 缓存标签计算
   // 逻辑：优先显示自定义标签，如果没有则按AI分析状态显示AI标签或Topics
   const displayTags = useMemo(() => {
@@ -718,13 +733,17 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
     }
   }, [canShare, repository.description, repository.full_name, repository.html_url]);
 
-  const copyRepositoryText = useCallback(async (kind: 'url' | 'clone') => {
-    const text = kind === 'clone' ? `git clone ${repository.html_url}.git` : repository.html_url;
+  const copyRepositoryText = useCallback(async (kind: 'url' | 'clone' | 'name') => {
+    const text = kind === 'clone'
+      ? `git clone ${repository.html_url}.git`
+      : kind === 'name'
+        ? repository.full_name
+        : repository.html_url;
     const result = await safeWriteText(text);
     if (!result.success) return;
     setCopiedAction(kind);
     window.setTimeout(() => setCopiedAction((current) => (current === kind ? null : current)), 1500);
-  }, [repository.html_url]);
+  }, [repository.full_name, repository.html_url]);
 
   // 使用 useCallback 优化事件处理函数
   const handleCardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -876,19 +895,41 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           className={`${viewMode === 'list' ? 'w-10 h-10' : 'w-8 h-8'} rounded-full flex-shrink-0`}
         />
         <div className="min-w-0 flex-1">
-          <h3 className={`${viewMode === 'list' ? 'text-base' : ''} font-semibold text-foreground dark:text-foreground truncate`}>
+          <h3 className={`${viewMode === 'list' ? 'text-base' : ''} font-semibold text-foreground dark:text-foreground ${isCompact ? 'break-words' : 'truncate'}`}>
             {highlightSearchTerm(repository.name, searchQuery)}
           </h3>
-          <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate">
+          <p className={`text-sm text-muted-foreground dark:text-muted-foreground ${isCompact ? 'break-all' : 'truncate'}`}>
             {repository.owner.login}
           </p>
           {viewMode === 'list' && (
-            <div className="mt-1">
+            <div className="mt-1 min-w-0 max-w-full">
               {displayContent.isAnalysisFailed ? (
+                isCompact ? (
+                  <>
+                    <button
+                      type="button"
+                      className="touch-target-44 inline-flex h-11 items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-3 text-xs font-medium text-destructive"
+                      aria-expanded={failureReasonOpen}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setFailureReasonOpen((open) => !open);
+                      }}
+                    >
+                      <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                      {language === 'zh' ? '分析失败' : 'Analysis failed'}
+                    </button>
+                    {failureReasonOpen && (
+                      <p className="mt-1 break-words text-xs leading-5 text-destructive">
+                        {repository.analysis_error || (language === 'zh' ? 'AI分析失败，请检查AI配置和网络连接' : 'AI analysis failed, please check AI configuration and network connection')}
+                      </p>
+                    )}
+                  </>
+                ) : (
                 <span className="inline-flex items-center gap-1 rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                   <Bot className="w-3 h-3" />
                   {language === 'zh' ? '分析失败' : 'Analysis failed'}
                 </span>
+                )
               ) : displayContent.isAnalyzed ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary dark:border-primary/20 dark:bg-primary/20">
                   <Sparkles className="w-3 h-3" />
@@ -1302,15 +1343,16 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
         </div>
       )}
 
-      {/* Description with shared Tooltip */}
+      {/* Description with shared Tooltip. Phones cannot hover, so a clamped blurb expands in place. */}
       <div className={viewMode === 'list' ? 'mb-3' : 'mb-4 flex-1'}>
         <Tooltip>
           <TooltipTrigger asChild>
             <p
+              ref={descriptionRef}
               tabIndex={0}
               className={viewMode === 'list'
-                ? 'text-sm leading-6 text-muted-foreground dark:text-muted-foreground line-clamp-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground'
-                : 'text-foreground dark:text-muted-foreground text-[13px] leading-[1.625] line-clamp-3 mb-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground rounded-md px-1 -mx-1 hover:bg-muted dark:hover:bg-card/[0.02]'}
+                ? `text-sm leading-6 text-muted-foreground dark:text-muted-foreground transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground ${descriptionExpanded ? 'break-words' : 'line-clamp-2'}`
+                : `text-foreground dark:text-muted-foreground text-[13px] leading-[1.625] mb-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground rounded-md px-1 -mx-1 hover:bg-muted dark:hover:bg-card/[0.02] ${descriptionExpanded ? 'break-words' : 'line-clamp-3'}`}
             >
               {highlightSearchTerm(displayContent.content, searchQuery)}
             </p>
@@ -1319,6 +1361,21 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
             {displayContent.content}
           </TooltipContent>
         </Tooltip>
+        {isCompact && (descriptionOverflows || descriptionExpanded) && (
+          <button
+            type="button"
+            className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+            aria-expanded={descriptionExpanded}
+            onClick={(event) => {
+              event.stopPropagation();
+              setDescriptionExpanded((open) => !open);
+            }}
+          >
+            {descriptionExpanded
+              ? (language === 'zh' ? '收起描述' : 'Show less')
+              : (language === 'zh' ? '展开描述' : 'Show more')}
+          </button>
+        )}
 
         {/* 方案一：同时显示多个状态标签 */}
         {viewMode === 'grid' && (
@@ -1332,6 +1389,28 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
           )}
           {/* AI 分析状态标签 (合并展示) */}
           {displayContent.isAnalysisFailed ? (
+            isCompact ? (
+              <div className="min-w-0 max-w-full">
+                <button
+                  type="button"
+                  className="touch-target-44 inline-flex h-11 items-center gap-1 rounded-md px-2 text-xs font-medium text-destructive"
+                  aria-expanded={failureReasonOpen}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setFailureReasonOpen((open) => !open);
+                  }}
+                >
+                  <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                  {language === 'zh' ? '分析失败' : 'Failed'}
+                  <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                {failureReasonOpen && (
+                  <p className="mt-1 break-words text-xs leading-5 text-destructive">
+                    {repository.analysis_error || (language === 'zh' ? 'AI分析失败，请检查AI配置和网络连接' : 'AI analysis failed, please check AI configuration and network connection')}
+                  </p>
+                )}
+              </div>
+            ) : (
             <div className="flex items-center space-x-1 text-xs text-destructive dark:text-destructive" title={language === 'zh' ? 'AI分析失败，点击AI按钮重新分析' : 'AI analysis failed, click AI button to retry'}>
               <Bot className="w-3 h-3" />
               <span>{language === 'zh' ? '分析失败' : 'Failed'}</span>
@@ -1345,6 +1424,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                 </div>
               </div>
             </div>
+            )
           ) : displayContent.isAnalyzed ? (
             <div
               className="flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 dark:bg-primary/20 text-primary border border-primary/20 dark:border-primary/20"
@@ -1567,7 +1647,7 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <SheetTitle className="text-base">{language === 'zh' ? '仓库操作' : 'Repository actions'}</SheetTitle>
-                  <SheetDescription className="truncate">{repository.full_name}</SheetDescription>
+                  <SheetDescription className="break-all">{repository.full_name}</SheetDescription>
                 </div>
                 <Button type="button" variant="ghost" className="touch-target-44 h-11 shrink-0 px-3" onClick={() => setActionsSheetOpen(false)}>
                   {language === 'zh' ? '完成' : 'Done'}
@@ -1621,6 +1701,10 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
                   {language === 'zh' ? '在 Zread 中查看' : 'View on DeepWiki'}
                 </a>
               )}
+              <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('name'); }}>
+                <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {copiedAction === 'name' ? (language === 'zh' ? '已复制仓库名' : 'Name copied') : (language === 'zh' ? '复制仓库名' : 'Copy repository name')}
+              </button>
               <button type="button" className={PHONE_ACTION_ROW} onClick={() => { void copyRepositoryText('url'); }}>
                 <Copy className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {copiedAction === 'url' ? (language === 'zh' ? '已复制链接' : 'Link copied') : (language === 'zh' ? '复制链接' : 'Copy link')}

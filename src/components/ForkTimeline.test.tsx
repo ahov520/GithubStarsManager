@@ -184,6 +184,8 @@ describe('ForkTimeline owner filtering', () => {
 
     const user = userEvent.setup();
     const ownerSelector = await screen.findByRole('combobox', { name: '拥有者:' });
+    expect(ownerSelector.className).toContain('break-all');
+    expect(ownerSelector.className).toContain('w-full');
     await user.click(ownerSelector);
     await user.click(await screen.findByRole('option', { name: 'team-org' }));
 

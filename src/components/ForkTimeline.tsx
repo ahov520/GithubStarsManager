@@ -154,10 +154,10 @@ export const ForkTimeline: React.FC = () => {
           </div>
           <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:w-auto lg:max-w-full lg:justify-end">
             {/* Fork owner selector */}
-            <div className="flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap">
+            <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
               <span id="fork-owner-label" className="shrink-0 whitespace-nowrap text-sm text-muted-foreground dark:text-muted-foreground">{t('拥有者:', 'Owner:')}</span>
               <Select value={activeForkOwner} onValueChange={handleForkOwnerSelection} disabled={!personalOwnerLogin || isLoadingOrganizations || forkIsRefreshing}>
-                <SelectTrigger className="ui-field touch-target-44 h-11 w-48 max-w-[calc(100vw-8rem)] shrink px-3 py-2 text-sm sm:h-9" aria-labelledby="fork-owner-label"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="ui-field touch-target-44 h-11 w-full min-w-0 max-sm:h-auto max-sm:min-h-11 max-sm:whitespace-normal px-3 py-2 text-sm sm:h-9 sm:w-48 max-sm:[&>span]:line-clamp-none max-sm:[&>span]:whitespace-normal max-sm:[&>span]:break-all" aria-labelledby="fork-owner-label"><SelectValue /></SelectTrigger>
                 <SelectContent>{forkOwnerOptions.map(owner => <SelectItem key={owner.id} value={owner.login}>{owner.isPersonal ? t(`${owner.login}（个人）`, `${owner.login} (Personal)`) : owner.login}</SelectItem>)}</SelectContent>
               </Select>
             </div>

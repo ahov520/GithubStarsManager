@@ -120,6 +120,32 @@ describe('ReleaseCard asset updated indicator', () => {
     expect(screen.getAllByText('资产已更新')).toHaveLength(1);
   });
 
+  it('wraps a long asset filename and repository name on a narrow screen', () => {
+    const assetName = 'GithubStarsManager-arm64-v8a-release-signed.apk';
+    renderCard({
+      release: makeRelease(1, {
+        name: '带有很长标题的安卓发布说明',
+        repository: {
+          id: 1,
+          full_name: 'organization-with-a-very-long-login/super-long-mobile-repository',
+          name: 'super-long-mobile-repository',
+        },
+        updated_asset_ids: [101],
+      }),
+      downloadLinks: [
+        { name: assetName, url: 'https://example.com/app.apk', size: 1000, downloadCount: 5, assetId: 101 },
+      ],
+    });
+
+    const fileName = screen.getByText(assetName);
+    expect(fileName.className).toContain('break-all');
+    expect(fileName.className).toContain('sm:truncate');
+    const heading = screen.getByRole('heading', { name: 'super-long-mobile-repository' });
+    expect(heading.className).toContain('break-words');
+    expect(heading.className).toContain('sm:truncate');
+    expect(screen.getByText('organization-with-a-very-long-login/super-long-mobile-repository').className).toContain('break-all');
+  });
+
   it('marks only the clicked asset as read via onMarkAssetAsRead', () => {
     const onMarkAssetAsRead = vi.fn();
     renderCard({ onMarkAssetAsRead });

@@ -174,6 +174,120 @@ describe('RepositoryCard view modes', () => {
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
   });
 
+  it('wraps a long repository name and owner on a phone', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard
+            repository={{
+              ...repository,
+              name: 'super-long-mobile-repository-name-that-should-wrap',
+              full_name: 'organization-with-a-very-long-login/super-long-mobile-repository-name-that-should-wrap',
+              owner: { ...repository.owner, login: 'organization-with-a-very-long-login' },
+            }}
+            allCategories={[]}
+            viewMode="list"
+          />
+        </TooltipProvider>
+      );
+      const heading = screen.getByRole('heading', { name: 'super-long-mobile-repository-name-that-should-wrap' });
+      expect(heading).toHaveClass('break-words');
+      expect(heading.className).not.toContain('truncate');
+      const owner = screen.getByText('organization-with-a-very-long-login');
+      expect(owner).toHaveClass('break-all');
+      expect(owner.className).not.toContain('truncate');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
+  it('expands a clamped description on a phone without opening the README', async () => {
+    const user = userEvent.setup();
+    const originalMatchMedia = window.matchMedia;
+    const description = '这是一段在手机卡片里放不下的仓库描述，需要就地展开才能读完后半段，而不是只能悬停查看。';
+    const elementPrototype = Element.prototype;
+    const scrollHeight = Object.getOwnPropertyDescriptor(elementPrototype, 'scrollHeight');
+    const clientHeight = Object.getOwnPropertyDescriptor(elementPrototype, 'clientHeight');
+    Object.defineProperty(elementPrototype, 'scrollHeight', { configurable: true, get: () => 96 });
+    Object.defineProperty(elementPrototype, 'clientHeight', { configurable: true, get: () => 48 });
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard repository={{ ...repository, description }} allCategories={[]} viewMode="list" />
+        </TooltipProvider>
+      );
+      const toggle = await screen.findByRole('button', { name: '展开描述' });
+      expect(toggle.className).toContain('h-11');
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByText(description).className).toContain('line-clamp-2');
+      await user.click(toggle);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+      expect(screen.getByText(description).className).not.toContain('line-clamp-2');
+      expect(screen.getByRole('button', { name: '收起描述' })).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      if (scrollHeight) Object.defineProperty(elementPrototype, 'scrollHeight', scrollHeight);
+      if (clientHeight) Object.defineProperty(elementPrototype, 'clientHeight', clientHeight);
+    }
+  });
+
+  it('shows the AI failure reason from a phone tap without opening the README', async () => {
+    const user = userEvent.setup();
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard
+            repository={{ ...repository, analysis_failed: true, analysis_error: '密钥无效，请检查 AI 配置' }}
+            allCategories={[]}
+            viewMode="grid"
+          />
+        </TooltipProvider>
+      );
+      const toggle = await screen.findByRole('button', { name: '分析失败' });
+      expect(toggle.className).toContain('h-11');
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByText('密钥无效，请检查 AI 配置')).not.toBeInTheDocument();
+      await user.click(toggle);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+      expect(screen.getByText('密钥无效，请检查 AI 配置').className).toContain('break-words');
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
   it('opens labeled repository actions from a phone sheet', async () => {
     const user = userEvent.setup();
     const onAskRepository = vi.fn();
@@ -226,6 +340,9 @@ describe('RepositoryCard view modes', () => {
     try {
       renderRepositoryCard('list');
       await user.click(screen.getByRole('button', { name: '更多操作' }));
+      await user.click(screen.getByRole('button', { name: '复制仓库名' }));
+      await waitFor(() => expect(writeText).toHaveBeenCalledWith(repository.full_name));
+      expect(screen.getByRole('button', { name: '已复制仓库名' })).toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: '复制链接' }));
       await waitFor(() => expect(writeText).toHaveBeenCalledWith(repository.html_url));
       expect(screen.getByRole('button', { name: '已复制链接' })).toBeInTheDocument();

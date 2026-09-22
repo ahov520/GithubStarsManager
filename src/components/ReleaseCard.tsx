@@ -175,19 +175,19 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
             </div>
             <div className="min-w-0 flex-1 ml-3">
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  <h4 className="font-semibold text-foreground dark:text-foreground text-sm truncate">
+                  <h4 className="min-w-0 break-words text-sm font-semibold text-foreground dark:text-foreground sm:truncate">
                     {release.repository.name}
                   </h4>
                   <span className="linear-card-tag px-1.5 py-0.5 text-xs font-medium shrink-0">
                     {release.tag_name}
                   </span>
                   {release.name && release.name !== release.tag_name && (
-                    <span className="text-xs text-muted-foreground dark:text-muted-foreground truncate max-w-[200px]">
+                    <span className="max-w-full break-words text-xs text-muted-foreground dark:text-muted-foreground sm:max-w-[200px] sm:truncate">
                       {release.name}
                     </span>
                   )}
               </div>
-              <p className="text-xs text-muted-foreground dark:text-muted-foreground/70 truncate mt-1">
+              <p className="mt-1 break-all text-xs text-muted-foreground dark:text-muted-foreground/70 sm:truncate">
                 {release.repository.full_name}
               </p>
             </div>
@@ -390,7 +390,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                           ) : (
                             <AssetLeadingIcon name={link.name} contentType={link.contentType} />
                           )}
-                          <span className={`text-sm truncate ${link.isSourceCode ? 'text-muted-foreground dark:text-muted-foreground font-medium' : 'text-foreground dark:text-muted-foreground'}`}>
+                          <span className={`min-w-0 break-all text-sm sm:truncate ${link.isSourceCode ? 'text-muted-foreground dark:text-muted-foreground font-medium' : 'text-foreground dark:text-muted-foreground'}`}>
                             {link.name}
                           </span>
                         </div>
@@ -432,7 +432,7 @@ const ReleaseCard: React.FC<ReleaseCardProps> = memo(({
                         ) : (
                           <AssetLeadingIcon name={link.name} contentType={link.contentType} />
                         )}
-                        <span className={`text-sm truncate ${link.isSourceCode ? 'text-muted-foreground dark:text-muted-foreground font-medium' : 'text-foreground dark:text-muted-foreground'}`}>
+                        <span className={`min-w-0 break-all text-sm sm:truncate ${link.isSourceCode ? 'text-muted-foreground dark:text-muted-foreground font-medium' : 'text-foreground dark:text-muted-foreground'}`}>
                           {link.name}
                         </span>
                       </div>
