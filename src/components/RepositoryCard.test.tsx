@@ -174,6 +174,46 @@ describe('RepositoryCard view modes', () => {
     await waitFor(() => expect(screen.queryByText('仓库操作')).not.toBeInTheDocument());
   });
 
+  it('expands a clamped description on a phone without opening the README', async () => {
+    const user = userEvent.setup();
+    const originalMatchMedia = window.matchMedia;
+    const description = '这是一段在手机卡片里放不下的仓库描述，需要就地展开才能读完后半段，而不是只能悬停查看。';
+    const elementPrototype = Element.prototype;
+    const scrollHeight = Object.getOwnPropertyDescriptor(elementPrototype, 'scrollHeight');
+    const clientHeight = Object.getOwnPropertyDescriptor(elementPrototype, 'clientHeight');
+    Object.defineProperty(elementPrototype, 'scrollHeight', { configurable: true, get: () => 96 });
+    Object.defineProperty(elementPrototype, 'clientHeight', { configurable: true, get: () => 48 });
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: String(query).includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      render(
+        <TooltipProvider>
+          <RepositoryCard repository={{ ...repository, description }} allCategories={[]} viewMode="list" />
+        </TooltipProvider>
+      );
+      const toggle = await screen.findByRole('button', { name: '展开描述' });
+      expect(toggle.className).toContain('h-11');
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByText(description).className).toContain('line-clamp-2');
+      await user.click(toggle);
+      expect(screen.queryByTestId('readme-modal')).not.toBeInTheDocument();
+      expect(screen.getByText(description).className).not.toContain('line-clamp-2');
+      expect(screen.getByRole('button', { name: '收起描述' })).toHaveAttribute('aria-expanded', 'true');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      if (scrollHeight) Object.defineProperty(elementPrototype, 'scrollHeight', scrollHeight);
+      if (clientHeight) Object.defineProperty(elementPrototype, 'clientHeight', clientHeight);
+    }
+  });
+
   it('opens labeled repository actions from a phone sheet', async () => {
     const user = userEvent.setup();
     const onAskRepository = vi.fn();

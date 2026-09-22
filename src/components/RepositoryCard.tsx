@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   getPlatformDisplayName,
@@ -282,6 +282,9 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
   const [copiedAction, setCopiedAction] = useState<'url' | 'clone' | null>(null);
   const [moveCategoryOpen, setMoveCategoryOpen] = useState(false);
   const isCompact = useCompactViewport();
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const menuDismissedByPointerDownRef = useRef(false);
   const releaseSheetOutsideDismissedAtRef = useRef<number | null>(null);
@@ -530,6 +533,16 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
       isCustomized
     };
   }, [repository, showAISummary, language, allCategories]);
+
+  useLayoutEffect(() => {
+    setDescriptionExpanded(false);
+  }, [repository.id, displayContent.content]);
+
+  useLayoutEffect(() => {
+    const node = descriptionRef.current;
+    if (!isCompact || descriptionExpanded || !node) return;
+    setDescriptionOverflows(node.scrollHeight > node.clientHeight + 1);
+  }, [isCompact, descriptionExpanded, displayContent.content, viewMode]);
 
   // 使用 useMemo 缓存标签计算
   // 逻辑：优先显示自定义标签，如果没有则按AI分析状态显示AI标签或Topics
@@ -1302,15 +1315,16 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
         </div>
       )}
 
-      {/* Description with shared Tooltip */}
+      {/* Description with shared Tooltip. Phones cannot hover, so a clamped blurb expands in place. */}
       <div className={viewMode === 'list' ? 'mb-3' : 'mb-4 flex-1'}>
         <Tooltip>
           <TooltipTrigger asChild>
             <p
+              ref={descriptionRef}
               tabIndex={0}
               className={viewMode === 'list'
-                ? 'text-sm leading-6 text-muted-foreground dark:text-muted-foreground line-clamp-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground'
-                : 'text-foreground dark:text-muted-foreground text-[13px] leading-[1.625] line-clamp-3 mb-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground rounded-md px-1 -mx-1 hover:bg-muted dark:hover:bg-card/[0.02]'}
+                ? `text-sm leading-6 text-muted-foreground dark:text-muted-foreground transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground ${descriptionExpanded ? 'break-words' : 'line-clamp-2'}`
+                : `text-foreground dark:text-muted-foreground text-[13px] leading-[1.625] mb-2 transition-colors duration-200 [text-wrap:pretty] hover:text-foreground dark:hover:text-foreground rounded-md px-1 -mx-1 hover:bg-muted dark:hover:bg-card/[0.02] ${descriptionExpanded ? 'break-words' : 'line-clamp-3'}`}
             >
               {highlightSearchTerm(displayContent.content, searchQuery)}
             </p>
@@ -1319,6 +1333,21 @@ const RepositoryCardComponent: React.FC<RepositoryCardProps> = ({
             {displayContent.content}
           </TooltipContent>
         </Tooltip>
+        {isCompact && (descriptionOverflows || descriptionExpanded) && (
+          <button
+            type="button"
+            className="touch-target-44 mt-1 inline-flex h-11 items-center rounded-md px-2 text-sm font-medium text-primary"
+            aria-expanded={descriptionExpanded}
+            onClick={(event) => {
+              event.stopPropagation();
+              setDescriptionExpanded((open) => !open);
+            }}
+          >
+            {descriptionExpanded
+              ? (language === 'zh' ? '收起描述' : 'Show less')
+              : (language === 'zh' ? '展开描述' : 'Show more')}
+          </button>
+        )}
 
         {/* 方案一：同时显示多个状态标签 */}
         {viewMode === 'grid' && (
