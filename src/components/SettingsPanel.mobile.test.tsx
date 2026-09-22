@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../store/useAppStore', () => {
@@ -59,6 +59,18 @@ describe('SettingsPanel mobile tab search', () => {
     expect(bar.getByRole('tab', { name: '通用' })).toBeTruthy();
     expect(bar.queryByRole('tab', { name: '星标同步' })).toBeNull();
     expect(screen.getByRole('tab', { name: '星标同步' })).toBeTruthy();
+  });
+
+  it('opens every settings page from the phone sheet', async () => {
+    render(<SettingsPanel />);
+    fireEvent.click(mobileTablist().getByRole('button', { name: '全部设置' }));
+    const sheet = screen.getByRole('dialog');
+    const data = within(sheet).getByRole('button', { name: '数据管理' });
+    expect(data.className).toContain('min-h-11');
+    expect(data.className).toContain('w-full');
+    fireEvent.click(data);
+    expect(await screen.findByText('data-panel')).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
   it('keeps the current tab and says when nothing else matches', () => {
