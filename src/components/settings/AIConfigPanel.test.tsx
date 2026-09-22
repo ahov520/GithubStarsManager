@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AIConfigPanel } from './AIConfigPanel';
 
@@ -60,5 +61,21 @@ describe('AIConfigPanel on a phone', () => {
     expect(test.className).toContain('w-11');
     expect(test.parentElement?.className).toContain('self-end');
     expect(screen.getByText('https://api.example.com/v1', { exact: false }).className).toContain('break-all');
+  });
+
+  it('pastes an API key into a 44px field', async () => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { readText: vi.fn().mockResolvedValue('sk-phone-ai') },
+    });
+
+    render(<AIConfigPanel t={(zh) => zh} />);
+    await userEvent.click(screen.getByRole('button', { name: '添加AI配置' }));
+
+    expect(document.getElementById('ai-config-name')?.className).toContain('h-11');
+    expect(document.getElementById('ai-api-key')?.className).toContain('h-11');
+    await userEvent.click(screen.getByRole('button', { name: '粘贴 API 密钥' }));
+    expect(document.getElementById('ai-api-key')).toHaveValue('sk-phone-ai');
   });
 });

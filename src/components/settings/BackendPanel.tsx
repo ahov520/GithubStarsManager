@@ -124,7 +124,7 @@ export const BackendPanel: React.FC<BackendPanelProps> = ({ t }) => {
             <label
               key={option.value}
               htmlFor={`route-mode-${option.value}`}
-              className="flex items-start space-x-3 rounded-lg p-2 hover:bg-muted/50 dark:hover:bg-muted/30 cursor-pointer"
+              className="flex min-h-11 cursor-pointer items-start space-x-3 rounded-lg p-2 hover:bg-muted/50 dark:hover:bg-muted/30"
             >
               <RadioGroupItem value={option.value} id={`route-mode-${option.value}`} className="mt-0.5" />
               <div className="min-w-0">
@@ -159,7 +159,7 @@ export const BackendPanel: React.FC<BackendPanelProps> = ({ t }) => {
           type="url"
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
-          className="w-full px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none mb-3"
+          className="mb-3 h-11 w-full rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
           placeholder="https://example.com"
         />
         <label htmlFor="backend-api-secret" className="block text-sm font-medium text-foreground dark:text-muted-foreground mb-2">
@@ -171,13 +171,13 @@ export const BackendPanel: React.FC<BackendPanelProps> = ({ t }) => {
             type="password"
             value={secretInput}
             onChange={(e) => setSecretInput(e.target.value)}
-            className="flex-1 px-3 py-2 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground focus:ring-2 focus:ring-ring focus:border-transparent focus:outline-none"
+            className="h-11 w-full flex-1 rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring dark:border-border dark:bg-card dark:text-foreground sm:h-10 sm:text-sm"
             placeholder={t('输入后端 API_SECRET（可选）', 'Enter backend API_SECRET (optional)')}
           />
           <Button
             onClick={handleTestConnection}
             disabled={status === 'checking'}
-            className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="touch-target-44 flex h-11 w-full items-center justify-center space-x-2 rounded-lg bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
           >
             {status === 'checking' ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
