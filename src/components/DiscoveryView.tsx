@@ -21,6 +21,7 @@ import { SiAndroid, SiApple, SiLinux, SiX, SiTelegram } from '@icons-pack/react-
 import { SiWindows } from './SiWindows';
 import { useAppStore } from '../store/useAppStore';
 import { useDiscoveryActions } from '../features/discovery/hooks/useDiscoveryActions';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { DiscoverySidebar } from './DiscoverySidebar';
 import { SubscriptionRepoCard } from './SubscriptionRepoCard';
 import { CodeSearchView } from './CodeSearchView';
@@ -284,7 +285,7 @@ const PlatformFilter: React.FC<PlatformFilterProps> = ({ platform, onPlatformCha
           className="touch-target-44 flex h-11 items-center gap-2 rounded-lg bg-muted px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-accent"
         >
           <Filter className="h-4 w-4" />
-          <span className="hidden xl:inline">{language === 'zh' ? selectedPlatform?.name : selectedPlatform?.nameEn}</span>
+          <span className="max-w-[7rem] truncate sm:max-w-none">{language === 'zh' ? selectedPlatform?.name : selectedPlatform?.nameEn}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -709,6 +710,12 @@ export const DiscoveryView: React.FC = React.memo(() => {
     }
   }, [safeDiscoveryChannels, refreshChannel]);
 
+  const canPullRefresh = selectedDiscoveryChannel !== 'code-search';
+  const { distance: pullDistance, refreshing: pullRefreshing } = usePullToRefresh({
+    enabled: canPullRefresh,
+    onRefresh: () => refreshChannel(selectedDiscoveryChannel, 1, false),
+  });
+
   const mobileChannels = useMemo(() => {
     return safeDiscoveryChannels
       .filter(ch => ch.enabled)
@@ -720,6 +727,15 @@ export const DiscoveryView: React.FC = React.memo(() => {
 
   return (
     <div className="flex flex-col">
+      {canPullRefresh && (pullDistance > 12 || pullRefreshing) && (
+        <div className="mb-2 flex h-11 items-center justify-center rounded-md bg-muted/60 text-sm text-muted-foreground md:hidden" role="status">
+          {pullRefreshing
+            ? t('正在刷新…', 'Refreshing…')
+            : pullDistance >= 80
+              ? t('松开刷新', 'Release to refresh')
+              : t('下拉刷新', 'Pull to refresh')}
+        </div>
+      )}
       {/* Mobile Tab Navigation */}
       <MobileTabNav
         channels={mobileChannels}
@@ -790,7 +806,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       </p>
                     )}
                     {currentLastRefresh && (
-                      <p className="hidden sm:block text-xs text-muted-foreground dark:text-muted-foreground">
+                      <p className="truncate text-xs text-muted-foreground dark:text-muted-foreground">
                         {t('更新于', 'Updated')} {formatLastRefresh(currentLastRefresh)}
                       </p>
                     )}
