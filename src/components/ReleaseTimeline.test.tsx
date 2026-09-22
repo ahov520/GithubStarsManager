@@ -199,4 +199,18 @@ describe('ReleaseTimeline unread snapshot', () => {
     // 展开确实生效：资产行可见
     expect(await screen.findByText('app.zip')).toBeInTheDocument();
   });
+
+  it('keeps the empty unread and filter actions at 44px', async () => {
+    storeState.readReleases = new Set([101]);
+    const { rerender } = render(<ReleaseTimeline />);
+    expect(await screen.findByRole('button', { name: '查看全部' })).toHaveClass('h-11');
+
+    storeState = createStoreState({
+      releaseShowMode: 'all',
+      releaseSelectedFilters: ['preset-android'],
+      readReleases: new Set<number>(),
+    });
+    rerender(<ReleaseTimeline />);
+    expect(screen.getByRole('button', { name: '清除过滤器' })).toHaveClass('h-11');
+  });
 });

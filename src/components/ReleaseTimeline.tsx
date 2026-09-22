@@ -860,7 +860,7 @@ export const ReleaseTimeline: React.FC = () => {
             {releaseShowMode === 'unread' && (
               <Button
                 onClick={() => handleShowModeChange('all')}
-                className="ui-button-primary mt-4 px-4 py-2 text-sm"
+                className="ui-button-primary mt-4 h-11 px-4 text-sm"
               >
                 {t('查看全部', 'Show All')}
               </Button>
@@ -868,7 +868,7 @@ export const ReleaseTimeline: React.FC = () => {
             {selectedFilters.length > 0 && releaseShowMode !== 'unread' && (
               <Button
                 onClick={handleClearFilters}
-                className="ui-button-primary mt-4 px-4 py-2 text-sm"
+                className="ui-button-primary mt-4 h-11 px-4 text-sm"
               >
                 {t('清除过滤器', 'Clear Filters')}
               </Button>

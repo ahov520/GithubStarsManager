@@ -69,7 +69,30 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={filter ? '编辑过滤器' : '新建过滤器'}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={filter ? '编辑过滤器' : '新建过滤器'}
+      mobileFullScreen
+      scrollable
+      footer={(
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            onClick={onClose}
+            className="h-11 w-full bg-muted text-foreground hover:bg-accent sm:w-auto dark:border dark:border-border dark:bg-muted/40 dark:hover:bg-accent"
+          >
+            取消
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!name.trim() || keywords.length === 0}
+            className="h-11 w-full sm:w-auto"
+          >
+            {filter ? '保存' : '创建'}
+          </Button>
+        </div>
+      )}
+    >
       <div className="space-y-4">
         {/* Filter Name */}
         <div>
@@ -82,7 +105,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="例如: macOS"
-            className="w-full px-3 py-2 border border-border dark:border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-card dark:bg-muted/40 text-foreground dark:text-foreground"
+            className="h-11 w-full border-border bg-card px-3 text-base text-foreground dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:text-sm"
           />
         </div>
 
@@ -93,7 +116,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           </label>
           
           {/* Add keyword input */}
-          <div className="flex space-x-2 mb-3">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row">
             <Input
               id="filter-keywords"
               type="text"
@@ -101,12 +124,12 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="输入关键词，如: mac, dmg"
-              className="flex-1 px-3 py-2 border border-border dark:border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-card dark:bg-muted/40 text-foreground dark:text-foreground"
+              className="h-11 w-full border-border bg-card px-3 text-base text-foreground dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:flex-1 sm:text-sm"
             />
             <Button
               onClick={handleAddKeyword}
               disabled={!newKeyword.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 dark:bg-primary/80 dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 transition-colors"
+              className="h-11 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               <span>添加</span>
@@ -131,10 +154,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon"
                       onClick={() => handleRemoveKeyword(index)}
                       aria-label={`删除关键词 ${keyword}`}
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground transition-colors"
+                      className="h-11 w-11 p-0 text-muted-foreground transition-colors hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground"
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -158,22 +180,6 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           </p>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t dark:border-border mt-4">
-          <Button
-            onClick={onClose}
-            className="px-4 py-2 text-foreground dark:text-foreground bg-muted dark:bg-muted/40 dark:border dark:border-border rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors"
-          >
-            取消
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!name.trim() || keywords.length === 0}
-            className={`px-4 py-2 rounded-lg transition-colors ${(!name.trim() || keywords.length === 0) ? 'bg-muted text-muted-foreground dark:bg-card/5 dark:text-muted-foreground cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-success/80 dark:hover:bg-success'}`}
-          >
-            {filter ? '保存' : '创建'}
-          </Button>
-        </div>
       </div>
     </Modal>
   );
