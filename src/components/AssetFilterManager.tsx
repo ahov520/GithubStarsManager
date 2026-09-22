@@ -148,6 +148,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
               aria-label={t('清除所有筛选', 'Clear all filters')}
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="sm:hidden">{t('清除', 'Clear')}</span>
               <span className="hidden sm:inline">{t('清除所有筛选', 'Clear all filters')}</span>
             </Button>
           )}
@@ -159,7 +160,7 @@ export const AssetFilterManager: React.FC<AssetFilterManagerProps> = ({
             aria-label={t('新建过滤器', 'New Filter')}
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{t('新建', 'New')}</span>
+            <span>{t('新建', 'New')}</span>
           </Button>
         </div>
       </div>

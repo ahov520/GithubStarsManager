@@ -32,6 +32,10 @@ describe('AssetFilterManager', () => {
       />,
     );
 
+    const createFilter = screen.getByRole('button', { name: '新建过滤器' });
+    expect(createFilter.className).toContain('touch-target-44');
+    expect(createFilter.textContent).toContain('新建');
+
     await user.click(screen.getByRole('button', { name: '过滤器' }));
     const chip = screen.getByRole('button', { name: '很长的自定义安装包过滤器 (apk, aab)' });
     expect(chip).toHaveClass('min-h-11', 'w-auto', 'max-w-full', 'whitespace-normal');

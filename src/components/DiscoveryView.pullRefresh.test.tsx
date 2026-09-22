@@ -117,6 +117,10 @@ describe('DiscoveryView phone refresh', () => {
 
     render(<DiscoveryView />);
 
+    const analyze = screen.getByRole('button', { name: 'AI分析' });
+    expect(analyze.className).toContain('h-11');
+    expect(analyze.textContent).toContain('分析');
+
     const hint = screen.getByRole('status');
     expect(hint).toHaveTextContent('松开刷新');
     expect(hint.className).toContain('md:hidden');

@@ -980,6 +980,7 @@ export const DiscoveryView: React.FC = React.memo(() => {
                       title={t('AI分析', 'Analyze with AI')}
                     >
                       <Bot className="w-4 h-4" />
+                      <span className="sm:hidden">{t('分析', 'AI')}</span>
                       <span className="hidden sm:inline">{t('AI分析', 'AI Analyze')}</span>
                     </Button>
                   )}
