@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, ArrowDown, ArrowLeft, CheckCircle2, ChevronDown, ChevronRight, CircleDot, Copy, ExternalLink, Gauge, History, Loader2, MessageSquareText, Plus, RotateCcw, Send, Square } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowLeft, CheckCircle2, ChevronDown, ChevronRight, CircleDot, Copy, ExternalLink, Gauge, History, Loader2, MessageSquareText, Plus, RotateCcw, Send, Share2, Square } from 'lucide-react';
 import type { Repository } from '../types';
 import type { RepositoryChatMessage, RepositoryChatTaskDepth, RepositoryChatToolEvent, ToolEvidence } from '../types/repositoryChat';
 import { TASK_DEPTH_PRESETS } from '../types/repositoryChat';
@@ -292,6 +292,19 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
     );
   };
 
+  const canShare = typeof navigator.share === 'function';
+  const shareAnswer = async (message: RepositoryChatMessage) => {
+    try {
+      await navigator.share({
+        title: repository.full_name,
+        text: stripCitationsForCopy(message.content),
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      toast(t('分享失败', 'Share failed'), 'error');
+    }
+  };
+
   const lastMessage = messages[messages.length - 1];
 
   // 仅在回答从流式进入终态时向屏幕阅读器通报一次，避免 aria-live 在流式期间反复朗读。
@@ -328,7 +341,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs text-muted-foreground"
+                className="touch-target-44 h-11 px-3 text-sm text-muted-foreground"
                 onClick={onBack}
               >
                 <ArrowLeft className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
@@ -356,7 +369,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
         </SheetHeader>
 
         <div className="flex items-center gap-2 border-b border-border pb-3">
-          <Button type="button" variant="secondary" size="sm" onClick={handleCreateSession} disabled={isLoading || isSending}>
+          <Button type="button" variant="secondary" size="sm" className="touch-target-44 h-11" onClick={handleCreateSession} disabled={isLoading || isSending}>
             {isLoading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />}
             {t('新建会话', 'New chat')}
           </Button>
@@ -364,7 +377,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
             type="button"
             variant={showHistory ? 'secondary' : 'ghost'}
             size="sm"
-            className="ml-auto"
+            className="touch-target-44 ml-auto h-11"
             onClick={() => setShowHistory((previous) => !previous)}
             aria-pressed={showHistory}
           >
@@ -407,7 +420,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                       <p className="text-sm font-medium">{t('仓库问答尚未就绪', 'Repository chat is not ready')}</p>
                       <p className="text-xs text-muted-foreground">{unavailableReason}</p>
                     </div>
-                    <Button type="button" onClick={navigateToAiSettings}>{t('配置 AI 服务', 'Configure AI service')}</Button>
+                    <Button type="button" className="touch-target-44 h-11" onClick={navigateToAiSettings}>{t('配置 AI 服务', 'Configure AI service')}</Button>
                   </div>
                 ) : !activeSession ? (
                   <div className="flex min-h-56 flex-col items-center justify-center gap-4 rounded-md border border-dashed border-border px-6 text-center">
@@ -416,7 +429,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                       <p className="text-sm font-medium">{t('开始询问这个仓库', 'Ask this repository')}</p>
                       <p className="text-xs text-muted-foreground">{t('新会话会固定当前源码版本，并在回答中保留可点击的来源。', 'A new conversation pins the current source version and keeps clickable sources in answers.')}</p>
                     </div>
-                    <Button type="button" onClick={handleCreateSession} disabled={isLoading || isSending}>
+                    <Button type="button" className="touch-target-44 h-11" onClick={handleCreateSession} disabled={isLoading || isSending}>
                       <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
                       {t('新建会话', 'New conversation')}
                     </Button>
@@ -440,7 +453,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                     {chatError && (
                       <div className="flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-muted/20 px-3 py-2 text-sm text-destructive">
                         <span>{chatError}</span>
-                        <Button type="button" variant="secondary" size="sm" onClick={() => void retry()}>{t('重试', 'Retry')}</Button>
+                        <Button type="button" variant="secondary" size="sm" className="touch-target-44 h-11 shrink-0" onClick={() => void retry()}>{t('重试', 'Retry')}</Button>
                       </div>
                     )}
                     {messages.map((message) => {
@@ -488,17 +501,29 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                         )}
                         {message.role === 'assistant' && message.status !== 'streaming' && (isCopyableMessage(message) || canRegenerate) && (
                           <div className="mt-2 flex items-center justify-end gap-1 opacity-100 transition-opacity focus-within:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/message:opacity-100">
+                            {isCopyableMessage(message) && canShare && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="touch-target-44 h-11 w-11 text-muted-foreground hover:text-foreground"
+                                onClick={() => void shareAnswer(message)}
+                                aria-label={t('分享回答', 'Share answer')}
+                              >
+                                <Share2 className="h-4 w-4" aria-hidden="true" />
+                              </Button>
+                            )}
                             {isCopyableMessage(message) && (
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                className="touch-target-44 h-11 w-11 text-muted-foreground hover:text-foreground"
                                 onClick={() => void handleCopyAnswer(message)}
                                 aria-label={t('复制回答', 'Copy answer')}
                                 title={t('复制回答（不包含引用标注）', 'Copy answer (without citation marks)')}
                               >
-                                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                                <Copy className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             )}
                             {canRegenerate && (
@@ -506,7 +531,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                className="touch-target-44 h-11 w-11 text-muted-foreground hover:text-foreground"
                                 onClick={() => void regenerate()}
                                 aria-label={t('重新生成', 'Regenerate')}
                                 title={t('重新生成本条回答', 'Regenerate this answer')}
@@ -527,7 +552,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-background shadow-md"
+                  className="touch-target-44 absolute bottom-3 right-3 h-11 w-11 rounded-full bg-background shadow-md"
                   onClick={scrollToBottom}
                   aria-label={t('回到底部', 'Scroll to latest')}
                   title={t('回到底部', 'Scroll to latest')}
@@ -573,7 +598,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                   <ChevronDown className="ml-1 h-3 w-3" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="top" className="w-72">
+              <DropdownMenuContent align="start" side="top" className="w-72 [&_[role=menuitem]]:min-h-11 sm:[&_[role=menuitem]]:min-h-0">
                 <DropdownMenuLabel className="text-xs text-muted-foreground">{t('任务深度决定取证轮数与读取范围', 'Task depth controls retrieval rounds and read scope')}</DropdownMenuLabel>
                 {TASK_DEPTH_OPTIONS.map((option) => {
                   const budget = option.value !== 'default' ? TASK_DEPTH_PRESETS[option.value].budget : null;
@@ -596,7 +621,7 @@ const RepositoryChatSheet: React.FC<RepositoryChatSheetProps> = ({
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
-            {!isSending && lastMessage?.role === 'assistant' && (lastMessage.status === 'error' || lastMessage.status === 'aborted') && <Button type="button" variant="ghost" size="sm" className="touch-target-44 sm:h-7 sm:min-h-0 sm:min-w-0 h-8 px-2" onClick={() => void retry()}><RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{t('重试', 'Retry')}</Button>}
+            {!isSending && lastMessage?.role === 'assistant' && (lastMessage.status === 'error' || lastMessage.status === 'aborted') && <Button type="button" variant="ghost" size="sm" className="touch-target-44 h-11 px-2 sm:h-7 sm:min-h-0 sm:min-w-0" onClick={() => void retry()}><RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{t('重试', 'Retry')}</Button>}
           </div>
         </form>
       </SheetContent>
