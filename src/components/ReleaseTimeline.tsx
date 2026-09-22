@@ -533,16 +533,17 @@ export const ReleaseTimeline: React.FC = () => {
         {subscribedRepoCount > 0 && (
            <div className="mb-6 flex flex-col items-center gap-3">
              {/* Pre-release toggle */}
-             <div className="flex items-center gap-2 select-none">
+             <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 px-3 select-none">
                <Switch
                  checked={includePreRelease}
                  onCheckedChange={setIncludePreRelease}
                  aria-label={t('包含 Pre-release', 'Include Pre-release')}
+                 className="after:-inset-y-3"
                />
                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                  {t('包含 Pre-release', 'Include Pre-release')}
                </span>
-             </div>
+             </label>
 
              <div className="flex flex-wrap items-center justify-center gap-2">
                {/* Refresh button */}
@@ -642,11 +643,12 @@ export const ReleaseTimeline: React.FC = () => {
             )}
 
             {/* Pre-release toggle */}
-            <label className="inline-flex min-h-[44px] items-center gap-1.5 select-none">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 px-1 select-none">
               <Switch
                 checked={includePreRelease}
                 onCheckedChange={setIncludePreRelease}
                 aria-label={t('包含 Pre-release', 'Include Pre-release')}
+                className="after:-inset-y-3"
               />
               <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {t('Pre', 'Pre')}
