@@ -170,7 +170,7 @@ const RepoListEditor: React.FC<RepoListEditorProps> = ({
             if (event.key === 'Enter' && !event.nativeEvent.isComposing) handleAdd();
           }}
           placeholder={placeholder}
-          className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:text-sm"
+          className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-base text-foreground focus:border-transparent focus:ring-2 focus:ring-ring dark:border-border dark:bg-muted/40 dark:text-foreground sm:h-10 sm:flex-1 sm:text-sm"
         />
         <Button
           type="button"
